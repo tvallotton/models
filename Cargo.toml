@@ -1,0 +1,6 @@
+[workspace]
+members = [
+    "sqlx-models", #
+    "tests",
+    "sqlx-models-proc-macro"
+]

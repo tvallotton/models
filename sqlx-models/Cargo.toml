@@ -1,0 +1,20 @@
+[package]
+name = "sqlx-models"
+version = "0.1.0"
+edition = "2018"
+
+[features]
+migrations = []
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[dependencies]
+dotenv = "0.15.0"
+lazy_static = "1.4.0"
+log = "0.4.14"
+sqlparser = "0.9.0"
+sqlx = "0.5.5"
+url = "2.2.2"
+sqlx-models-proc-macro = { path = "../sqlx-models-proc-macro" }
+
+[dev-dependencies]
+sqlx = { version = "0.5.5", features = ["any", "runtime-tokio-native-tls"] }
