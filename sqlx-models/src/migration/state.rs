@@ -5,14 +5,14 @@ use std::{convert::TryInto, path::PathBuf};
 use Statement::*;
 
 #[derive(Debug, Clone)]
-pub struct State {
-    dialect: &'static dyn Dialect,
-    tables: HashMap<String, Table>,
+pub(super) struct State {
+    dialect: Dialect,
+    pub tables: HashMap<String, Table>,
 }
 
 impl State {
     /// constructs a new State from the "migrations/" directory.
-    pub fn new(dialect: &'static dyn Dialect) -> Self {
+    pub fn new(dialect: Dialect) -> Self {
         let mut out = State {
             dialect,
             tables: HashMap::new(),
@@ -21,27 +21,49 @@ impl State {
         out
     }
 
-    fn init(&mut self) {
-        let stmts = self.get_statements();
-        use ObjectType::*;
-        for stmt in stmts {
-            match stmt {
-                CreateTable { .. } => self.create_table(stmt.try_into()),
-                AlterTable { name, operation } => self.alter_table(name, operation),
-                Drop {
-                    object_type: Table,
-                    if_exists,
-                    names,
-                    cascade,
-                    ..
-                } => self.drop_tables(names, if_exists, cascade),
-                _ => (),
-            }
+    pub fn matches(&self, target: &Table) -> bool {
+        if let Some(table) = self.tables.get(&target.name) {
+            table == target
+        } else {
+            false
         }
     }
 
+    pub fn get_changes(&mut self, target: &Table) -> Vec<Statement> {
+        if let Some(table) = self.tables.get_mut(&target.name) {
+            table.get_changes(target, self.dialect)
+        } else {
+            // create table
+            vec![target.clone().into()]
+        }
+    }
+
+    /// Computes the current state of the schema
+    /// from the "migrations/" directory.
+    fn init(&mut self) {
+        let stmts = self.get_statements();
+        for stmt in stmts {
+            self.update_state(stmt);
+        }
+    }
+
+    pub(super) fn update_state(&mut self, stmt: Statement) {
+        use ObjectType::*;
+        match stmt {
+            CreateTable { .. } => self.create_table(stmt.try_into()),
+            AlterTable { name, operation } => self.alter_table(name, operation),
+            Drop {
+                object_type: Table,
+                if_exists,
+                names,
+                cascade,
+                ..
+            } => self.drop_tables(names, if_exists, cascade),
+            _ => (),
+        }
+    }
     /// Deletes all constraints containing the table name from
-    /// the remaining tables
+    /// the remaining tables.
 
     fn cascade(&mut self, name: &str) {
         use TableConstraint::*;
@@ -59,20 +81,22 @@ impl State {
             });
     }
 
+    /// dropts a list of tables
     fn drop_tables(&mut self, names: Vec<ObjectName>, if_exists: bool, cascade: bool) {
         names
-            .into_iter() //
+            .iter() //
             .map(|name| &name.0[0].value)
             .for_each(|name| {
-                if !(if_exists && self.tables.contains_key(&name)) {
+                if !(if_exists && self.tables.contains_key(name)) {
                     panic!("Table \"{}\" cannot be dropped as it does not exist.", name)
                 }
                 if cascade {
-                    self.cascade(&name);
+                    self.cascade(name);
                 }
-                self.tables.remove(&name);
+                self.tables.remove(name);
             })
     }
+
     fn alter_table(&mut self, name: ObjectName, op: AlterTableOperation) {
         self.tables
             .get_mut(&name.0[0].value) //
@@ -93,20 +117,22 @@ impl State {
         }
         tables.insert(table.name.clone(), table);
     }
+    /// It retrieves a vec of all statements in the "migrations/" directory
+    /// In the order they were written.
     fn get_statements(&mut self) -> Vec<Statement> {
         self.read_dir()
             .into_iter()
             .filter(|file| file.is_file())
             .map(read_to_string)
             .map(Result::unwrap)
-            .map(|sql| Parser::parse_sql(self.dialect, &sql))
+            .map(|sql| parse_sql(&self.dialect, &sql))
             .map(Result::unwrap)
             .fold(vec![], |mut a, mut b| {
                 a.append(&mut b);
                 a
             })
     }
-
+    /// returns a list of all the files in the migrations directory.carg
     fn read_dir(&self) -> Vec<PathBuf> {
         let mut dir: Vec<_> = read_dir("migrations/")
             .or_else(|_| {
@@ -120,3 +146,8 @@ impl State {
         dir
     }
 }
+
+// #[test]
+// fn state_new() {
+//     State::new()
+// }
