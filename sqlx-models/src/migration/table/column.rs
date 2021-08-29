@@ -1,8 +1,8 @@
-use crate::{migration::state::State, prelude::*};
+use crate::{migration::schema::Schema, prelude::*};
 
 use ast::ColumnDef;
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Column {
     pub name: String,
     pub r#type: DataType,
@@ -10,11 +10,11 @@ pub struct Column {
 }
 
 impl Column {
-    pub(super) fn get_changes(&mut self, target: &Column, dialect: Dialect) -> Vec<Statement> {
+    pub(super) fn get_changes(&mut self, target: &Column, schema: &mut Schema) -> Vec<Statement> {
         if target == self {
             vec![]
         } else {
-            match dialect {
+            match schema.dialect {
                 Sqlite => {
                     todo!()
                 },

@@ -5,15 +5,15 @@ use std::{convert::TryInto, path::PathBuf};
 use Statement::*;
 
 #[derive(Debug, Clone)]
-pub(super) struct State {
-    dialect: Dialect,
-    pub tables: HashMap<String, Table>,
+pub(super) struct Schema {
+    pub(crate) dialect: Dialect,
+    pub tables: HashMap<ObjectName, Table>,
 }
 
-impl State {
+impl Schema {
     /// constructs a new State from the "migrations/" directory.
     pub fn new(dialect: Dialect) -> Self {
-        let mut out = State {
+        let mut out = Self {
             dialect,
             tables: HashMap::new(),
         };
@@ -21,19 +21,10 @@ impl State {
         out
     }
 
-    pub fn matches(&self, target: &Table) -> bool {
+    pub fn get_changes(&self, target: Table) -> Vec<Statement> {
         if let Some(table) = self.tables.get(&target.name) {
-            table == target
+            table.get_changes(&target, self)
         } else {
-            false
-        }
-    }
-
-    pub fn get_changes(&mut self, target: &Table) -> Vec<Statement> {
-        if let Some(table) = self.tables.get_mut(&target.name) {
-            table.get_changes(target, self.dialect)
-        } else {
-            // create table
             vec![target.clone().into()]
         }
     }
@@ -43,11 +34,11 @@ impl State {
     fn init(&mut self) {
         let stmts = self.get_statements();
         for stmt in stmts {
-            self.update_state(stmt);
+            self.update_schema(stmt);
         }
     }
 
-    pub(super) fn update_state(&mut self, stmt: Statement) {
+    pub(super) fn update_schema(&mut self, stmt: Statement) {
         use ObjectType::*;
         match stmt {
             CreateTable { .. } => self.create_table(stmt.try_into()),
@@ -65,7 +56,7 @@ impl State {
     /// Deletes all constraints containing the table name from
     /// the remaining tables.
 
-    fn cascade(&mut self, name: &str) {
+    fn cascade(&mut self, name: &ObjectName) {
         use TableConstraint::*;
         self.tables //
             .values_mut()
@@ -74,7 +65,7 @@ impl State {
                     .constraints
                     .drain(..)
                     .filter(|constr| match constr {
-                        ForeignKey { foreign_table, .. } => foreign_table.0[0].value == name,
+                        ForeignKey { foreign_table, .. } => foreign_table == name,
                         _ => true,
                     })
                     .collect()
@@ -85,13 +76,12 @@ impl State {
     fn drop_tables(&mut self, names: Vec<ObjectName>, if_exists: bool, cascade: bool) {
         names
             .iter() //
-            .map(|name| &name.0[0].value)
             .for_each(|name| {
                 if !(if_exists && self.tables.contains_key(name)) {
                     panic!("Table \"{}\" cannot be dropped as it does not exist.", name)
                 }
                 if cascade {
-                    self.cascade(name);
+                    self.cascade(&name);
                 }
                 self.tables.remove(name);
             })
@@ -99,7 +89,7 @@ impl State {
 
     fn alter_table(&mut self, name: ObjectName, op: AlterTableOperation) {
         self.tables
-            .get_mut(&name.0[0].value) //
+            .get_mut(&name) //
             .map(|table| table.alter_table(op))
             .expect(&format!(
                 "Failed to load migrations. Could not find the table \"{}\"",

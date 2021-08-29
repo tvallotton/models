@@ -1,73 +1,143 @@
+use super::Schema;
 use crate::prelude::*;
-use std::{convert::TryFrom, iter::Copied};
+use std::convert::TryFrom;
 mod column;
+
 mod constraint;
 pub use column::Column;
 pub use constraint::Constraint;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Table {
-    pub name: String,
-    pub if_not_exists: bool,
-    pub or_replace: bool,
+    pub name: ObjectName,
+    pub(crate) if_not_exists: bool,
+    pub(crate) or_replace: bool,
     pub columns: Vec<Column>,
     pub constraints: Vec<TableConstraint>,
 }
 
 impl Table {
-    pub(super) fn get_changes(&mut self, target: &Table, dialect: Dialect) -> Vec<Statement> {
-        let col_move = self.is_move_required(&target);
-        if dialect.requires_move() && col_move.is_some() {
-            self.make_move(&target, col_move.unwrap())
-        } else {
-            todo!()
+    fn cols_to_string(&self) -> String {
+        let mut out = String::new();
+        for (i, col) in self.columns.iter().enumerate() {
+            out += &ColumnDef::from(col.clone()).to_string();
+            if self.columns.len() != i + 1 {
+                out += ","
+            }
         }
-
-        // let mut to_add = vec![];
-        // let mut to_remove = vec![];
-        // let mut to_change = vec![];
-
-        // for col in &mut self.columns {
-        //     if let Some(col_target) = target.columns.iter().filter(|c| c.name != col.name).next() {
-        //         to_change.append(&mut col.get_changes(col_target, dialect));
-        //     }
-        // }
-        // let mut out = vec![];
-        // out.append(&mut to_remove);
-        // out.append(&mut to_change);
-        // out.append(&mut to_add);
-        // out
+        out
     }
 
-    fn make_move(&self, target: &Table, to_move: (Column, Option<Column>)) -> Vec<Statement> {
-        if to_move.1.is_none() {
-            self.remove_col_with_move(to_move.0)
-        } else {
-            self.replace_col_with_move(to_move.0, to_move.1)
-        }
-    }
-
-    fn remove_col_with_move(&self, col: Column) -> Vec<Statement> {
-
-        let tmp = self.clone(); 
-        todo!()
-        
-
-    }
-
-    fn is_move_required(&self, target: &Table) -> Option<(Column, Option<Column>)> {
-        for col0 in &self.columns {
-            for col1 in &target.columns {
-                if col0.name == col1.name && col0 != col1 {
-                    return Some((col0.clone(), Some(col1.clone())));
+    pub(super) fn get_changes(&self, target: &Table, schema: &Schema) -> Vec<Statement> {
+        let mut to_change = vec![];
+        let mut to_delete = vec![];
+        let mut to_create = vec![];
+        for c1 in &target.columns {
+            for c0 in &self.columns {
+                if c1.name == c0.name && c1 != c0 {
+                    to_change.push((c0.clone(), c1.clone()))
                 }
             }
-            if target.columns.iter().any(|col1| col1.name == col0.name) {
-                return Some((col0.clone(), None));
+            if !self.columns.iter().any(|c0| c0.name == c1.name) {
+                to_create.push(c1.clone());
             }
         }
-        None
+
+        for c0 in &self.columns {
+            if !target.columns.iter().any(|c1| c1.name == c0.name) {
+                to_delete.push(c0.clone());
+            }
+        }
+        let mut stmts = vec![];
+        for (from, to) in to_change {
+            let stmt = self.change_col(from, to, schema);
+            stmts.extend(stmt)
+        }
+
+        for col in to_create {
+            let stmt = self.create_col(col);
+            stmts.push(stmt)
+        }
+        for col in to_delete {
+            let stmt = self.delete_col(col, schema);
+            stmts.extend(stmt)
+        }
+        stmts
     }
+    fn create_col(&self, col: Column) -> Statement {
+        Statement::AlterTable {
+            name: self.name.clone(),
+            operation: AlterTableOperation::AddColumn {
+                column_def: col.clone().into(),
+            },
+        }
+    }
+
+    fn change_col(&self, from: Column, to: Column, schema: &Schema) -> Vec<Statement> {
+        let mut out = vec![];
+        // if schema.dialect.requires_move() {
+        let mut target = self.clone();
+        target.name = ObjectName(vec![Ident::new("temprary")]);
+        let i = target.columns.iter().position(|col| *col == from).unwrap();
+        target.columns[i] = to;
+        // move self to temporary
+        out.extend(self.move_to_stmt(&target, schema));
+
+        // move temporary back to self
+        out.push(target.rename_stmt(&self.name));
+        out
+    }
+
+    fn rename_stmt(&self, name: &ObjectName) -> Statement {
+        Statement::AlterTable {
+            name: self.name.clone(),
+            operation: AlterTableOperation::RenameTable {
+                table_name: name.clone(),
+            },
+        }
+    }
+    fn delete_col(&self, col: Column, schema: &Schema) -> Vec<Statement> {
+        todo!()
+    }
+    fn move_to_stmt(&self, target: &Table, schema: &Schema) -> Vec<Statement> {
+        let mut out: Vec<Statement> = vec![];
+        //  create table
+        out.push(target.clone().into());
+        //  move values
+
+        out.push(
+            parse_sql(
+                &schema.dialect,
+                &format!(
+                    "INSERT INTO {} ({})
+                VALUES (
+                    SELECT {}
+                    FROM {}
+                );",
+                    target.name,
+                    target.cols_to_string(),
+                    self.cols_to_string(),
+                    self.name
+                ),
+            )
+            .unwrap()
+            .into_iter()
+            .next()
+            .unwrap(),
+        );
+        use Statement::*;
+
+        // drop old table
+        out.push(Drop {
+            object_type: ObjectType::Table,
+            if_exists: false,
+            names: vec![self.name.clone()],
+            cascade: true,
+            purge: false,
+        });
+        out
+    }
+
 
     pub(super) fn alter_table(&mut self, op: AlterTableOperation) {
         use AlterTableOperation::*;
@@ -89,7 +159,7 @@ impl Table {
 
     pub(super) fn new(name: String) -> Self {
         Table {
-            name,
+            name: ObjectName(vec![Ident::new(name)]),
             columns: vec![],
             constraints: vec![],
             or_replace: false,
@@ -142,7 +212,7 @@ impl TryFrom<Statement> for Table {
                 constraints,
                 ..
             } => Ok(Table {
-                name: name.0.into_iter().take(1).next().unwrap().value,
+                name: name,
                 if_not_exists,
                 or_replace,
                 columns: columns.into_iter().map(Into::into).collect(),
@@ -162,7 +232,7 @@ impl From<Table> for Statement {
             temporary: false,
             external: false,
             if_not_exists: false,
-            name: ObjectName(vec![Ident::new(table.name)]),
+            name: table.name,
             columns: table.columns.into_iter().map(Into::into).collect(),
             constraints: table.constraints,
             hive_distribution: HiveDistributionStyle::NONE,
