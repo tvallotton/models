@@ -7,33 +7,61 @@ use proc_macro2::TokenStream as TokenStream2;
 //     todo!()
 // }
 use Data::*;
-#[proc_macro_derive(Model, attributes(model))]
+#[proc_macro_derive(Model, attributes(model, primary_key, foreign_key, unique))]
 pub fn model(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
     assert!(input.generics.params.is_empty(), "Models cannot be generic");
     let name = input.ident;
     match input.data {
-        Struct(data) => read_fields(name, data),
-        _ => panic!("Enums and unions are not supported."),
+        Struct(data) => generate_code(name, &data),
+        _ => panic!("Sql models have to be structs, enums and unions are not supported."),
     }
 }
 
-fn read_fields(name: Ident, data: DataStruct) -> TokenStream {
+fn generate_code(name: Ident, data: &DataStruct) -> TokenStream {
     // let mut fields = HashMap::new();
 
-    for field in data.fields {
+    let mut columns = quote!();
+    let mut constraints = quote!();
+    for field in &data.fields {
         let col = get_column(field);
+        let constr = get_constr(field);
+        columns.extend(quote! {
+            table.columns.push(#col);
+        });
+        constraints.extend(quote! {
+            table.constraints.push(#constr)
+        })
     }
+
+    quote! {
+      impl ::sqlx_models::Models for #name {
+        fn table() -> ::sqlx_models::Table {
+            let mut __sqlx_models_table = Table::new(stringify!(#name));
+            #columns
+            #constraints
+            __sqlx_models_table
+        }
+      }
+    };
     todo!()
 }
 
-fn get_column(field: Field) -> TokenStream2 {
-    let ty = field.ty;
-    let ident = field.ident;
+fn get_column(field: &Field) -> TokenStream2 {
+    let ty = &field.ty;
+    let ident = field.ident.as_ref().unwrap();
     quote! {
-        Column {
-        name: stringify!(#ident).into(),
-        r#type: <#ty as ::sqlx_models::SqlType>::to_sql()
-        }
-    }
+       ::sqlx_models::Columns::new(
+        stringify!(#ident),
+        <#ty as ::sqlx_models::SqlType>::to_sql(__sqlx_models_dialect),
+        std::vec::Vec::new()
+    )}
+}
+
+fn get_constr(field: &Field) -> TokenStream2 {
+    todo!()
+}
+
+fn field_primary_key(ident: &Ident, others: &TokenStream2) -> TokenStream2 {
+    todo!()
 }

@@ -16,6 +16,8 @@ sqlx = "0.5.5"
 url = "2.2.2"
 sqlx-models-proc-macro = { path = "../sqlx-models-proc-macro" }
 chrono = "0.4.19"
+fehler = "1.0.0"
+sqlformat = "0.1.7"
 
 [dev-dependencies]
 sqlx = { version = "0.5.5", features = ["any", "runtime-tokio-native-tls"] }

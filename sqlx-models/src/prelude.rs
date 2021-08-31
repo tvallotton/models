@@ -3,21 +3,18 @@ pub use crate::migration::{
     Table,
 };
 
-pub use crate::model::{Dialect, Dialect::*, Model, SqlType};
-pub use collections::HashMap;
-pub use dotenv::*;
-pub use lazy_static::lazy_static;
-
-pub use sqlparser::*;
-pub use std::{collections::*, *};
-
-pub use ast::*;
-// pub use dialect::*;
-pub use parser::Parser;
-pub use result::Result;
-pub use url::*;
-
-pub fn parse_sql(
+pub(crate) use crate::model::{Dialect, Dialect::*, Model, SqlType};
+pub(crate) use ast::*;
+pub(crate) use collections::HashMap;
+pub(crate) use dotenv::*;
+pub(crate) use fehler::*;
+pub(crate) use lazy_static::lazy_static;
+pub(crate) use parser::Parser;
+pub(crate) use result::Result;
+pub(crate) use sqlparser::*;
+pub(crate) use std::{collections::*, *};
+pub(crate) use url::*;
+pub(crate) fn parse_sql(
     dialect: &dyn dialect::Dialect,
     sql: &str,
 ) -> Result<Vec<Statement>, parser::ParserError> {
@@ -36,3 +33,10 @@ fn get_uri() -> Url {
     };
     Url::parse(&database_url).expect("The DATABASE_URL environment variable could not be parsed.")
 }
+use sqlformat::{FormatOptions, Indent};
+
+pub static FORMAT_OPTIONS: FormatOptions = FormatOptions {
+    indent: Indent::Spaces(4),
+    uppercase: true,
+    lines_between_queries: 2,
+};

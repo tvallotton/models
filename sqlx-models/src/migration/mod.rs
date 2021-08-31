@@ -41,11 +41,21 @@ impl Migration {
 
     fn save_changes(&self, name: ObjectName, stmts: Vec<Statement>) {
         let time = chrono::Utc::now().timestamp_nanos();
-        let mut file = std::fs::File::create(format!("migrations/{}_{}.sql", time, name)).unwrap();
-        for stmt in stmts {
-            use std::io::Write;
-            write!(file, "{}", stmt).unwrap();
+        {
+            let mut file =
+                std::fs::File::create(format!("migrations/{}_{}.sql", time, name)).unwrap();
+            for stmt in stmts {
+                use std::io::Write;
+                let stmt = Self::formatted_stmt(stmt);
+                write!(file, "{}\n\n", stmt).unwrap();
+            }
         }
+    }
+
+    fn formatted_stmt(stmt: Statement) -> String {
+        use sqlformat::QueryParams;
+        let stmt = format!("{}", stmt);
+        sqlformat::format(&stmt, &QueryParams::None, FORMAT_OPTIONS)
     }
 }
 
@@ -54,7 +64,7 @@ fn generate_migrations() {
     struct Example {
         // id: i32,
     }
-
+    
     impl Model for Example {
         fn target() -> Table {
             let dialect = Migration::get_dialect();
@@ -70,4 +80,13 @@ fn generate_migrations() {
 
     let migration = Migration::new::<Example>();
     migration.run();
+}
+
+#[test]
+fn func() {
+    println!("{}", sqlformat::format(
+                &"create table user (id integer primary key,  id integer primary key , id integer primary key ); select * from user, post where user.id = post.id; create table lol (email TEXT not null);",
+                &sqlformat::QueryParams::None,
+                FORMAT_OPTIONS,
+            ));
 }
