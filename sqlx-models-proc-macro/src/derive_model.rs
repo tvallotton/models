@@ -20,7 +20,7 @@ impl Parse for ColumnNames {
 }
 
 struct ForeignKey {
-    tables: Vec<Ident>,
+    tables: Vec<Path>,
     columns: Vec<Ident>,
 }
 impl Parse for ForeignKey {
@@ -32,7 +32,7 @@ impl Parse for ForeignKey {
         let content;
         let _paren = parenthesized!(content in input);
         while !content.is_empty() {
-            out.tables.push(content.parse::<Ident>()?);
+            out.tables.push(content.parse::<Path>()?);
             content.parse::<Token![.]>()?;
             out.columns.push(content.parse::<Ident>()?);
         }
@@ -122,7 +122,9 @@ impl<'a> Model<'a> {
             let tokens: TokenStream = attr.tokens.clone().into();
 
             if path.is_ident("foreign_key") {
-                constraints.extend(Self::foreign_key(ident, tokens));
+                let (constr, val) = Self::foreign_key(field, tokens);
+                constraints.extend(constr);
+                validation.extend(val);
             } else {
                 let cols = parse::<ColumnNames>(tokens).unwrap().0;
                 let constrs = Self::unique_constraints(path, ident, &cols);
@@ -138,19 +140,31 @@ impl<'a> Model<'a> {
         }
     }
 
-    fn foreign_key(local_col: &Ident, tokens: TokenStream) -> Vec<TokenStream2> {
+    fn foreign_key(field: &Field, tokens: TokenStream) -> (Vec<TokenStream2>, Vec<TokenStream2>) {
         let ForeignKey { tables, columns } = parse(tokens).unwrap();
+        let col = field.ident.as_ref().unwrap();
         let mut constraints = vec![];
-        for (table, col) in tables.iter().zip(columns.iter()) {
+        let mut validation = vec![];
+        for (table, referred_col) in tables.iter().zip(columns.iter()) {
             constraints.push(quote! {
                 ::sqlx_models::constraint::foreign_key(
-                    #local_col,
-                    #table,
-                    #col
+                    stringify!(#col),
+                    stringify!(#table),
+                    stringify!(#referred_col),
                 )
-            })
+            });
+            let val = Self::foreign_key_validation(table, referred_col, &field.ty);
+            validation.push(val)
         }
-        constraints
+        (constraints, validation)
+    }
+
+    fn foreign_key_validation(forign_table: &Path, ref_col: &Ident, ty: &Type) -> TokenStream2 {
+        quote! {
+            let _ = |__sqlx_models_validation: #forign_table| {
+                let _: #ty = __sqlx_models_validation.#ref_col; 
+            };
+        }
     }
 
     fn unique_constr_validation(&self, colnames: &[Ident]) -> Vec<TokenStream2> {

@@ -26,11 +26,11 @@ pub fn unique(fields: &[&str]) -> TableConstraint {
     }
 }
 
-pub fn foreign_key(foreign_table: &str, local_col: &str, foreign_col: &str) -> TableConstraint {
+pub fn foreign_key(local_col: &str, foreign_table: &str, foreign_col: &str) -> TableConstraint {
     ForeignKey {
         name: None,
         foreign_table: ObjectName(vec![Ident::new(foreign_table)]),
-        referred_columns: vec![Ident::new(local_col)],
+        referred_columns: vec![Ident::new(foreign_col)],
         columns: vec![Ident::new(local_col)],
     }
 }

@@ -3,19 +3,18 @@
 use sqlx_models::Model;
 
 
-
+struct User {
+    id: i32
+}
 
 
 #[derive(Model)]
-struct User {
-    #[primary_key(second_id)]
+struct Post {
+    #[primary_key]
     id: i32,
-    
-    second_id: i32,
-
-
+    #[foreign_key(User.id)]
+    author: i32,
 }
-
 
 
 
