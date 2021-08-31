@@ -1,5 +1,5 @@
 pub use crate::migration::{
-    table::{Column, Constraint},
+    table::{Column},
     Table,
 };
 
@@ -7,7 +7,7 @@ pub(crate) use crate::model::{Dialect, Dialect::*, Model, SqlType};
 pub(crate) use ast::*;
 pub(crate) use collections::HashMap;
 pub(crate) use dotenv::*;
-pub(crate) use fehler::*;
+// pub(crate) use fehler::*;
 pub(crate) use lazy_static::lazy_static;
 pub(crate) use parser::Parser;
 pub(crate) use result::Result;

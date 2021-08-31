@@ -32,6 +32,7 @@ impl Table {
             }
         }
         let mut stmts = vec![];
+        dbg!(&to_change); 
         for (from, to) in to_change {
             let stmt = self.change_with_move(from, Some(to), schema);
             stmts.extend(stmt)
@@ -83,6 +84,7 @@ impl Table {
 
         // move temporary back to self
         out.push(target.rename_stmt(&self.name));
+        
         out
     }
     pub(crate) fn get_changes(&self, target: &Table, schema: &Schema) -> Vec<Statement> {

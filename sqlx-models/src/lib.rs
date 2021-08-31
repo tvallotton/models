@@ -3,8 +3,11 @@ mod migration;
 mod model;
 mod prelude;
 
-pub use migration::Migration;
-pub use model::{Model, SqlType};
+pub use migration::{
+    table::{constraint, Column},
+    Migration, Table,
+};
 
+pub use model::{Dialect, Model, SqlType};
 
-
+pub use sqlx_models_proc_macro::Model;

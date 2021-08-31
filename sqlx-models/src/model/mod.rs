@@ -51,7 +51,7 @@ impl sqlparser::dialect::Dialect for Dialect {
 }
 
 pub trait Model {
-    fn target() -> Table;
+    fn target(dialect: Dialect) -> Table;
 }
 
 pub trait SqlType {

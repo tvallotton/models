@@ -30,7 +30,7 @@ impl Migration {
         let dialect = Self::get_dialect();
         Self {
             schema: Schema::new(dialect),
-            target: T::target(),
+            target: T::target(dialect),
         }
     }
 
@@ -47,7 +47,7 @@ impl Migration {
             for stmt in stmts {
                 use std::io::Write;
                 let stmt = Self::formatted_stmt(stmt);
-                write!(file, "{}\n\n", stmt).unwrap();
+                write!(file, "{};\n\n", stmt).unwrap();
             }
         }
     }
@@ -66,7 +66,7 @@ fn generate_migrations() {
     }
     
     impl Model for Example {
-        fn target() -> Table {
+        fn target(dialect: Dialect) -> Table {
             let dialect = Migration::get_dialect();
             let mut table = Table::new("Example".into());
             table.columns.push(Column {

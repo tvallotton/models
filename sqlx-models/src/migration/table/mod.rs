@@ -1,11 +1,11 @@
 mod column;
-mod constraint;
+pub mod constraint;
 mod get_changes;
 
 use super::Schema;
 use crate::prelude::*;
 pub use column::Column;
-pub use constraint::Constraint;
+
 use std::convert::TryFrom;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -95,7 +95,7 @@ impl Table {
         }
     }
 
-    pub fn new(name: String) -> Self {
+    pub fn new(name: &str) -> Self {
         Table {
             name: ObjectName(vec![Ident::new(name)]),
             columns: vec![],
@@ -180,7 +180,7 @@ impl From<Table> for Statement {
             file_format: None,
             location: None,
             query: None,
-            without_rowid: true,
+            without_rowid: false,
             like: None,
         }
     }
