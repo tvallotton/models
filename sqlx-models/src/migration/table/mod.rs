@@ -126,10 +126,6 @@ impl Table {
             "Column \"{}\" does not exists",
             name
         );
-        assert!(
-            !cascade,
-            "Cascade while dropping columns is not supported yet."
-        );
     }
 
     pub(super) fn rename_col(&mut self, old: Ident, new: Ident) {

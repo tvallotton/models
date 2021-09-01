@@ -9,10 +9,16 @@ pub struct Column {
     pub options: Vec<ColumnOptionDef>,
 }
 
+impl super::get_changes::Name for Column {
+    fn name(&self) -> &Ident {
+        &self.name
+    }
+}
+
 impl Column {
-   pub fn new(name: &str, r#type: DataType, options: ColumnOptionDef) -> Self {
+    pub fn new(name: &str, r#type: DataType, options: ColumnOptionDef) -> Self {
         Column {
-            name: Ident::new(name),
+            name: Ident::new(name.to_lowercase()),
             r#type,
             options: vec![options],
         }

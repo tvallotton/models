@@ -4,14 +4,13 @@ use sqlx_models::Model;
 
 #[derive(Model)]
 struct User {
-    #[primary_key]
-    id: i32, 
-    email: String, 
-    #[unique]
+    #[primary_key(password)]
+    id: i32,
     
-    password: String, 
+    email: String, 
+    phone: String, 
+    password: String,
 }
-
 
 #[derive(Model)]
 struct Post {
@@ -19,9 +18,7 @@ struct Post {
     id: i32,
     #[foreign_key(User.id)]
     author: i32,
-    title: String, 
+    title: String,
 }
-
-
 
 fn main() {}

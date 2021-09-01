@@ -1,5 +1,12 @@
+use super::get_changes::Name;
 use crate::prelude::*;
 use TableConstraint::*;
+
+impl Name for TableConstraint {
+    fn name(&self) -> &Ident {
+        self.name()
+    }
+}
 
 pub fn name(constr: &TableConstraint) -> &Option<Ident> {
     match constr {
@@ -9,8 +16,8 @@ pub fn name(constr: &TableConstraint) -> &Option<Ident> {
     }
 }
 
-pub fn primary(fields: &[&str]) -> TableConstraint {
-    let name = None;
+pub fn primary(name: &str, fields: &[&str]) -> TableConstraint {
+    let name = Some(Ident::new(name));
     let mut columns = vec![];
     for field in fields {
         columns.push(Ident::new(*field));
@@ -22,8 +29,8 @@ pub fn primary(fields: &[&str]) -> TableConstraint {
     }
 }
 
-pub fn unique(fields: &[&str]) -> TableConstraint {
-    let name = None;
+pub fn unique(name: &str, fields: &[&str]) -> TableConstraint {
+    let name = Some(Ident::new(name));
     let mut columns = vec![];
     for field in fields {
         columns.push(Ident::new(*field));
@@ -35,9 +42,14 @@ pub fn unique(fields: &[&str]) -> TableConstraint {
     }
 }
 
-pub fn foreign_key(local_col: &str, foreign_table: &str, foreign_col: &str) -> TableConstraint {
+pub fn foreign_key(
+    name: &str,
+    local_col: &str,
+    foreign_table: &str,
+    foreign_col: &str,
+) -> TableConstraint {
     ForeignKey {
-        name: None,
+        name: Some(Ident::new(name)),
         foreign_table: ObjectName(vec![Ident::new(foreign_table)]),
         referred_columns: vec![Ident::new(foreign_col)],
         columns: vec![Ident::new(local_col)],

@@ -20,6 +20,6 @@ lazy_static! {
 use sqlparser::ast::ColumnOptionDef; 
 #[test]
 fn func() {
-    let ast = parse_sql(&Dialect::Sqlite, "create table lol (id int not null);"); 
+    let ast = parse_sql(&Dialect::Sqlite, "alter table x alter column y int not null;"); 
     println!("\n\n{}", dbg!(&ast.unwrap()[0])); 
 }

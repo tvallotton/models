@@ -1,6 +1,8 @@
 use crate::prelude::*;
-
+// SQLX_MODELS_GENERATE_MIGRATION=true
+// SQLX_MODELS_GENERATE_MIGRATIONS
 pub fn generate_migration(name: &Ident) -> TokenStream2 {
+    
     if let Ok(value) = std::env::var("SQLX_MODELS_GENERATE_MIGRATIONS") {
         if value.to_lowercase() == "true" {
             generate_migration_unchecked(name)

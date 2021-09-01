@@ -1,4 +1,5 @@
 use crate::prelude::*;
+
 use Data::*;
 
 struct ColumnNames(Vec<Ident>);
@@ -13,6 +14,9 @@ impl Parse for ColumnNames {
             let _paren = parenthesized!(content in input);
             while !content.is_empty() {
                 out.0.push(content.parse().unwrap());
+                if !content.is_empty() {
+                    content.parse::<Token![,]>().unwrap(); 
+                }
             }
             Ok(out)
         }
@@ -155,8 +159,10 @@ impl<'a> Model<'a> {
         for (table, referred_col) in tables.iter().zip(columns.iter()) {
             let table_name = table.get_ident().unwrap();
             let table_name = Ident::new(&table_name.to_string().to_lowercase(), table_name.span());
+            let constr_name = Self::constr_name(&"foreign", &col, &[&table_name, referred_col]);
             constraints.push(quote! {
                 ::sqlx_models::constraint::foreign_key(
+                    #constr_name,
                     stringify!(#col),
                     stringify!(#table_name),
                     stringify!(#referred_col),
@@ -198,11 +204,29 @@ impl<'a> Model<'a> {
         } else {
             return quote!();
         };
+        let constr_name = Self::constr_name(&method, name, cols);
 
         quote! {
             ::sqlx_models::constraint::#method(
+                #constr_name,
                 &[stringify!(#name), #(stringify!(#cols)),*]
             )
         }
+    }
+
+    fn constr_name(method: &impl ToString, name: &impl ToString, cols: &[impl ToString]) -> TokenStream2 {
+        let mut constr_name = String::new();
+        constr_name += &method.to_string();
+        constr_name += "_";
+        constr_name += &name.to_string();
+        
+        for (i, col) in cols.iter().enumerate() {
+            
+            constr_name += "_";
+            
+            constr_name += &col.to_string();
+            
+        }
+        quote!(#constr_name)
     }
 }

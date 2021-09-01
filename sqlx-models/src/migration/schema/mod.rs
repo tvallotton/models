@@ -42,7 +42,6 @@ impl Schema {
     }
 
     fn rename_table(&mut self, old_name: ObjectName, new_name: ObjectName) {
-        println!("ASDASDASDASDASD");
         let mut table = self.tables.remove(&old_name).unwrap();
         self.cascade(&old_name);
         table.name = new_name.clone();

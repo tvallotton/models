@@ -7,7 +7,7 @@ pub(crate) use dotenv::*;
 // pub(crate) use fehler::*;
 pub(crate) use lazy_static::lazy_static;
 pub(crate) use lazy_static::*;
- 
+pub(crate) use once_cell::sync::Lazy;
 pub(crate) use parser::Parser;
 pub(crate) use result::Result;
 pub(crate) use sqlparser::*;
@@ -19,9 +19,8 @@ pub(crate) fn parse_sql(
 ) -> Result<Vec<Statement>, parser::ParserError> {
     Parser::parse_sql(dialect, sql)
 }
-lazy_static! {
-    pub static ref DATABASE_URL: Url = get_uri();
-}
+
+pub static DATABASE_URL: Lazy<Url> = Lazy::new(get_uri);
 
 fn get_uri() -> Url {
     dotenv().ok();
@@ -32,11 +31,11 @@ fn get_uri() -> Url {
     };
     Url::parse(&database_url).expect("The DATABASE_URL environment variable could not be parsed.")
 }
-const fn get_migrations_dir() -> &'static str {
-    "migrations/"
+fn get_migrations_dir() -> String {
+    var("MIGRATIONS_DIR").unwrap_or("migrations/".into())
 }
 
-static MIGRATIONS_DIR: &str = get_migrations_dir();
+pub static MIGRATIONS_DIR: Lazy<String> = Lazy::new(get_migrations_dir);
 
 use sqlformat::{FormatOptions, Indent};
 
