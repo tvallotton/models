@@ -4,7 +4,7 @@ impl Table {
     fn cols_to_string(&self) -> String {
         let mut out = String::new();
         for (i, col) in self.columns.iter().enumerate() {
-            out += &ColumnDef::from(col.clone()).to_string();
+            out += &ColumnDef::from(col.clone()).name.to_string();
             if self.columns.len() != i + 1 {
                 out += ","
             }
@@ -17,7 +17,7 @@ impl Table {
         let mut to_create = vec![];
         for c1 in &target.columns {
             for c0 in &self.columns {
-                if c1.name == c0.name && c1 != c0 {
+                if c1.name == c0.name && c1.r#type != c0.r#type {
                     to_change.push((c0.clone(), c1.clone()))
                 }
             }
@@ -32,7 +32,7 @@ impl Table {
             }
         }
         let mut stmts = vec![];
-        dbg!(&to_change); 
+        dbg!(&to_change);
         for (from, to) in to_change {
             let stmt = self.change_with_move(from, Some(to), schema);
             stmts.extend(stmt)
@@ -46,6 +46,7 @@ impl Table {
             let stmt = self.delete_col(col, schema);
             stmts.extend(stmt)
         }
+
         stmts
     }
 
@@ -71,20 +72,21 @@ impl Table {
     ) -> Vec<Statement> {
         let mut out = vec![];
         // if schema.dialect.requires_move() {
+        let mut old_table = self.clone();
         let mut target = self.clone();
-        target.name = ObjectName(vec![Ident::new("temprary")]);
+        target.name = ObjectName(vec![Ident::new("temp")]);
         let i = target.columns.iter().position(|col| *col == from).unwrap();
         if let Some(to) = to {
             target.columns[i] = to;
         } else {
             target.columns.remove(i);
+            old_table.columns.remove(i); 
         }
         // move self to temporary
-        out.extend(self.move_to_stmt(&target, schema));
+        out.extend(old_table.move_to_stmt(&target, schema));
 
         // move temporary back to self
-        out.push(target.rename_stmt(&self.name));
-        
+        out.push(target.rename_stmt(&old_table.name));
         out
     }
     pub(crate) fn get_changes(&self, target: &Table, schema: &Schema) -> Vec<Statement> {
@@ -101,17 +103,14 @@ impl Table {
         out.push(
             parse_sql(
                 &schema.dialect,
-                &format!(
+                dbg!(&format!(
                     "INSERT INTO {} ({})
-                VALUES (
-                    SELECT {}
-                    FROM {}
-                );",
+                    SELECT {} FROM {};",
                     target.name,
                     target.cols_to_string(),
                     self.cols_to_string(),
                     self.name
-                ),
+                )),
             )
             .unwrap()
             .into_iter()

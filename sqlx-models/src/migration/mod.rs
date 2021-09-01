@@ -36,7 +36,23 @@ impl Migration {
 
     pub fn run(self) {
         let changes = self.schema.get_changes(self.target.clone());
-        self.save_changes(self.target.name.clone(), changes);
+        if !changes.is_empty() {
+            self.save_changes(self.target.name.clone(), changes);
+        }
+    }
+    pub fn get_changes(mut self) -> Vec<Statement> {
+        let mut changes = vec![];
+        loop {
+            let stmts = self.schema.get_changes(self.target.clone());
+            if stmts.is_empty() {
+                break;
+            }
+            for stmt in stmts {
+                changes.push(stmt.clone());
+                self.schema.update_schema(stmt);
+            }
+        }
+        changes
     }
 
     fn save_changes(&self, name: ObjectName, stmts: Vec<Statement>) {
@@ -64,7 +80,7 @@ fn generate_migrations() {
     struct Example {
         // id: i32,
     }
-    
+
     impl Model for Example {
         fn target(dialect: Dialect) -> Table {
             let dialect = Migration::get_dialect();

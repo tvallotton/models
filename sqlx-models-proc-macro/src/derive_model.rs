@@ -46,6 +46,7 @@ fn is_attribute(path: &Path) -> bool {
 
 pub struct Model<'a> {
     name: &'a Ident,
+    name_lowercase: Ident,
     data: &'a DataStruct,
 }
 
@@ -53,9 +54,14 @@ impl<'a> Model<'a> {
     pub fn derive(input: &'a DeriveInput) -> TokenStream2 {
         assert!(input.generics.params.is_empty(), "Models cannot be generic");
         let name = &input.ident;
+        let name_lowercase = Ident::new(&name.to_string().to_lowercase(), name.span());
         match &input.data {
             Struct(data) => {
-                let model = Self { name, data };
+                let model = Self {
+                    name,
+                    name_lowercase,
+                    data,
+                };
                 model.generate_code()
             }
             _ => panic!("Sql models have to be structs, enums and unions are not supported."),
@@ -63,13 +69,14 @@ impl<'a> Model<'a> {
     }
 
     fn generate_code(self) -> TokenStream2 {
-        let name = self.name;
+        let name = &self.name;
+        let name_lowercase = &self.name_lowercase;
         let columns = Self::get_columns(&self.data.fields);
         let constraints = self.get_constraints(&self.data.fields);
         quote! {
           impl ::sqlx_models::Model for #name {
             fn target(__sqlx_models_dialect: ::sqlx_models::Dialect) -> ::sqlx_models::Table {
-                let mut __sqlx_models_table = ::sqlx_models::Table::new(stringify!(#name));
+                let mut __sqlx_models_table = ::sqlx_models::Table::new(stringify!(#name_lowercase));
                 #columns
                 #constraints
                 __sqlx_models_table
@@ -96,7 +103,7 @@ impl<'a> Model<'a> {
            ::sqlx_models::Column::new(
             stringify!(#ident),
             <#ty as ::sqlx_models::SqlType>::as_sql(__sqlx_models_dialect),
-            ::std::vec::Vec::new()
+            <#ty as ::sqlx_models::SqlType>::null_option()
         )}
     }
 
@@ -146,10 +153,12 @@ impl<'a> Model<'a> {
         let mut constraints = vec![];
         let mut validation = vec![];
         for (table, referred_col) in tables.iter().zip(columns.iter()) {
+            let table_name = table.get_ident().unwrap();
+            let table_name = Ident::new(&table_name.to_string().to_lowercase(), table_name.span());
             constraints.push(quote! {
                 ::sqlx_models::constraint::foreign_key(
                     stringify!(#col),
-                    stringify!(#table),
+                    stringify!(#table_name),
                     stringify!(#referred_col),
                 )
             });
@@ -162,7 +171,7 @@ impl<'a> Model<'a> {
     fn foreign_key_validation(forign_table: &Path, ref_col: &Ident, ty: &Type) -> TokenStream2 {
         quote! {
             let _ = |__sqlx_models_validation: #forign_table| {
-                let _: #ty = __sqlx_models_validation.#ref_col; 
+                let _: #ty = __sqlx_models_validation.#ref_col;
             };
         }
     }

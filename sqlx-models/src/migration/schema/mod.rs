@@ -21,10 +21,14 @@ impl Schema {
         }
     }
 
-    fn update_schema(&mut self, stmt: Statement) {
+    pub(super) fn update_schema(&mut self, stmt: Statement) {
         use ObjectType::*;
         match stmt {
             CreateTable { .. } => self.create_table(stmt.try_into()),
+            AlterTable {
+                name,
+                operation: AlterTableOperation::RenameTable { table_name },
+            } => self.rename_table(name, table_name),
             AlterTable { name, operation } => self.alter_table(name, operation),
             Drop {
                 object_type: Table,
@@ -35,6 +39,14 @@ impl Schema {
             } => self.drop_tables(names, if_exists, cascade),
             _ => (),
         }
+    }
+
+    fn rename_table(&mut self, old_name: ObjectName, new_name: ObjectName) {
+        println!("ASDASDASDASDASD");
+        let mut table = self.tables.remove(&old_name).unwrap();
+        self.cascade(&old_name);
+        table.name = new_name.clone();
+        self.tables.insert(new_name, table);
     }
     /// Deletes all constraints containing the table name from
     /// the remaining tables.
@@ -60,7 +72,7 @@ impl Schema {
         names
             .iter() //
             .for_each(|name| {
-                if !(if_exists && self.tables.contains_key(name)) {
+                if !if_exists && !self.tables.contains_key(name) {
                     panic!("Table \"{}\" cannot be dropped as it does not exist.", name)
                 }
                 if cascade {

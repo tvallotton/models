@@ -1,4 +1,5 @@
 use super::*;
+
 impl Schema {
     pub fn get_changes(&self, target: Table) -> Vec<Statement> {
         if let Some(table) = self.tables.get(&target.name) {

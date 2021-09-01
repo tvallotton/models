@@ -1,0 +1,11 @@
+
+
+
+
+MAKE CONSTRAINTS REMOVABLE
+MAKE CONSTRAINTS ADDABLE
+
+
+BUGS: 
+    adding unique constrant causes bugs. 
+    Fix non nulls (option def)

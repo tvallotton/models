@@ -2,9 +2,14 @@
 #[allow(unused_imports)]
 use sqlx_models::Model;
 
-
+#[derive(Model)]
 struct User {
-    id: i32
+    #[primary_key]
+    id: i32, 
+    email: String, 
+    #[unique]
+    
+    password: String, 
 }
 
 
@@ -14,6 +19,7 @@ struct Post {
     id: i32,
     #[foreign_key(User.id)]
     author: i32,
+    title: String, 
 }
 
 

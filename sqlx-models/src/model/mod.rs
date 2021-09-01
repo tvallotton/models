@@ -55,7 +55,13 @@ pub trait Model {
 }
 
 pub trait SqlType {
-    fn as_sql(dialect: Dialect) -> DataType;
+    fn as_sql(dialect: Dialect) -> DataType; 
+    fn null_option() -> ColumnOptionDef {
+        ColumnOptionDef {
+            name: None,
+            option: ColumnOption::NotNull,
+        }
+    }
 }
 
 // impl SqlType for i64 {

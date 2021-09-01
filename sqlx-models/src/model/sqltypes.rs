@@ -1,3 +1,5 @@
+
+
 use super::{Dialect, SqlType};
 use crate::prelude::*;
 
@@ -7,51 +9,39 @@ fn named(name: &str) -> DataType {
 
 impl SqlType for i32 {
     fn as_sql(dialect: Dialect) -> DataType {
-        match dialect {
-            Sqlite => named("INTEGER"),
-            _ => DataType::Int,
+        DataType::Int
+    }
+    fn null_option() -> ColumnOptionDef {
+        ColumnOptionDef {
+            name: None,
+            option: ColumnOption::NotNull,
         }
     }
 }
 impl SqlType for i16 {
     fn as_sql(dialect: Dialect) -> DataType {
-        match dialect {
-            Sqlite => named("INTEGER"),
-            _ => DataType::Int,
-        }
+        DataType::Int
     }
 }
 impl SqlType for i8 {
     fn as_sql(dialect: Dialect) -> DataType {
-        match dialect {
-            Sqlite => named("INTEGER"),
-            _ => DataType::Int,
-        }
+        DataType::Int
     }
 }
 
 impl SqlType for u32 {
     fn as_sql(dialect: Dialect) -> DataType {
-        match dialect {
-            Sqlite => named("INTEGER"),
-            _ => DataType::Int,
-        }
+        DataType::Int
     }
 }
 impl SqlType for u16 {
     fn as_sql(dialect: Dialect) -> DataType {
-        match dialect {
-            Sqlite => named("INTEGER"),
-            _ => DataType::Int,
-        }
+        DataType::Int
     }
 }
 impl SqlType for u8 {
     fn as_sql(dialect: Dialect) -> DataType {
-        match dialect {
-            Sqlite => named("INTEGER"),
-            _ => DataType::Int,
-        }
+        DataType::Int
     }
 }
 
@@ -93,4 +83,17 @@ impl SqlType for Vec<u8> {
     fn as_sql(_: Dialect) -> DataType {
         named("BLOB")
     }
+}
+
+
+impl<T: SqlType> SqlType for Option<T> {
+    fn as_sql(dialect: Dialect) -> DataType {
+        T::as_sql(dialect)
+    }
+    fn null_option() -> ColumnOptionDef {
+        ColumnOptionDef {
+            name: None,
+            option: ColumnOption::Null,
+        }
+    } 
 }

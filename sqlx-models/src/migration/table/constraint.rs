@@ -1,5 +1,14 @@
 use crate::prelude::*;
 use TableConstraint::*;
+
+pub fn name(constr: &TableConstraint) -> &Option<Ident> {
+    match constr {
+        Unique { name, .. } => name,
+        ForeignKey { name, .. } => name,
+        Check { name, .. } => name,
+    }
+}
+
 pub fn primary(fields: &[&str]) -> TableConstraint {
     let name = None;
     let mut columns = vec![];

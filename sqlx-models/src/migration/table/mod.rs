@@ -82,6 +82,8 @@ impl Table {
         match op {
             AddColumn { column_def } => self.columns.push(column_def.into()),
             AddConstraint(constr) => self.constraints.push(constr),
+            DropConstraint { name } => self.drop_constraint(name),
+
             DropColumn {
                 column_name,
                 if_exists,
@@ -93,6 +95,13 @@ impl Table {
             } => self.rename_col(old_column_name, new_column_name),
             _ => panic!(""),
         }
+    }
+    pub fn drop_constraint(&mut self, rm_name: Ident) {
+        self.constraints = self
+            .constraints
+            .drain(..)
+            .filter(|constr| constraint::name(constr).as_ref() != Some(&rm_name))
+            .collect();
     }
 
     pub fn new(name: &str) -> Self {

@@ -10,11 +10,11 @@ pub struct Column {
 }
 
 impl Column {
-   pub fn new(name: &str, r#type: DataType, options: Vec<ColumnOptionDef>) -> Self {
+   pub fn new(name: &str, r#type: DataType, options: ColumnOptionDef) -> Self {
         Column {
             name: Ident::new(name),
             r#type,
-            options,
+            options: vec![options],
         }
     }
 }

@@ -1,7 +1,4 @@
-pub use crate::migration::{
-    table::{Column},
-    Table,
-};
+pub use crate::migration::{table::Column, Table};
 
 pub(crate) use crate::model::{Dialect, Dialect::*, Model, SqlType};
 pub(crate) use ast::*;
@@ -9,6 +6,8 @@ pub(crate) use collections::HashMap;
 pub(crate) use dotenv::*;
 // pub(crate) use fehler::*;
 pub(crate) use lazy_static::lazy_static;
+pub(crate) use lazy_static::*;
+ 
 pub(crate) use parser::Parser;
 pub(crate) use result::Result;
 pub(crate) use sqlparser::*;
@@ -33,6 +32,12 @@ fn get_uri() -> Url {
     };
     Url::parse(&database_url).expect("The DATABASE_URL environment variable could not be parsed.")
 }
+const fn get_migrations_dir() -> &'static str {
+    "migrations/"
+}
+
+static MIGRATIONS_DIR: &str = get_migrations_dir();
+
 use sqlformat::{FormatOptions, Indent};
 
 pub static FORMAT_OPTIONS: FormatOptions = FormatOptions {
