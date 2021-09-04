@@ -4,15 +4,17 @@ use TableConstraint::*;
 
 impl Name for TableConstraint {
     fn name(&self) -> &Ident {
-        self.name()
+        name(self)
+            .as_ref()
+            .expect("Anonymous constraints are not supported.")
     }
 }
 
 pub fn name(constr: &TableConstraint) -> &Option<Ident> {
     match constr {
-        Unique { name, .. } => name,
-        ForeignKey { name, .. } => name,
-        Check { name, .. } => name,
+        Unique(ast::Unique { name, .. }) => name,
+        ForeignKey(ast::ForeignKey { name, .. }) => name,
+        Check(ast::Check { name, .. }) => name,
     }
 }
 
@@ -22,11 +24,11 @@ pub fn primary(name: &str, fields: &[&str]) -> TableConstraint {
     for field in fields {
         columns.push(Ident::new(*field));
     }
-    Unique {
+    Unique(ast::Unique {
         name,
         columns,
         is_primary: true,
-    }
+    })
 }
 
 pub fn unique(name: &str, fields: &[&str]) -> TableConstraint {
@@ -35,11 +37,11 @@ pub fn unique(name: &str, fields: &[&str]) -> TableConstraint {
     for field in fields {
         columns.push(Ident::new(*field));
     }
-    Unique {
+    Unique(ast::Unique {
         name,
         columns,
         is_primary: false,
-    }
+    })
 }
 
 pub fn foreign_key(
@@ -47,11 +49,29 @@ pub fn foreign_key(
     local_col: &str,
     foreign_table: &str,
     foreign_col: &str,
+    on_delete: &str,
+    on_update: &str,
 ) -> TableConstraint {
-    ForeignKey {
+    ForeignKey(ast::ForeignKey {
         name: Some(Ident::new(name)),
         foreign_table: ObjectName(vec![Ident::new(foreign_table)]),
         referred_columns: vec![Ident::new(foreign_col)],
         columns: vec![Ident::new(local_col)],
-    }
+        on_delete: match &*on_delete.to_lowercase() {
+            "cascade" => Some(ast::ReferentialAction::Cascade),
+            "no action" => Some(ast::ReferentialAction::NoAction),
+            "restrict" => Some(ast::ReferentialAction::Restrict),
+            "set default" => Some(ast::ReferentialAction::SetDefault),
+            "set null" => Some(ast::ReferentialAction::SetNull),
+            _ => None,
+        },
+        on_update: match &*on_update.to_lowercase() {
+            "cascade" => Some(ast::ReferentialAction::Cascade),
+            "no action" => Some(ast::ReferentialAction::NoAction),
+            "restrict" => Some(ast::ReferentialAction::Restrict),
+            "set default" => Some(ast::ReferentialAction::SetDefault),
+            "set null" => Some(ast::ReferentialAction::SetNull),
+            _ => None,
+        },
+    })
 }

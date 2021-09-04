@@ -22,21 +22,14 @@ impl Schema {
     }
 
     pub(super) fn update_schema(&mut self, stmt: Statement) {
-        use ObjectType::*;
         match stmt {
-            CreateTable { .. } => self.create_table(stmt.try_into()),
-            AlterTable {
+            CreateTable(_) => self.create_table(stmt.try_into()),
+            AlterTable(ast::AlterTable {
                 name,
                 operation: AlterTableOperation::RenameTable { table_name },
-            } => self.rename_table(name, table_name),
-            AlterTable { name, operation } => self.alter_table(name, operation),
-            Drop {
-                object_type: Table,
-                if_exists,
-                names,
-                cascade,
-                ..
-            } => self.drop_tables(names, if_exists, cascade),
+            }) => self.rename_table(name, table_name),
+            AlterTable(alter) => self.alter_table(alter.name, alter.operation),
+            Drop(drop) => self.drop_tables(drop.names, drop.if_exists, drop.cascade),
             _ => (),
         }
     }
@@ -59,7 +52,7 @@ impl Schema {
                     .constraints
                     .drain(..)
                     .filter(|constr| match constr {
-                        ForeignKey { foreign_table, .. } => foreign_table == name,
+                        ForeignKey(ast::ForeignKey { foreign_table, .. }) => foreign_table == name,
                         _ => true,
                     })
                     .collect()

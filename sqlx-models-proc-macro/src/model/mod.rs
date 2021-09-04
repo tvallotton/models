@@ -1,5 +1,6 @@
-use crate::prelude::*;
+mod column;
 
+use crate::prelude::*;
 use Data::*;
 
 struct ColumnNames(Vec<Ident>);
@@ -15,7 +16,7 @@ impl Parse for ColumnNames {
             while !content.is_empty() {
                 out.0.push(content.parse().unwrap());
                 if !content.is_empty() {
-                    content.parse::<Token![,]>().unwrap(); 
+                    content.parse::<Token![,]>().unwrap();
                 }
             }
             Ok(out)
@@ -133,12 +134,12 @@ impl<'a> Model<'a> {
             let tokens: TokenStream = attr.tokens.clone().into();
 
             if path.is_ident("foreign_key") {
-                let (constr, val) = Self::foreign_key(field, tokens);
+                let (constr, val) = self.foreign_key(field, tokens);
                 constraints.extend(constr);
                 validation.extend(val);
             } else {
                 let cols = parse::<ColumnNames>(tokens).unwrap().0;
-                let constrs = Self::unique_constraints(path, ident, &cols);
+                let constrs = self.unique_constraints(path, ident, &cols);
                 let val = self.unique_constr_validation(&cols);
                 constraints.push(constrs);
                 validation.extend(val)
@@ -151,7 +152,11 @@ impl<'a> Model<'a> {
         }
     }
 
-    fn foreign_key(field: &Field, tokens: TokenStream) -> (Vec<TokenStream2>, Vec<TokenStream2>) {
+    fn foreign_key(
+        &self,
+        field: &Field,
+        tokens: TokenStream,
+    ) -> (Vec<TokenStream2>, Vec<TokenStream2>) {
         let ForeignKey { tables, columns } = parse(tokens).unwrap();
         let col = field.ident.as_ref().unwrap();
         let mut constraints = vec![];
@@ -159,7 +164,7 @@ impl<'a> Model<'a> {
         for (table, referred_col) in tables.iter().zip(columns.iter()) {
             let table_name = table.get_ident().unwrap();
             let table_name = Ident::new(&table_name.to_string().to_lowercase(), table_name.span());
-            let constr_name = Self::constr_name(&"foreign", &col, &[&table_name, referred_col]);
+            let constr_name = self.constr_name(&"foreign", &col, &[&table_name, referred_col]);
             constraints.push(quote! {
                 ::sqlx_models::constraint::foreign_key(
                     #constr_name,
@@ -196,7 +201,7 @@ impl<'a> Model<'a> {
 
         validations
     }
-    fn unique_constraints(path: &Path, name: &Ident, cols: &[Ident]) -> TokenStream2 {
+    fn unique_constraints(&self, path: &Path, name: &Ident, cols: &[Ident]) -> TokenStream2 {
         let method = if path.is_ident("primary_key") {
             quote!(primary)
         } else if path.is_ident("unique") {
@@ -204,7 +209,7 @@ impl<'a> Model<'a> {
         } else {
             return quote!();
         };
-        let constr_name = Self::constr_name(&method, name, cols);
+        let constr_name = self.constr_name(&method, name, cols);
 
         quote! {
             ::sqlx_models::constraint::#method(
@@ -214,18 +219,23 @@ impl<'a> Model<'a> {
         }
     }
 
-    fn constr_name(method: &impl ToString, name: &impl ToString, cols: &[impl ToString]) -> TokenStream2 {
+    fn constr_name(
+        &self,
+        method: &impl ToString,
+        name: &impl ToString,
+        cols: &[impl ToString],
+    ) -> TokenStream2 {
         let mut constr_name = String::new();
+        constr_name += &self.name_lowercase.to_string();
+        constr_name += "_";
         constr_name += &method.to_string();
         constr_name += "_";
         constr_name += &name.to_string();
-        
-        for (i, col) in cols.iter().enumerate() {
-            
+
+        for col in cols.iter() {
             constr_name += "_";
-            
+
             constr_name += &col.to_string();
-            
         }
         quote!(#constr_name)
     }

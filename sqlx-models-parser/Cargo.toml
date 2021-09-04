@@ -1,0 +1,42 @@
+[package]
+name = "sqlx-models-parser"
+description = "Extensible SQL Lexer and Parser with support for ANSI SQL:2011"
+version = "0.10.1-alpha.0"
+authors = ["Andy Grove <andygrove73@gmail.com>"]
+homepage = "https://github.com/sqlparser-rs/sqlparser-rs"
+documentation = "https://docs.rs/sqlparser/"
+keywords = [ "ansi", "sql", "lexer", "parser" ]
+repository = "https://github.com/sqlparser-rs/sqlparser-rs"
+license = "Apache-2.0"
+include = [
+    "src/**/*.rs",
+    "Cargo.toml",
+]
+edition = "2018"
+resolver = "2"
+
+
+[features]
+default = ["std"]
+std = []
+# Enable JSON output in the `cli` example:
+json_example = ["serde_json", "serde"]
+
+[dependencies]
+bigdecimal = { version = "0.3", features = ["serde"], optional = true }
+log = "0.4"
+serde = { version = "1.0", features = ["derive"], optional = true }
+# serde_json is only used in examples/cli, but we have to put it outside
+# of dev-dependencies because of
+# https://github.com/rust-lang/cargo/issues/1596
+serde_json = { version = "1.0", optional = true }
+
+[dev-dependencies]
+simple_logger = "1.9"
+matches = "0.1"
+
+[package.metadata.release]
+# Instruct `cargo release` to not run `cargo publish` locally:
+# https://github.com/sunng87/cargo-release/blob/master/docs/reference.md#config-fields
+# See docs/releasing.md for details.
+disable-publish = true

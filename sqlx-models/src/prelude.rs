@@ -1,17 +1,16 @@
 pub use crate::migration::{table::Column, Table};
 
-pub(crate) use crate::model::{Dialect, Dialect::*, Model, SqlType};
+pub(crate) use crate::model::{Dialect, Dialect::*};
 pub(crate) use ast::*;
 pub(crate) use collections::HashMap;
 pub(crate) use dotenv::*;
 // pub(crate) use fehler::*;
-pub(crate) use lazy_static::lazy_static;
-pub(crate) use lazy_static::*;
+
 pub(crate) use once_cell::sync::Lazy;
 pub(crate) use parser::Parser;
 pub(crate) use result::Result;
-pub(crate) use sqlparser::*;
-pub(crate) use std::{collections::*, *};
+pub(crate) use sqlx_models_parser::*;
+pub(crate) use std::*;
 pub(crate) use url::*;
 pub(crate) fn parse_sql(
     dialect: &dyn dialect::Dialect,
@@ -35,7 +34,9 @@ fn get_migrations_dir() -> String {
     var("MIGRATIONS_DIR").unwrap_or("migrations/".into())
 }
 
+use std::sync::Mutex;
 pub static MIGRATIONS_DIR: Lazy<String> = Lazy::new(get_migrations_dir);
+pub static MIGRATIONS_LOCK: Lazy<Mutex<()>> = Lazy::new(|| Mutex::new(()));
 
 use sqlformat::{FormatOptions, Indent};
 

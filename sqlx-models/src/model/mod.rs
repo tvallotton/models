@@ -19,8 +19,8 @@ impl Dialect {
     }
 }
 
-use sqlparser::dialect::*;
-impl sqlparser::dialect::Dialect for Dialect {
+use sqlx_models_parser::dialect::*;
+impl sqlx_models_parser::dialect::Dialect for Dialect {
     fn is_delimited_identifier_start(&self, ch: char) -> bool {
         match self {
             Sqlite => SQLiteDialect {}.is_delimited_identifier_start(ch),
@@ -55,7 +55,7 @@ pub trait Model {
 }
 
 pub trait SqlType {
-    fn as_sql(dialect: Dialect) -> DataType; 
+    fn as_sql() -> DataType; 
     fn null_option() -> ColumnOptionDef {
         ColumnOptionDef {
             name: None,

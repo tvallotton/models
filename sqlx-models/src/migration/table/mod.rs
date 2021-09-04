@@ -60,21 +60,21 @@ impl Table {
     //     changes
     // }
     fn create_col(&self, col: Column) -> Statement {
-        Statement::AlterTable {
+        Statement::AlterTable(AlterTable {
             name: self.name.clone(),
             operation: AlterTableOperation::AddColumn {
                 column_def: col.clone().into(),
             },
-        }
+        })
     }
 
     fn rename_stmt(&self, name: &ObjectName) -> Statement {
-        Statement::AlterTable {
+        Statement::AlterTable(AlterTable {
             name: self.name.clone(),
             operation: AlterTableOperation::RenameTable {
                 table_name: name.clone(),
             },
-        }
+        })
     }
 
     pub(super) fn alter_table(&mut self, op: AlterTableOperation) {
@@ -82,13 +82,13 @@ impl Table {
         match op {
             AddColumn { column_def } => self.columns.push(column_def.into()),
             AddConstraint(constr) => self.constraints.push(constr),
-            DropConstraint { name } => self.drop_constraint(name),
+            DropConstraint { name, .. } => self.drop_constraint(name),
 
             DropColumn {
                 column_name,
                 if_exists,
-                cascade,
-            } => self.drop_col(column_name, if_exists, cascade),
+                ..
+            } => self.drop_col(column_name, if_exists),
             RenameColumn {
                 old_column_name,
                 new_column_name,
@@ -114,7 +114,7 @@ impl Table {
         }
     }
 
-    pub(super) fn drop_col(&mut self, name: Ident, if_exists: bool, cascade: bool) {
+    pub(super) fn drop_col(&mut self, name: Ident, if_exists: bool) {
         let len = self.columns.len();
         self.columns = self
             .columns
@@ -147,19 +147,12 @@ impl TryFrom<Statement> for Table {
     type Error = String;
     fn try_from(value: Statement) -> Result<Self, Self::Error> {
         match value {
-            Statement::CreateTable {
-                or_replace,
-                if_not_exists,
-                name,
-                columns,
-                constraints,
-                ..
-            } => Ok(Table {
-                name: name,
-                if_not_exists,
-                or_replace,
-                columns: columns.into_iter().map(Into::into).collect(),
-                constraints: constraints,
+            Statement::CreateTable(table) => Ok(Table {
+                name: table.name,
+                if_not_exists: table.if_not_exists,
+                or_replace: table.or_replace,
+                columns: table.columns.into_iter().map(Into::into).collect(),
+                constraints: table.constraints,
             }),
             value => Err(format!(
                 "Expected a \"CREATE TABLE\" statement, found {}",
@@ -170,7 +163,7 @@ impl TryFrom<Statement> for Table {
 }
 impl From<Table> for Statement {
     fn from(table: Table) -> Self {
-        Statement::CreateTable {
+        Statement::CreateTable(Box::new(ast::CreateTable {
             or_replace: false,
             temporary: false,
             external: false,
@@ -187,6 +180,6 @@ impl From<Table> for Statement {
             query: None,
             without_rowid: false,
             like: None,
-        }
+        }))
     }
 }

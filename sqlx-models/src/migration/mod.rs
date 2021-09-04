@@ -1,6 +1,6 @@
 use crate::prelude::*;
 use crate::Model;
-
+use std::*;
 mod schema;
 pub mod table;
 
@@ -34,13 +34,15 @@ impl Migration {
         }
     }
 
-    pub fn run(self) {
-        let changes = self.schema.get_changes(self.target.clone());
+    pub fn run(mut self) {
+        let _lock = MIGRATIONS_LOCK.lock();
+        let changes = self.get_changes();
+
         if !changes.is_empty() {
             self.save_changes(self.target.name.clone(), changes);
         }
     }
-    pub fn get_changes(mut self) -> Vec<Statement> {
+    pub fn get_changes(&mut self) -> Vec<Statement> {
         let mut changes = vec![];
         loop {
             let stmts = self.schema.get_changes(self.target.clone());
@@ -67,14 +69,12 @@ impl Migration {
             }
         }
     }
-
     fn formatted_stmt(stmt: Statement) -> String {
         use sqlformat::QueryParams;
         let stmt = format!("{}", stmt);
         sqlformat::format(&stmt, &QueryParams::None, FORMAT_OPTIONS)
     }
 }
-
 #[test]
 fn generate_migrations() {
     struct Example {
@@ -87,7 +87,7 @@ fn generate_migrations() {
             let mut table = Table::new("Example".into());
             table.columns.push(Column {
                 name: "id".into(),
-                r#type: <i32 as SqlType>::as_sql(dialect),
+                r#type: <i32 as crate::SqlType>::as_sql(),
                 options: vec![],
             });
             table

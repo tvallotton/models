@@ -1,8 +1,8 @@
-mod derive_model;
 mod migration_generation;
+mod model;
 mod prelude;
-use derive_model::*;
 use migration_generation::*;
+use model::*;
 use prelude::*;
 
 #[proc_macro_derive(Model, attributes(model, primary_key, foreign_key, unique))]

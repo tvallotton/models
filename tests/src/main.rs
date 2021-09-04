@@ -3,20 +3,20 @@
 use sqlx_models::Model;
 
 #[derive(Model)]
-struct User {
-    #[primary_key(password)]
+struct User_ {
+    #[primary_key]
     id: i32,
     
     email: String, 
-    phone: String, 
     password: String,
+
 }
 
 #[derive(Model)]
 struct Post {
     #[primary_key]
     id: i32,
-    #[foreign_key(User.id)]
+    #[foreign_key(User_.id)]
     author: i32,
     title: String,
 }

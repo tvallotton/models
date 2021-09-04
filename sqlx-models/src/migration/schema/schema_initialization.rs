@@ -29,7 +29,7 @@ impl Schema {
             .map(Result::unwrap)
             .map(|x| x.to_lowercase())
             .map(|sql| parse_sql(&self.dialect, &sql))
-            .map(Result::unwrap)
+            .map(|stmt| stmt.expect("Failed to parse sql in migrations directory"))
             .fold(vec![], |mut a, mut b| {
                 a.append(&mut b);
                 a

@@ -1,6 +1,6 @@
 [workspace]
 members = [
+    "sqlx-models-parser",
     "sqlx-models", #
-    # "testsd",
     "sqlx-models-proc-macro"
 ]

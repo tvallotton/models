@@ -1,8 +1,10 @@
 use super::*;
 
 type Stmts = Vec<Statement>;
-
-pub(crate) trait Name {
+type Constraints = Vec<TableConstraint>;
+type Change = (Vec<Column>, Vec<TableConstraint>);
+type Columns = Vec<Column>;
+pub(crate) trait Name: Eq + Clone {
     fn name(&self) -> &Ident;
 }
 
@@ -18,7 +20,7 @@ impl Table {
         out
     }
 
-    fn get_vecs<T: Name + Eq + Clone>(now: &Vec<T>, target: &Vec<T>) -> (Vec<T>, Vec<T>, Vec<T>) {
+    fn get_vecs<T: Name>(now: &Vec<T>, target: &Vec<T>) -> (Vec<T>, Vec<T>, Vec<T>) {
         let mut to_change = vec![];
         let mut to_delete = vec![];
         let mut to_create = vec![];
@@ -41,96 +43,156 @@ impl Table {
         (to_delete, to_change, to_create)
     }
 
-    fn get_changes_cols(&self, target: &Table, schema: &Schema) -> Vec<Statement> {
-        let (to_delete, to_change, to_create) = Self::get_vecs(&self.columns, &target.columns);
-        let mut stmts = vec![];
-        if !to_delete.is_empty() && (!to_change.is_empty() || schema.dialect.requires_move()) {
-            stmts.extend(self.move_to(to_delete, to_change));
-        } else {
-            for col in to_delete {
-                let stmt = self.delete_col(col);
-                stmts.push(stmt)
-            }
-        }
+    // fn get_changes_cols(&self, target: &Table, schema: &Schema) -> Stmts {
+    //     let (to_delete, to_change, to_create) = Self::get_vecs(&self.columns, &target.columns);
+    //     let mut stmts = vec![];
+    //     if !to_delete.is_empty() && (!to_change.is_empty() || schema.dialect.requires_move()) {
+    //         stmts.extend(self.move_to(to_delete, to_change, schema));
+    //     } else {
+    //         for col in to_delete {
+    //             let stmt = self.delete_col(col);
+    //             stmts.push(stmt)
+    //         }
+    //     }
 
-        for col in to_create {
-            let stmt = self.create_col(col);
-            stmts.push(stmt)
-        }
-        stmts
+    //     for col in to_create {
+    //         let stmt = self.create_col(col);
+    //         stmts.push(stmt)
+    //     }
+    //     stmts
+    // }
+
+    // fn delete_constraints(&self, target: &Table, schema: &Schema) -> Stmts {
+    //     let (to_delete, to_change, _) = Self::get_vecs(&self.constraints, &target.constraints);
+    //     let to_delete: Vec<_> = to_delete
+    //         .into_iter()
+    //         .chain(to_change.into_iter()) //
+    //         .collect();
+    //     let mut stmts = vec![];
+    //     if !to_delete.is_empty() && schema.dialect.requires_move() {
+    //         let mut clone = self.clone();
+    //         for c0 in to_delete {
+    //             clone.constraints = clone
+    //                 .constraints
+    //                 .into_iter()
+    //                 .filter(|c1| c0 != *c1)
+    //                 .collect();
+    //         }
+    //         stmts.extend(clone.move_to(vec![], vec![], schema));
+    //     } else {
+    //         for cons in to_delete {
+    //             let stmt = self.delete_cons(cons);
+    //             stmts.push(stmt)
+    //         }
+    //     }
+    //     stmts
+    // }
+
+    // fn create_constraints(&self, target: &Table, schema: &Schema) -> Stmts {
+    //     let (_, to_change, to_create) = Self::get_vecs(&self.constraints, &target.constraints);
+    //     let to_create: Vec<_> = to_create
+    //         .into_iter()
+    //         .chain(to_change.into_iter()) //
+    //         .collect();
+    //     let mut stmts = vec![];
+    //     if !to_create.is_empty() && schema.dialect.requires_move() {
+    //         let mut clone = self.clone();
+    //         for c0 in to_create {
+    //             clone.constraints = clone
+    //                 .constraints
+    //                 .into_iter()
+    //                 .filter(|c1| c0 != *c1)
+    //                 .collect();
+    //         }
+    //         stmts.extend(clone.move_to(vec![], vec![], schema));
+    //     } else {
+    //         for cons in to_create {
+    //             let stmt = self.create_cons(cons);
+    //             stmts.push(stmt)
+    //         }
+    //     }
+    //     stmts
+    // }
+
+    fn create_cons(&self, cons: TableConstraint) -> Statement {
+        Statement::AlterTable(AlterTable {
+            name: self.name.clone(),
+            operation: AlterTableOperation::AddConstraint(cons),
+        })
     }
-
-    fn get_changes_cons(&self, target: &Table, schema: &Schema) -> Vec<Statement> {
-        let (to_delete, to_change, to_create) =
-            Self::get_vecs(&self.constraints, &target.constraints);
-        let mut stmts = vec![];
-
-        if !to_delete.is_empty() && (!to_change.is_empty() || schema.dialect.requires_move()) {
-            stmts.extend(self.move_to(to_delete, to_change));
-        } else {
-            for col in to_delete {
-                let stmt = self.delete_col(col);
-                stmts.push(stmt)
-            }
-        }
-
-        for col in to_create {
-            let stmt = self.create_col(col);
-            stmts.push(stmt)
-        }
-        stmts
+    fn delete_cons(&self, cons: TableConstraint) -> Statement {
+        Statement::AlterTable(AlterTable {
+            name: self.name.clone(),
+            operation: AlterTableOperation::DropConstraint {
+                name: cons.name().clone(),
+                cascade: true,
+                restrict: false,
+            },
+        })
     }
 
     fn delete_col(&self, col: Column) -> Statement {
         // if schema.dialect.requires_move() {
         //     return self.change_with_move(col, None, schema);
         // }
-        Statement::AlterTable {
+        Statement::AlterTable(AlterTable {
             name: self.name.clone(),
             operation: AlterTableOperation::DropColumn {
                 column_name: col.name,
                 if_exists: false,
                 cascade: true,
             },
-        }
+        })
     }
 
-    fn move_to(&self, to_delete: Vec<Column>, to_change: Vec<Column>) -> Vec<Statement> {
+    fn move_to(&self, delete: Change, change: Columns, create: Constraints, s: &Schema) -> Stmts {
         let mut out = vec![];
 
         let mut old_table = self.clone();
-        let mut target = self.clone();
-        target.name = ObjectName(vec![Ident::new("temp")]);
+        let mut new_table = self.clone();
+        new_table.name = ObjectName(vec![Ident::new("temp")]);
 
-        for delete in to_delete {
-            let i = target
+        for del in delete.0 {
+            let i = new_table
                 .columns
                 .iter()
-                .position(|col| *col == delete)
+                .position(|col| *col == del)
                 .unwrap();
-            target.columns.remove(i);
+
+            new_table.columns.remove(i);
             old_table.columns.remove(i);
         }
+        for del in delete.1 {
+            new_table.constraints = new_table
+                .constraints
+                .into_iter()
+                .filter(|cons| cons.name() != del.name())
+                .collect();
+        }
 
-        for change in to_change {
-            let i = target
+        for ch in change {
+            let i = new_table
                 .columns
                 .iter()
-                .position(|col| col.name == change.name)
+                .position(|col| col.name == ch.name)
                 .unwrap();
-            target.columns[i] = change;
+            new_table.columns[i] = ch;
         }
+        for cr in create {
+            new_table.constraints.push(cr);
+        }
+
         // create table
-        out.push(target.clone().into());
+        out.push(new_table.clone().into());
         // move self to temporary
-        out.extend(old_table.move_stmt(&target));
+        out.extend(old_table.move_stmt(&new_table, s));
 
         // move temporary back to self
-        out.push(target.rename_stmt(&old_table.name));
+        out.push(new_table.rename_stmt(&old_table.name));
         out
     }
 
-    fn move_stmt(&self, target: &Table) -> Vec<Statement> {
+    fn move_stmt(&self, target: &Table, schema: &Schema) -> Stmts {
         let mut out = vec![];
         let insert = format!(
             "INSERT INTO {} ({}) SELECT {} FROM {};",
@@ -144,20 +206,90 @@ impl Table {
             .into_iter() //
             .next()
             .unwrap();
-        dbg!(&insert);
+
         out.push(insert);
-        use Statement::*;
-        out.push(Drop {
+
+        out.push(Statement::Drop(Drop {
             object_type: ObjectType::Table,
             if_exists: false,
             names: vec![self.name.clone()],
-            cascade: true,
+            cascade: !schema.dialect.requires_move(),
             purge: false,
-        });
+        }));
         out
     }
-    pub(crate) fn get_changes(&self, target: &Table, schema: &Schema) -> Vec<Statement> {
-        let changes = self.get_changes_cols(target, schema);
-        changes
+
+    // fn get_changes_cols(&self, target: &Table, schema: &Schema) -> Stmts {
+    //     let (to_delete, to_change, to_create) = Self::get_vecs(&self.columns, &target.columns);
+    //     let mut stmts = vec![];
+    //     if !to_delete.is_empty() && (!to_change.is_empty() || schema.dialect.requires_move()) {
+    //         stmts.extend(self.move_to(to_delete, to_change, schema));
+    //     } else {
+    //         for col in to_delete {
+    //             let stmt = self.delete_col(col);
+    //             stmts.push(stmt)
+    //         }
+    //     }
+
+    //     for col in to_create {
+    //         let stmt = self.create_col(col);
+    //         stmts.push(stmt)
+    //     }
+    //     stmts
+    // }
+    pub fn constrs_changes(&self, target: &Table) -> (Constraints, Constraints) {
+        let (to_delete, to_change, to_create) =
+            Self::get_vecs(&self.constraints, &target.constraints);
+        let to_delete = to_delete
+            .into_iter()
+            .chain(to_change.clone().into_iter())
+            .collect();
+        let to_create = to_create
+            .into_iter()
+            .chain(to_change.clone().into_iter())
+            .collect();
+
+        (to_delete, to_create)
+    }
+    pub fn col_changes(&self, target: &Table) -> (Columns, Columns, Columns) {
+        Self::get_vecs(&self.columns, &target.columns)
+    }
+
+    pub(crate) fn get_changes(&self, target: &Table, schema: &Schema) -> Stmts {
+        let mut stmts = vec![];
+        let (del_col, change, create_col) = self.col_changes(&target);
+        let (del_cons, create_cons) = self.constrs_changes(&target);
+
+        for col in create_col {
+            let stmt = self.create_col(col);
+            stmts.push(stmt)
+        }
+
+        if ((!del_col.is_empty() || !create_cons.is_empty() || !del_cons.is_empty())
+            && schema.dialect.requires_move())
+            || !change.is_empty()
+        {
+            let s = self.move_to((del_col, del_cons), change, create_cons, schema);
+            stmts.extend(s);
+        } else {
+            for cons in del_cons {
+                let stmt = self.delete_cons(cons);
+                stmts.push(stmt);
+            }
+
+            for col in del_col {
+                let stmt = self.delete_col(col);
+                stmts.push(stmt);
+            }
+            for cons in create_cons {
+                let stmt = self.create_cons(cons);
+                stmts.push(stmt);
+            }
+        }
+
+        stmts
     }
 }
+
+#[test]
+fn func() {}
