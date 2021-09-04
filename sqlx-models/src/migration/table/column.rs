@@ -1,6 +1,8 @@
 use crate::prelude::*;
 
 use ast::ColumnDef;
+use proc_macro::token_stream;
+use sqlx_models_parser::dialect::GenericDialect;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Column {
@@ -21,6 +23,18 @@ impl Column {
             name: Ident::new(name.to_lowercase()),
             r#type,
             options: vec![options],
+        }
+    }
+
+    pub fn new_with_default(name: &str, r#type: DataType, op: ColumnOptionDef, def: &str) -> Self {
+        let dialect = GenericDialect {};
+        let tokens = tokenizer::Tokenizer::new(dialect, def);
+        let parser = Parser::new(tokens, dialect);
+        let expr = parser.parse_expr(&mut self);
+        Column {
+            name: Ident::new(name.to_lowercase()),
+            r#type,
+            options: vec![op, ColumnOptionDef::Default(expr)],
         }
     }
 }

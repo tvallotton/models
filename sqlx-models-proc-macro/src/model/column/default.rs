@@ -5,19 +5,18 @@ pub struct DefaultExpr {
     expr: String,
 }
 
-
 impl ToTokens for DefaultExpr {
     fn to_tokens(&self, tokens: &mut TokenStream2) {
-        todo!()
+        let expr = &self.expr;
+        tokens.extend(quote!(stringify!(#expr)));
     }
 }
 
 impl Parse for DefaultExpr {
     fn parse(input: parse::ParseStream) -> Result<Self> {
-        use sqlparser::{dialect::*, parser::Parser, tokenizer::*};
+        use sqlx_models_parser::{dialect::*, parser::Parser, tokenizer::*};
         input.parse::<Token![=]>()?;
 
-        
         let backup = input.clone();
         let mut span = Span::call_site();
         let expr = input

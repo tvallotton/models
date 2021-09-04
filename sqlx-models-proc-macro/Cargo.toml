@@ -10,5 +10,5 @@ proc-macro = true
 [dependencies]
 proc-macro2 = "1.0.28"
 quote = "1.0.9"
-sqlparser = "0.10.0"
+sqlx-models-parser = { path = "../sqlx-models-parser" }
 syn = "1.0.74"

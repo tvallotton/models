@@ -1,11 +1,9 @@
 use crate::prelude::*;
-mod default; 
+mod default;
 
 use default::*;
 
-
-
-struct Column {
+pub struct Column {
     name: Ident,
     ty: Type,
     default: Option<DefaultExpr>,
@@ -16,33 +14,40 @@ impl ToTokens for Column {
         let col_name = &self.name;
         let ty = &self.ty;
         let default = &self.default;
-
-        quote! {
-            ::sqlx_models::private::Column::new(
-                stringify!(#col_name),
-                <#ty as ::sqlx_models::SqlType>::as_sql(),
-                [
-                    <#ty as ::sqlx_models::SqlType>::null_option(),
+        let temp = if let Some(default) = default {
+            quote! {
+                ::sqlx_models::private::Column::new_with_default(
+                    stringify!(#col_name),
+                    <#ty as ::sqlx_models::private::SqlType>::as_sql(),
+                    <#ty as ::sqlx_models::private::SqlType>::null_option(),
                     #default
-                ]
-        )};
+            )}
+        } else {
+            quote! {
+                ::sqlx_models::private::Column::new(
+                    stringify!(#col_name),
+                    <#ty as ::sqlx_models::private::SqlType>::as_sql(),
+                    <#ty as ::sqlx_models::private::SqlType>::null_option(),
+            )}
+        };
+        tokens.extend(temp);
     }
 }
 
 impl Column {
-    fn new(field: Field) -> Self {
-        let ty = field.ty;
-        let default = Self::get_default(field.attrs);
-
-        todo!()
+    pub fn new(field: &Field) -> Result<Self> {
+        let ty = field.ty.clone();
+        let default = Self::get_default(field.attrs.clone())?;
+        let name = field.ident.clone().unwrap();
+        Ok(Self { ty, default, name })
     }
 
-    fn get_default(attrs: Vec<Attribute>) -> Option<TokenStream2> {
+    fn get_default(attrs: Vec<Attribute>) -> Result<Option<DefaultExpr>> {
         for attr in attrs {
             if attr.path.is_ident("default") {
-                // syn::parse(attr.tokens).unwrap()
+                return Ok(Some(syn::parse(attr.tokens.into())?));
             }
         }
-        todo!()
+        Ok(None)
     }
 }

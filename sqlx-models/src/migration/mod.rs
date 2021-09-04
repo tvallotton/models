@@ -26,7 +26,7 @@ impl Migration {
         }
     }
 
-    pub fn new<T: Model>() -> Self {
+    pub fn new<T: crate::model::Model>() -> Self {
         let dialect = Self::get_dialect();
         Self {
             schema: Schema::new(dialect),

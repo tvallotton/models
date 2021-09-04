@@ -1,7 +1,11 @@
 mod column;
-
+mod constraint;
 use crate::prelude::*;
+use column::*;
+use constraint::*;
 use Data::*;
+
+use self::column::Column;
 
 struct ColumnNames(Vec<Ident>);
 
@@ -49,66 +53,112 @@ fn is_attribute(path: &Path) -> bool {
     path.is_ident("foreign_key") || path.is_ident("primary_key") || path.is_ident("unique")
 }
 
-pub struct Model<'a> {
-    name: &'a Ident,
+pub struct Model {
+    pub name: Ident,
     name_lowercase: Ident,
-    data: &'a DataStruct,
+    data: DataStruct,
+    columns: Vec<Column>,
+    constraints: Vec<NamedConstraint>,
 }
-
-impl<'a> Model<'a> {
-    pub fn derive(input: &'a DeriveInput) -> TokenStream2 {
-        assert!(input.generics.params.is_empty(), "Models cannot be generic");
-        let name = &input.ident;
+impl Parse for Model {
+    fn parse(input: parse::ParseStream) -> Result<Self> {
+        let input: DeriveInput = input.parse()?;
+        let name = input.ident;
         let name_lowercase = Ident::new(&name.to_string().to_lowercase(), name.span());
-        match &input.data {
+        match input.data {
             Struct(data) => {
-                let model = Self {
+                let mut model = Self {
                     name,
-                    name_lowercase,
                     data,
+                    name_lowercase,
+                    columns: Default::default(),
+                    constraints: Default::default(),
                 };
-                model.generate_code()
+                model.init()?;
+                Ok(model)
             }
             _ => panic!("Sql models have to be structs, enums and unions are not supported."),
         }
     }
+}
 
-    fn generate_code(self) -> TokenStream2 {
+impl ToTokens for Model {
+    fn to_tokens(&self, tokens: &mut TokenStream2) {
         let name = &self.name;
         let name_lowercase = &self.name_lowercase;
-        let columns = Self::get_columns(&self.data.fields);
+        let columns = &self.columns;
+        let constraints = &self.constraints;
+        let template = quote! {
+          impl ::sqlx_models::private::Model for #name {
+            fn target(__sqlx_models_dialect: ::sqlx_models::private::Dialect) -> ::sqlx_models::private::Table {
+                let mut __sqlx_models_table = ::sqlx_models::private::Table::new(stringify!(#name_lowercase));
+
+                __sqlx_models_table
+            }
+          }
+        };
+        tokens.extend(template);
+    }
+}
+
+impl Model {
+    // include
+    fn init(&mut self) -> Result<()> {
+        for field in &self.data.fields {
+            let col_name = field.ident.clone().unwrap();
+            let constrs: Vec<_> = Constraints::from_attrs(&field.attrs)?
+                .0
+                .into_iter()
+                .map(|constr| NamedConstraint {
+                    name: self.constr_name(&constr.method(), &col_name, &constr.column_names()),
+                    constr,
+                })
+                .collect();
+            self.constraints.extend(constrs);
+
+            let column = Column::new(&field)?;
+            self.columns.push(column);
+        }
+        Ok(())
+    }
+    // include
+    fn generate_code(self) -> Result<TokenStream2> {
+        let name = &self.name;
+        let name_lowercase = &self.name_lowercase;
+        let columns = Self::get_columns(&self.data.fields)?;
         let constraints = self.get_constraints(&self.data.fields);
-        quote! {
-          impl ::sqlx_models::Model for #name {
-            fn target(__sqlx_models_dialect: ::sqlx_models::Dialect) -> ::sqlx_models::Table {
-                let mut __sqlx_models_table = ::sqlx_models::Table::new(stringify!(#name_lowercase));
+        Ok(quote! {
+          impl ::sqlx_models::private::Model for #name {
+            fn target(__sqlx_models_dialect: ::sqlx_models::private::Dialect) -> ::sqlx_models::private::Table {
+                let mut __sqlx_models_table = ::sqlx_models::private::Table::new(stringify!(#name_lowercase));
                 #columns
                 #constraints
                 __sqlx_models_table
             }
           }
-        }
+        })
     }
 
-    fn get_columns(fields: &Fields) -> TokenStream2 {
+    fn get_columns(fields: &Fields) -> Result<TokenStream2> {
         let mut columns = quote!();
         for field in fields {
+            let col = column::Column::new(field)?;
             let col = Self::get_column(field);
             columns.extend(quote! {
                 __sqlx_models_table.columns.push(#col);
             });
         }
-        columns
+        Ok(columns)
     }
 
     fn get_column(field: &Field) -> TokenStream2 {
         let ty = &field.ty;
         let ident = field.ident.as_ref().unwrap();
         quote! {
-           ::sqlx_models::Column::new(
+           ::sqlx_models::private::Column::new(
             stringify!(#ident),
-            <#ty as ::sqlx_models::SqlType>::as_sql(__sqlx_models_dialect),
-            <#ty as ::sqlx_models::SqlType>::null_option()
+            <#ty as ::sqlx_models::private::SqlType>::as_sql(),
+            <#ty as ::sqlx_models::private::SqlType>::null_option()
         )}
     }
 
@@ -166,7 +216,7 @@ impl<'a> Model<'a> {
             let table_name = Ident::new(&table_name.to_string().to_lowercase(), table_name.span());
             let constr_name = self.constr_name(&"foreign", &col, &[&table_name, referred_col]);
             constraints.push(quote! {
-                ::sqlx_models::constraint::foreign_key(
+                ::sqlx_models::private::constraint::foreign_key(
                     #constr_name,
                     stringify!(#col),
                     stringify!(#table_name),
@@ -189,7 +239,7 @@ impl<'a> Model<'a> {
 
     fn unique_constr_validation(&self, colnames: &[Ident]) -> Vec<TokenStream2> {
         let mut validations = vec![];
-        let struct_ident = self.name;
+        let struct_ident = &self.name;
         for col in colnames {
             let val = quote! {
                 let _ = |__sqlx_models_validation: #struct_ident | {
@@ -212,19 +262,19 @@ impl<'a> Model<'a> {
         let constr_name = self.constr_name(&method, name, cols);
 
         quote! {
-            ::sqlx_models::constraint::#method(
+            ::sqlx_models::private::constraint::#method(
                 #constr_name,
                 &[stringify!(#name), #(stringify!(#cols)),*]
             )
         }
     }
 
-    fn constr_name(
+    pub fn constr_name(
         &self,
         method: &impl ToString,
         name: &impl ToString,
         cols: &[impl ToString],
-    ) -> TokenStream2 {
+    ) -> String {
         let mut constr_name = String::new();
         constr_name += &self.name_lowercase.to_string();
         constr_name += "_";
@@ -237,6 +287,6 @@ impl<'a> Model<'a> {
 
             constr_name += &col.to_string();
         }
-        quote!(#constr_name)
+        constr_name
     }
 }

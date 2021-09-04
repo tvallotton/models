@@ -1,17 +1,10 @@
 [package]
 name = "sqlx-models-parser"
-description = "Extensible SQL Lexer and Parser with support for ANSI SQL:2011"
+description = "Helper crate for sqlx-models"
 version = "0.10.1-alpha.0"
 authors = ["Andy Grove <andygrove73@gmail.com>"]
-homepage = "https://github.com/sqlparser-rs/sqlparser-rs"
-documentation = "https://docs.rs/sqlparser/"
-keywords = [ "ansi", "sql", "lexer", "parser" ]
-repository = "https://github.com/sqlparser-rs/sqlparser-rs"
+repository = "https://github.com/tvallotton/sqlx-models"
 license = "Apache-2.0"
-include = [
-    "src/**/*.rs",
-    "Cargo.toml",
-]
 edition = "2018"
 resolver = "2"
 

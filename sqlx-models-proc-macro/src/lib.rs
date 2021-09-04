@@ -7,9 +7,10 @@ use prelude::*;
 
 #[proc_macro_derive(Model, attributes(model, primary_key, foreign_key, unique))]
 pub fn model(input: TokenStream) -> TokenStream {
-    let input = parse_macro_input!(input as DeriveInput);
-    let derive = Model::derive(&input);
-    let migrations = generate_migration(&input.ident);
+
+    let derive = parse_macro_input!(input as Model);
+    
+    let migrations = generate_migration(&derive.name);
     let template = quote! {
         #derive
         #migrations

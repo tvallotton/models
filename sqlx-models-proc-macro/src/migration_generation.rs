@@ -22,7 +22,7 @@ fn generate_migration_unchecked(name: &Ident) -> TokenStream2 {
     quote! {
         #[test]
         fn #test_name() {
-            let _sqlx_models_generated_migration = ::sqlx_models::Migration::new::<#name>();
+            let _sqlx_models_generated_migration = ::sqlx_models::private::Migration::new::<#name>();
             _sqlx_models_generated_migration.run();
         }
     }
