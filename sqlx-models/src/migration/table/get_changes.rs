@@ -6,6 +6,7 @@ type Change = (Vec<Column>, Vec<TableConstraint>);
 type Columns = Vec<Column>;
 pub(crate) trait Name: Eq + Clone {
     fn name(&self) -> &Ident;
+    fn are_equal(&self, other: &Self) -> bool;
 }
 
 impl Table {
@@ -26,7 +27,7 @@ impl Table {
         let mut to_create = vec![];
         for c1 in target {
             for c0 in now {
-                if c1.name() == c0.name() && c1 != c0 {
+                if c1.name() == c0.name() && !c1.are_equal(&c0) {
                     to_change.push(c1.clone())
                 }
             }

@@ -1,26 +1,29 @@
 pub struct Constraints(pub Vec<Constraint>);
-
+#[derive(Debug)]
 pub enum Constraint {
     ForeignKey(ForeignKey),
     Unique(Unique),
     Primary(Unique),
 }
-
+#[derive(Debug)]
 pub struct NamedConstraint {
     pub name: String,
-
+    pub field_name: Ident,
     pub constr: Constraint,
 }
+use std::fmt::Debug;
+
 use crate::prelude::*;
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 struct Unique {
     columns: Vec<Ident>,
 }
 impl ForeignKey {
-    fn into_tokens(&self, constr_name: &str, ty: Ident, local_col: Ident) -> TokenStream2 {
+    fn into_tokens(&self, constr_name: &str, ty: &Ident, local_col: &Ident) -> TokenStream2 {
         let foreign_col = &self.column;
-        let foreign_table = &self.foreign_table;
+        let foreign_table = &self.foreign_table.get_ident();
+        
         let on_update = self
             .on_update
             .clone()
@@ -34,9 +37,9 @@ impl ForeignKey {
         quote! {
             __sqlx_models_table.constraints.push(
                 ::sqlx_models::private::constraint::foreign_key(
-                    stringify!(#constr_name),
+                    #constr_name,
                     stringify!(#local_col),
-                    stringigy!(#foreign_table),
+                    stringify!(#foreign_table),
                     stringify!(#foreign_col),
                     #on_delete,
                     #on_update,
@@ -54,9 +57,9 @@ impl Unique {
     fn into_tokens(
         &self,
         constr_name: &str,
-        ty: Ident,
-        field_name: Ident,
-        method: Ident,
+        ty: &Ident,
+        field_name: &Ident,
+        method: TokenStream2,
     ) -> TokenStream2 {
         let columns = self.columns.iter();
         let columns1 = self.columns.iter();
@@ -76,15 +79,38 @@ impl Unique {
 }
 
 impl NamedConstraint {
-    fn into_tokens(&self, constr_name: &str, ty: Ident, field_name: Ident) -> TokenStream2 {
-        let constr_name = &self.name;
-
+    pub fn into_tokens(&self, ty: &Ident) -> TokenStream2 {
         match &self.constr {
-            Constraint::ForeignKey(fk) => fk.into_tokens(&constr_name, ty, field_name),
-            // Constraint::Primary(pk) => pk.into_tokens(&constr_name, ty, field_name,  ),
-            // Constraint::Unique(u) => u.into_tokens(struct_name, field_name),
+            Constraint::ForeignKey(fk) => {
+                let constr_name = self.constr_name(&ty, &[fk.column.clone()], "foreign");
+                fk.into_tokens(&constr_name, ty, &self.field_name)
+            }
+            Constraint::Primary(pk) => {
+                let constr_name = self.constr_name(&ty, &pk.columns, "primary");
+                pk.into_tokens(&constr_name, ty, &self.field_name, quote!(primary))
+            }
+            Constraint::Unique(u) => {
+                let constr_name = self.constr_name(&ty, &u.columns, "unique");
+                u.into_tokens(&constr_name, ty, &self.field_name, quote!(unique))
+            }
             _ => todo!(),
         }
+    }
+
+    pub fn constr_name(&self, ty: &Ident, cols: &[impl ToString], method: &str) -> String {
+        let mut constr_name = String::new();
+        constr_name += &ty.to_string().to_lowercase();
+        constr_name += "_";
+        constr_name += method;
+        constr_name += "_";
+        constr_name += &self.field_name.to_string();
+
+        for col in cols.iter() {
+            constr_name += "_";
+
+            constr_name += &col.to_string();
+        }
+        constr_name
     }
 }
 
@@ -114,6 +140,9 @@ struct ForeignKey {
     on_update: Option<LitStr>,
 }
 
+impl std::fmt::Debug for ForeignKey {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {Ok(())}
+}
 impl Parse for ForeignKey {
     fn parse(input: parse::ParseStream) -> Result<Self> {
         let content;

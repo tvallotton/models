@@ -16,19 +16,23 @@ impl ToTokens for Column {
         let default = &self.default;
         let temp = if let Some(default) = default {
             quote! {
-                ::sqlx_models::private::Column::new_with_default(
-                    stringify!(#col_name),
-                    <#ty as ::sqlx_models::private::SqlType>::as_sql(),
-                    <#ty as ::sqlx_models::private::SqlType>::null_option(),
-                    #default
-            )}
+                __sqlx_models_table.columns.push(
+                    ::sqlx_models::private::Column::new_with_default(
+                        stringify!(#col_name),
+                        <#ty as ::sqlx_models::private::SqlType>::as_sql(),
+                        <#ty as ::sqlx_models::private::SqlType>::null_option(),
+                        #default
+                ));
+            }
         } else {
             quote! {
-                ::sqlx_models::private::Column::new(
-                    stringify!(#col_name),
-                    <#ty as ::sqlx_models::private::SqlType>::as_sql(),
-                    <#ty as ::sqlx_models::private::SqlType>::null_option(),
-            )}
+                __sqlx_models_table.columns.push(
+                    ::sqlx_models::private::Column::new(
+                        stringify!(#col_name),
+                        <#ty as ::sqlx_models::private::SqlType>::as_sql(),
+                        <#ty as ::sqlx_models::private::SqlType>::null_option(),
+                ));
+            }
         };
         tokens.extend(temp);
     }

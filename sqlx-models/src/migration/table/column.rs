@@ -1,7 +1,7 @@
 use crate::prelude::*;
 
 use ast::ColumnDef;
-use proc_macro::token_stream;
+
 use sqlx_models_parser::dialect::GenericDialect;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -14,6 +14,10 @@ pub struct Column {
 impl super::get_changes::Name for Column {
     fn name(&self) -> &Ident {
         &self.name
+    }
+
+    fn are_equal(&self, other: &Self) -> bool {
+        self == other
     }
 }
 
@@ -28,13 +32,20 @@ impl Column {
 
     pub fn new_with_default(name: &str, r#type: DataType, op: ColumnOptionDef, def: &str) -> Self {
         let dialect = GenericDialect {};
-        let tokens = tokenizer::Tokenizer::new(dialect, def);
-        let parser = Parser::new(tokens, dialect);
-        let expr = parser.parse_expr(&mut self);
+        let mut tokens = tokenizer::Tokenizer::new(&dialect, def);
+        let mut parser = Parser::new(tokens.tokenize().unwrap(), &dialect);
+        let expr = parser.parse_expr().unwrap();
+
         Column {
             name: Ident::new(name.to_lowercase()),
             r#type,
-            options: vec![op, ColumnOptionDef::Default(expr)],
+            options: vec![
+                op,
+                ast::ColumnOptionDef {
+                    name: None,
+                    option: ast::ColumnOption::Default(expr),
+                },
+            ],
         }
     }
 }

@@ -7,8 +7,10 @@ struct User {
     id: i32,
     #[unique]
     email: String,
-    password: String
+    password: String,
+
 }
+
 
 #[derive(Model)]
 struct Post {

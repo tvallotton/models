@@ -8,6 +8,10 @@ impl Name for TableConstraint {
             .as_ref()
             .expect("Anonymous constraints are not supported.")
     }
+
+    fn are_equal(&self, other: &Self) -> bool {
+        self.name() == other.name()
+    }
 }
 
 pub fn name(constr: &TableConstraint) -> &Option<Ident> {

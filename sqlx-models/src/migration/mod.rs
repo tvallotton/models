@@ -75,34 +75,3 @@ impl Migration {
         sqlformat::format(&stmt, &QueryParams::None, FORMAT_OPTIONS)
     }
 }
-#[test]
-fn generate_migrations() {
-    struct Example {
-        // id: i32,
-    }
-
-    impl Model for Example {
-        fn target(dialect: Dialect) -> Table {
-            let dialect = Migration::get_dialect();
-            let mut table = Table::new("Example".into());
-            table.columns.push(Column {
-                name: "id".into(),
-                r#type: <i32 as crate::SqlType>::as_sql(),
-                options: vec![],
-            });
-            table
-        }
-    }
-
-    let migration = Migration::new::<Example>();
-    migration.run();
-}
-
-#[test]
-fn func() {
-    println!("{}", sqlformat::format(
-                &"create table user (id integer primary key,  id integer primary key , id integer primary key ); select * from user, post where user.id = post.id; create table lol (email TEXT not null);",
-                &sqlformat::QueryParams::None,
-                FORMAT_OPTIONS,
-            ));
-}

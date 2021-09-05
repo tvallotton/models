@@ -33,5 +33,18 @@ sqlx migrations generate
 ```
 And it will generate the following sql in your migrations directoy: 
 ```
-TODO:
+CREATE TABLE user (
+    id INTEGER NOT NULL,
+    email TEXT NOT NULL,
+    PASSWORD TEXT NOT NULL,
+    CONSTRAINT user_unique_email UNIQUE (email)
+);
+
+CREATE TABLE post (
+    id INTEGER NOT NULL,
+    author INTEGER NOT NULL,
+    title TEXT NOT NULL,
+    content TEXT NOT NULL,
+    CONSTRAINT post_foreign_author_id FOREIGN KEY (author) REFERENCES User(id)
+);
 ```

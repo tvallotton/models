@@ -1,7 +1,6 @@
 mod column;
 mod constraint;
 use crate::prelude::*;
-use column::*;
 use constraint::*;
 use Data::*;
 
@@ -86,13 +85,14 @@ impl ToTokens for Model {
     fn to_tokens(&self, tokens: &mut TokenStream2) {
         let name = &self.name;
         let name_lowercase = &self.name_lowercase;
-        let columns = &self.columns;
-        let constraints = &self.constraints;
+        let columns = &self.get_columns();
+        let constraints = &self.get_constraints();
         let template = quote! {
           impl ::sqlx_models::private::Model for #name {
             fn target(__sqlx_models_dialect: ::sqlx_models::private::Dialect) -> ::sqlx_models::private::Table {
                 let mut __sqlx_models_table = ::sqlx_models::private::Table::new(stringify!(#name_lowercase));
-
+                #columns
+                #constraints
                 __sqlx_models_table
             }
           }
@@ -111,6 +111,7 @@ impl Model {
                 .into_iter()
                 .map(|constr| NamedConstraint {
                     name: self.constr_name(&constr.method(), &col_name, &constr.column_names()),
+                    field_name: col_name.clone(),
                     constr,
                 })
                 .collect();
@@ -121,54 +122,34 @@ impl Model {
         }
         Ok(())
     }
-    // include
-    fn generate_code(self) -> Result<TokenStream2> {
-        let name = &self.name;
-        let name_lowercase = &self.name_lowercase;
-        let columns = Self::get_columns(&self.data.fields)?;
-        let constraints = self.get_constraints(&self.data.fields);
-        Ok(quote! {
-          impl ::sqlx_models::private::Model for #name {
-            fn target(__sqlx_models_dialect: ::sqlx_models::private::Dialect) -> ::sqlx_models::private::Table {
-                let mut __sqlx_models_table = ::sqlx_models::private::Table::new(stringify!(#name_lowercase));
-                #columns
-                #constraints
-                __sqlx_models_table
-            }
-          }
-        })
+
+    fn get_columns(&self) -> TokenStream2 {
+        let columns = self.columns.iter();
+        quote! {
+            #(#columns;)*
+        }
     }
 
-    fn get_columns(fields: &Fields) -> Result<TokenStream2> {
-        let mut columns = quote!();
-        for field in fields {
-            let col = column::Column::new(field)?;
-            let col = Self::get_column(field);
-            columns.extend(quote! {
-                __sqlx_models_table.columns.push(#col);
-            });
-        }
-        Ok(columns)
+    fn get_constraints(&self) -> TokenStream2 {
+        let columns = self
+            .constraints
+            .iter()
+            .map(|constr| constr.into_tokens(&self.name));
+
+        quote! {#(#columns;)*}
     }
 
     fn get_column(field: &Field) -> TokenStream2 {
         let ty = &field.ty;
         let ident = field.ident.as_ref().unwrap();
         quote! {
+            __sqlx_models_table.columns.push(
            ::sqlx_models::private::Column::new(
             stringify!(#ident),
             <#ty as ::sqlx_models::private::SqlType>::as_sql(),
             <#ty as ::sqlx_models::private::SqlType>::null_option()
-        )}
-    }
-
-    fn get_constraints(&self, fields: &Fields) -> TokenStream2 {
-        let mut constraints = quote!();
-        for field in fields {
-            let constr = self.get_constr(field);
-            constraints.extend(constr)
+            ));
         }
-        constraints
     }
 
     fn get_constr(&self, field: &Field) -> TokenStream2 {
