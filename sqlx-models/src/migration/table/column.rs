@@ -70,3 +70,10 @@ impl From<Column> for ColumnDef {
         }
     }
 }
+
+#[test]
+fn test_() {
+    use crate::model::SqlType;
+    let column = Column::new_with_default("id", i32::as_sql(), i32::null_option(), "10");
+    println!("{}", ColumnDef::from(column));
+}

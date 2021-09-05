@@ -2,13 +2,25 @@ use crate::prelude::*;
 use proc_macro2::Span;
 
 pub struct DefaultExpr {
+    is_string: bool,
     expr: String,
 }
 
 impl ToTokens for DefaultExpr {
     fn to_tokens(&self, tokens: &mut TokenStream2) {
         let expr = &self.expr;
-        tokens.extend(quote!(stringify!(#expr)));
+        if !self.is_string {
+            tokens.extend(quote!(#expr));
+        } else {
+            let expr = format!("{:?}", self.expr); 
+            let len = expr.chars().count();
+            let mut out: String = "'".into();
+            for char in expr.chars().skip(1).take(len - 2) {
+                out.push(char);
+            }
+            out.push('\'');
+            tokens.extend(quote!(#out))
+        }
     }
 }
 
@@ -19,33 +31,24 @@ impl Parse for DefaultExpr {
 
         let backup = input.clone();
         let mut span = Span::call_site();
-        let expr = input
-            .parse::<LitBool>()
-            .map(|boolean| {
-                span = boolean.span();
-                boolean.value().to_string()
-            })
-            .or_else(|_| {
-                backup
-                    .clone()
-                    .parse::<LitInt>() //
-                    .map(|int| {
-                        span = int.span();
-                        int.to_string()
-                    })
-            })
-            .or_else(|_| {
-                backup
-                    .clone()
-                    .parse::<LitStr>() //
-                    .map(|string| {
-                        span = string.span();
-                        string.value()
-                    })
-            })
-            .map_err(|err| {
-                Error::new(err.span(), "Expected string, boolean, or numeric literal")
-            })?;
+        let mut is_string = false;
+        let expr = match input.parse::<Lit>() {
+            Ok(Lit::Bool(boolean)) => boolean.value().to_string(),
+            Ok(Lit::Int(int)) => int.to_string(),
+            Ok(Lit::Float(float)) => float.to_string(),
+            Ok(Lit::Str(string)) => {
+                is_string = true;
+                string.value()
+            }
+            Ok(lit) => Err(Error::new(
+                lit.span(),
+                "Expected string, boolean, or numeric literal",
+            ))?,
+            Err(err) => Err(Error::new(
+                err.span(),
+                "Expected string, boolean, or numeric literal",
+            ))?,
+        };
 
         let mut lexer = Tokenizer::new(&GenericDialect {}, &expr);
 
@@ -61,6 +64,6 @@ impl Parse for DefaultExpr {
             .map_err(|err| {
                 syn::Error::new(span, format!("Failed to parse default expression: {}", err))
             });
-        Ok(DefaultExpr { expr })
+        Ok(DefaultExpr { is_string, expr })
     }
 }

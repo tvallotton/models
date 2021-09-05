@@ -87,3 +87,8 @@ impl<T: SqlType> SqlType for Option<T> {
         }
     }
 }
+impl SqlType for bool {
+    fn as_sql() -> DataType {
+        DataType::Boolean
+    }
+}

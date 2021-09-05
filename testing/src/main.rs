@@ -1,6 +1,8 @@
 #[allow(dead_code)]
 #[allow(unused_imports)]
 use sqlx_models::Model;
+
+
 #[derive(Model)]
 struct User {
     #[primary_key]
@@ -8,7 +10,8 @@ struct User {
     #[unique]
     email: String,
     password: String,
-
+    #[default = "hola\nchao"]
+    is_admin: String,
 }
 
 
