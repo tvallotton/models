@@ -1,6 +1,6 @@
 use crate::prelude::*;
-
 use ast::ColumnDef;
+use std::collections::HashSet;
 
 use sqlx_models_parser::dialect::GenericDialect;
 
@@ -17,7 +17,8 @@ impl super::get_changes::Name for Column {
     }
 
     fn are_equal(&self, other: &Self) -> bool {
-        self == other
+        self.r#type == other.r#type
+            && self.options.iter().collect::<HashSet<_>>() == self.options.iter().collect()
     }
 }
 

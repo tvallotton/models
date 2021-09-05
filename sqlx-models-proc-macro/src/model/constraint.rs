@@ -86,6 +86,7 @@ impl NamedConstraint {
                 fk.into_tokens(&constr_name, ty, &self.field_name)
             }
             Constraint::Primary(pk) => {
+                
                 let constr_name = self.constr_name(&ty, &pk.columns, "primary");
                 pk.into_tokens(&constr_name, ty, &self.field_name, quote!(primary))
             }
@@ -192,7 +193,7 @@ impl Constraints {
                 out.push(Constraint::ForeignKey(parse(tokens)?));
             } else if attr.path.is_ident("unique") {
                 out.push(Constraint::Unique(parse(tokens)?));
-            } else if attr.path.is_ident("unique") {
+            } else if attr.path.is_ident("primary") {
                 out.push(Constraint::Primary(parse(tokens)?));
             }
         }

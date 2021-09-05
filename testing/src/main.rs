@@ -2,27 +2,26 @@
 #[allow(unused_imports)]
 use sqlx_models::Model;
 
-
 #[derive(Model)]
-struct User {
+struct User_ {
     #[primary_key]
     id: i32,
     #[unique]
     email: String,
     password: String,
-    #[default = "hola\nchao"]
+    #[default = false]
     is_admin: String,
 }
 
-
 #[derive(Model)]
-struct Post {
-  #[primary_key]
-  id: i32,
-  #[foreign_key(User.id)]
-  author: i32, 
-  title: String,
-  content: String, 
+struct Post_ {
+    #[primary_key]
+    id: i32,
+    #[foreign_key(User_.id)]
+    author: i32,
+    #[default = "<UNTITLED POST>"]
+    title: String,
+    content: String,
 }
 
 fn main() {}

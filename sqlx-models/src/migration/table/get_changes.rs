@@ -4,7 +4,7 @@ type Stmts = Vec<Statement>;
 type Constraints = Vec<TableConstraint>;
 type Change = (Vec<Column>, Vec<TableConstraint>);
 type Columns = Vec<Column>;
-pub(crate) trait Name: Eq + Clone {
+pub(crate) trait Name: Eq + Clone + std::fmt::Debug {
     fn name(&self) -> &Ident;
     fn are_equal(&self, other: &Self) -> bool;
 }
@@ -41,7 +41,7 @@ impl Table {
                 to_delete.push(c0.clone());
             }
         }
-        (to_delete, to_change, to_create)
+        (to_delete, dbg!(to_change), to_create)
     }
 
     // fn get_changes_cols(&self, target: &Table, schema: &Schema) -> Stmts {

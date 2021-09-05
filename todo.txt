@@ -1,14 +1,12 @@
+impl: 
+    1. generate migrations in the right order. 
+    2. define custom datatypes. 
+    3. getters for forign keys. 
 
-
-
-
-
-
-
-
-1. make constraints removable
-2. make constraints addable
-3. allow changing constraints
-4. drop constraints on cascade
-5. add default parameters
+test: 
+    1. make constraints removable
+    2. make constraints addable
+    3. allow changing constraints
+    4. drop constraints on cascade
+    5. add default parameters
 
