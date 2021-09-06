@@ -15,14 +15,14 @@ struct User {
     #[unique]
     email: String,
     password: String,
-    #[default = false]
-    is_admin: String,
+    #[default = 0]
+    is_admin: bool,
 }
 
 #[derive(Model)]
 struct PostLike {
     #[foreign_key(User.id)]
-    #[primary_key(post)] // both user_id and post_id are primary keys.
+    #[primary_key(post_id)] // both user_id and post_id are primary keys.
     user_id: i32,
     #[foreign_key(Post.id)]
     post_id: i32,
@@ -30,8 +30,8 @@ struct PostLike {
 
 #[derive(Model)]
 struct CommentLike {
-    #[primary_key(comment)]
     #[foreign_key(User.id)]
+    #[primary_key(comment)]
     user: i32,
     #[foreign_key(Comment.id)]
     comment: i32,
@@ -61,4 +61,4 @@ struct Comment {
     post: i32,
 }
 
-fn main() {}
+

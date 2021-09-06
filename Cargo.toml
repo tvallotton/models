@@ -2,7 +2,7 @@
 members = [
     "sqlx-models-parser",
     "sqlx-models", 
-    "testing",
+    
     "sqlx-models-proc-macro", 
     "sqlx-models-cli",
 ]

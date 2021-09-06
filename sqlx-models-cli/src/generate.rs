@@ -6,8 +6,6 @@ pub async fn generate(opt: GenerateOpt) {
         .arg("__sqlx_models_generate_migration_")
         .env("SQLX_MODELS_GENERATE_MIGRATIONS", "true")
         .env("MIGRATIONS_DIR", opt.source)
-        .stdout(Stdio::null())
-        .stderr(Stdio::null())
         .spawn()
         .unwrap()
         .wait()

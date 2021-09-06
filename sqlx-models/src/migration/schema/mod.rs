@@ -68,7 +68,7 @@ impl Schema {
                     panic!("Table \"{}\" cannot be dropped as it does not exist.", name)
                 }
                 if cascade {
-                    self.cascade(&name);
+                    self.cascade(name);
                 }
                 self.tables.remove(name);
             })

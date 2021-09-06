@@ -13,7 +13,7 @@ impl Schema {
 
     /// Computes the current state of the schema
     /// from the "migrations/" directory.
-    fn init(&mut self, directory: &String) {
+    fn init(&mut self, directory: &str) {
         let stmts = self.get_statements(directory);
         for stmt in stmts {
             self.update_schema(stmt);
@@ -21,7 +21,7 @@ impl Schema {
     }
     /// It retrieves a vec of all statements in the "migrations/" directory
     /// In the order they were written.
-    fn get_statements(&mut self, directory: &String) -> Vec<Statement> {
+    fn get_statements(&mut self, directory: &str) -> Vec<Statement> {
         self.read_dir(directory)
             .into_iter()
             .filter(|file| file.is_file())
@@ -36,7 +36,7 @@ impl Schema {
             })
     }
     /// returns a list of all the files in the migrations directory.
-    fn read_dir(&self, directory: &String) -> Vec<PathBuf> {
+    fn read_dir(&self, directory: &str) -> Vec<PathBuf> {
         let mut dir: Vec<_> = read_dir(&directory)
             .or_else(|_| {
                 create_dir(&directory) //

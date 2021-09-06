@@ -66,7 +66,7 @@ impl Sorter {
     }
 
     fn lock(&self, name: &str) -> MutexGuard<String> {
-        for _ in 0..50 {
+        for _ in 0..500 {
             {
                 let directory = self.directory.lock().unwrap();
                 let mut sort = self.inner.lock().unwrap();
@@ -76,7 +76,7 @@ impl Sorter {
                     return directory;
                 }
             }
-            sleep(Duration::from_millis(10));
+            sleep(Duration::from_millis(1));
         }
         self.directory.lock().unwrap()
     }
