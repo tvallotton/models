@@ -2,27 +2,27 @@ use super::*;
 use crate::prelude::*; 
 impl Schema {
     /// constructs a new Schema from the "migrations/" directory.
-    pub fn new(dialect: Dialect) -> Self {
+    pub fn new(dialect: Dialect, directory: &String) -> Self {
         let mut out = Self {
             dialect,
             tables: HashMap::new(),
         };
-        out.init();
+        out.init(directory);
         out
     }
 
     /// Computes the current state of the schema
     /// from the "migrations/" directory.
-    fn init(&mut self) {
-        let stmts = self.get_statements();
+    fn init(&mut self, directory: &String) {
+        let stmts = self.get_statements(directory);
         for stmt in stmts {
             self.update_schema(stmt);
         }
     }
     /// It retrieves a vec of all statements in the "migrations/" directory
     /// In the order they were written.
-    fn get_statements(&mut self) -> Vec<Statement> {
-        self.read_dir()
+    fn get_statements(&mut self, directory: &String) -> Vec<Statement> {
+        self.read_dir(directory)
             .into_iter()
             .filter(|file| file.is_file())
             .map(read_to_string)
@@ -36,13 +36,13 @@ impl Schema {
             })
     }
     /// returns a list of all the files in the migrations directory.
-    fn read_dir(&self) -> Vec<PathBuf> {
-        let mut dir: Vec<_> = read_dir(&*MIGRATIONS_DIR)
+    fn read_dir(&self, directory: &String) -> Vec<PathBuf> {
+        let mut dir: Vec<_> = read_dir(&directory)
             .or_else(|_| {
-                create_dir(&*MIGRATIONS_DIR) //
-                    .and_then(|_| read_dir(&*MIGRATIONS_DIR))
+                create_dir(&directory) //
+                    .and_then(|_| read_dir(&directory))
             })
-            .expect(&format!("Could not read the \"{}\" directiory.", *MIGRATIONS_DIR))
+            .expect(&format!("Could not read the \"{}\" directiory.", &directory))
             .map(|x| x.unwrap().path())
             .collect();
         dir.sort();

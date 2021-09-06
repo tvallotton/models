@@ -12,10 +12,7 @@ pub enum Dialect {
 
 impl Dialect {
     pub(crate) fn requires_move(self) -> bool {
-        match self {
-            Dialect::Any | Dialect::Sqlite => true,
-            _ => false,
-        }
+        matches!(self, Dialect::Any | Dialect::Sqlite)
     }
 }
 
@@ -55,7 +52,7 @@ pub trait Model {
 }
 
 pub trait SqlType {
-    fn as_sql() -> DataType; 
+    fn as_sql() -> DataType;
     fn null_option() -> ColumnOptionDef {
         ColumnOptionDef {
             name: None,

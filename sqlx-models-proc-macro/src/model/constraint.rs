@@ -16,14 +16,14 @@ use std::fmt::Debug;
 use crate::prelude::*;
 
 #[derive(Default, Debug)]
-struct Unique {
+pub struct Unique {
     columns: Vec<Ident>,
 }
 impl ForeignKey {
-    fn into_tokens(&self, constr_name: &str, ty: &Ident, local_col: &Ident) -> TokenStream2 {
+    fn into_tokens(&self, constr_name: &str, local_col: &Ident) -> TokenStream2 {
         let foreign_col = &self.column;
         let foreign_table = &self.foreign_table.get_ident();
-        
+
         let on_update = self
             .on_update
             .clone()
@@ -83,10 +83,9 @@ impl NamedConstraint {
         match &self.constr {
             Constraint::ForeignKey(fk) => {
                 let constr_name = self.constr_name(&ty, &[fk.column.clone()], "foreign");
-                fk.into_tokens(&constr_name, ty, &self.field_name)
+                fk.into_tokens(&constr_name, &self.field_name)
             }
             Constraint::Primary(pk) => {
-                
                 let constr_name = self.constr_name(&ty, &pk.columns, "primary");
                 pk.into_tokens(&constr_name, ty, &self.field_name, quote!(primary))
             }
@@ -94,7 +93,6 @@ impl NamedConstraint {
                 let constr_name = self.constr_name(&ty, &u.columns, "unique");
                 u.into_tokens(&constr_name, ty, &self.field_name, quote!(unique))
             }
-            _ => todo!(),
         }
     }
 
@@ -134,7 +132,7 @@ impl Parse for Unique {
     }
 }
 
-struct ForeignKey {
+pub struct ForeignKey {
     foreign_table: Path,
     column: Ident,
     on_delete: Option<LitStr>,
@@ -142,7 +140,9 @@ struct ForeignKey {
 }
 
 impl std::fmt::Debug for ForeignKey {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {Ok(())}
+    fn fmt(&self, _f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        Ok(())
+    }
 }
 impl Parse for ForeignKey {
     fn parse(input: parse::ParseStream) -> Result<Self> {
@@ -193,7 +193,7 @@ impl Constraints {
                 out.push(Constraint::ForeignKey(parse(tokens)?));
             } else if attr.path.is_ident("unique") {
                 out.push(Constraint::Unique(parse(tokens)?));
-            } else if attr.path.is_ident("primary") {
+            } else if attr.path.is_ident("primary_key") {
                 out.push(Constraint::Primary(parse(tokens)?));
             }
         }

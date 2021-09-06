@@ -12,7 +12,7 @@ impl ToTokens for DefaultExpr {
         if !self.is_string {
             tokens.extend(quote!(#expr));
         } else {
-            let expr = format!("{:?}", self.expr); 
+            let expr = format!("{:?}", self.expr);
             let len = expr.chars().count();
             let mut out: String = "'".into();
             for char in expr.chars().skip(1).take(len - 2) {
@@ -29,8 +29,7 @@ impl Parse for DefaultExpr {
         use sqlx_models_parser::{dialect::*, parser::Parser, tokenizer::*};
         input.parse::<Token![=]>()?;
 
-        let backup = input.clone();
-        let mut span = Span::call_site();
+        let span = Span::call_site();
         let mut is_string = false;
         let expr = match input.parse::<Lit>() {
             Ok(Lit::Bool(boolean)) => boolean.value().to_string(),

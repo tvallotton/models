@@ -63,7 +63,7 @@ impl Table {
         Statement::AlterTable(AlterTable {
             name: self.name.clone(),
             operation: AlterTableOperation::AddColumn {
-                column_def: col.clone().into(),
+                column_def: col.into(),
             },
         })
     }

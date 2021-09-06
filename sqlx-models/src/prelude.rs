@@ -31,12 +31,12 @@ fn get_uri() -> Url {
     Url::parse(&database_url).expect("The DATABASE_URL environment variable could not be parsed.")
 }
 fn get_migrations_dir() -> String {
-    var("MIGRATIONS_DIR").unwrap_or("migrations/".into())
+    var("MIGRATIONS_DIR").unwrap_or_else(|_| "migrations/".into())
 }
 
 use std::sync::Mutex;
-pub static MIGRATIONS_DIR: Lazy<String> = Lazy::new(get_migrations_dir);
-pub static MIGRATIONS_LOCK: Lazy<Mutex<()>> = Lazy::new(|| Mutex::new(()));
+pub(crate) static MIGRATIONS_DIR: Lazy<String> = Lazy::new(get_migrations_dir);
+
 
 use sqlformat::{FormatOptions, Indent};
 

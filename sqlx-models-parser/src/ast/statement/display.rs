@@ -241,22 +241,22 @@ impl fmt::Display for CreateView {
 
 impl fmt::Display for CreateTable {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let ref name = self.name;
-        let ref columns = self.columns;
-        let ref constraints = self.constraints;
-        let ref table_properties = self.table_properties;
-        let ref with_options = self.with_options;
-        let ref or_replace = self.or_replace;
-        let ref if_not_exists = self.if_not_exists;
-        let ref hive_distribution = self.hive_distribution;
-        let ref hive_formats = self.hive_formats;
-        let ref external = self.external;
-        let ref temporary = self.temporary;
-        let ref file_format = self.file_format;
-        let ref location = self.location;
-        let ref query = self.query;
-        let ref without_rowid = self.without_rowid;
-        let ref like = self.like;
+        let name = &self.name;
+        let columns = &self.columns;
+        let constraints = &self.constraints;
+        let table_properties = &self.table_properties;
+        let with_options = &self.with_options;
+        let or_replace = &self.or_replace;
+        let if_not_exists = &self.if_not_exists;
+        let hive_distribution = &self.hive_distribution;
+        let hive_formats = &self.hive_formats;
+        let external = &self.external;
+        let temporary = &self.temporary;
+        let file_format = &self.file_format;
+        let location = &self.location;
+        let query = &self.query;
+        let without_rowid = &self.without_rowid;
+        let like = &self.like;
         write!(
             f,
             "CREATE {or_replace}{external}{temporary}TABLE {if_not_exists}{name}",

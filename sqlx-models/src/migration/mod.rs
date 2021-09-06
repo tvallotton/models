@@ -1,5 +1,6 @@
 use crate::prelude::*;
-use crate::Model;
+
+use std::sync::MutexGuard;
 use std::*;
 mod schema;
 pub mod table;
@@ -14,7 +15,7 @@ pub struct Migration {
 }
 
 impl Migration {
-    pub fn get_dialect() -> Dialect {
+    pub(crate) fn get_dialect() -> Dialect {
         let url = &DATABASE_URL;
         match url.scheme() {
             "sqlite" => Sqlite,
@@ -26,16 +27,16 @@ impl Migration {
         }
     }
 
-    pub fn new<T: crate::model::Model>() -> Self {
+    pub fn new<T: crate::model::Model>(directory: MutexGuard<String>) {
         let dialect = Self::get_dialect();
         Self {
-            schema: Schema::new(dialect),
+            schema: Schema::new(dialect, &*directory),
             target: T::target(dialect),
         }
+        .run();
     }
 
     pub fn run(mut self) {
-        let _lock = MIGRATIONS_LOCK.lock();
         let changes = self.get_changes();
 
         if !changes.is_empty() {

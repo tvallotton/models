@@ -21,13 +21,13 @@ impl Table {
         out
     }
 
-    fn get_vecs<T: Name>(now: &Vec<T>, target: &Vec<T>) -> (Vec<T>, Vec<T>, Vec<T>) {
+    fn get_vecs<T: Name>(now: &[T], target: &[T]) -> (Vec<T>, Vec<T>, Vec<T>) {
         let mut to_change = vec![];
         let mut to_delete = vec![];
         let mut to_create = vec![];
         for c1 in target {
             for c0 in now {
-                if c1.name() == c0.name() && !c1.are_equal(&c0) {
+                if c1.name() == c0.name() && !c1.are_equal(c0) {
                     to_change.push(c1.clone())
                 }
             }
@@ -37,83 +37,13 @@ impl Table {
         }
 
         for c0 in now {
+            
             if !target.iter().any(|c1| c1.name() == c0.name()) {
                 to_delete.push(c0.clone());
             }
         }
-        (to_delete, dbg!(to_change), to_create)
+        (to_delete, to_change, to_create)
     }
-
-    // fn get_changes_cols(&self, target: &Table, schema: &Schema) -> Stmts {
-    //     let (to_delete, to_change, to_create) = Self::get_vecs(&self.columns, &target.columns);
-    //     let mut stmts = vec![];
-    //     if !to_delete.is_empty() && (!to_change.is_empty() || schema.dialect.requires_move()) {
-    //         stmts.extend(self.move_to(to_delete, to_change, schema));
-    //     } else {
-    //         for col in to_delete {
-    //             let stmt = self.delete_col(col);
-    //             stmts.push(stmt)
-    //         }
-    //     }
-
-    //     for col in to_create {
-    //         let stmt = self.create_col(col);
-    //         stmts.push(stmt)
-    //     }
-    //     stmts
-    // }
-
-    // fn delete_constraints(&self, target: &Table, schema: &Schema) -> Stmts {
-    //     let (to_delete, to_change, _) = Self::get_vecs(&self.constraints, &target.constraints);
-    //     let to_delete: Vec<_> = to_delete
-    //         .into_iter()
-    //         .chain(to_change.into_iter()) //
-    //         .collect();
-    //     let mut stmts = vec![];
-    //     if !to_delete.is_empty() && schema.dialect.requires_move() {
-    //         let mut clone = self.clone();
-    //         for c0 in to_delete {
-    //             clone.constraints = clone
-    //                 .constraints
-    //                 .into_iter()
-    //                 .filter(|c1| c0 != *c1)
-    //                 .collect();
-    //         }
-    //         stmts.extend(clone.move_to(vec![], vec![], schema));
-    //     } else {
-    //         for cons in to_delete {
-    //             let stmt = self.delete_cons(cons);
-    //             stmts.push(stmt)
-    //         }
-    //     }
-    //     stmts
-    // }
-
-    // fn create_constraints(&self, target: &Table, schema: &Schema) -> Stmts {
-    //     let (_, to_change, to_create) = Self::get_vecs(&self.constraints, &target.constraints);
-    //     let to_create: Vec<_> = to_create
-    //         .into_iter()
-    //         .chain(to_change.into_iter()) //
-    //         .collect();
-    //     let mut stmts = vec![];
-    //     if !to_create.is_empty() && schema.dialect.requires_move() {
-    //         let mut clone = self.clone();
-    //         for c0 in to_create {
-    //             clone.constraints = clone
-    //                 .constraints
-    //                 .into_iter()
-    //                 .filter(|c1| c0 != *c1)
-    //                 .collect();
-    //         }
-    //         stmts.extend(clone.move_to(vec![], vec![], schema));
-    //     } else {
-    //         for cons in to_create {
-    //             let stmt = self.create_cons(cons);
-    //             stmts.push(stmt)
-    //         }
-    //     }
-    //     stmts
-    // }
 
     fn create_cons(&self, cons: TableConstraint) -> Statement {
         Statement::AlterTable(AlterTable {
@@ -247,7 +177,7 @@ impl Table {
             .collect();
         let to_create = to_create
             .into_iter()
-            .chain(to_change.clone().into_iter())
+            .chain(to_change.into_iter())
             .collect();
 
         (to_delete, to_create)
@@ -258,8 +188,8 @@ impl Table {
 
     pub(crate) fn get_changes(&self, target: &Table, schema: &Schema) -> Stmts {
         let mut stmts = vec![];
-        let (del_col, change, create_col) = self.col_changes(&target);
-        let (del_cons, create_cons) = self.constrs_changes(&target);
+        let (del_col, change, create_col) = self.col_changes(target);
+        let (del_cons, create_cons) = self.constrs_changes(target);
 
         for col in create_col {
             let stmt = self.create_col(col);
