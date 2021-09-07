@@ -1,5 +1,5 @@
 //! # SQLX-MODELS
-//! sqlx-modes is a working progress implementation for a sql migration manangement tool for applications using sqlx.
+//! sqlx-modes is a work in progress implementation for a sql migration manangement tool for applications using sqlx.
 //! # Basic Tutorial
 //! install the CLI by running the following command: 
 //! ```

@@ -18,7 +18,7 @@ $ cargo install sqlx-cli --no-default-features --features postgres
 ### Usage
 
 All commands require that a database url is provided. This can be done either with the `--database-url` command line option or by setting `DATABASE_URL`, either in the environment or in a `.env` file
-in the current working directory.
+in the current work in directory.
 
 For more details, run `sqlx <command> --help`.
 

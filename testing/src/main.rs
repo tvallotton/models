@@ -62,3 +62,10 @@ struct Comment {
 }
 
 
+fn main() {
+    if cfg!(feature = "lol") {
+        println!("feature lol enabled");
+    } else {
+        println!("feature lol disabled"); 
+    }
+}
