@@ -141,7 +141,7 @@ for tables with multicolumn primary keys, the following syntax is used:
 ### foreign_key
 It is used to mark a foreign key constraint. 
 ```rust
-    #[foreign_key(User.id]
+    #[foreign_key(User.id)]
     user: i32, 
 ```
 It can also specify on_delete and on_update constraints: 
