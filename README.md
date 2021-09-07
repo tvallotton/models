@@ -122,3 +122,50 @@ CREATE TABLE postlike (
 );
 ```
 If we later modify those structures in our application, we can generate new migrations to update the tables. 
+
+
+## Avaibale Attributes
+### primary_key
+It's used to mark the primary key fo the table. 
+```rust
+    #[primary_key]
+    id: i32, 
+```
+for tables with multicolumn primary keys, the following syntax is used: 
+```rust
+    #[primary_key(second_id)]
+    first_id: i32, 
+    second_id: i32, 
+```
+
+### foreign_key
+It is used to mark a foreign key constraint. 
+```rust
+    #[foreign_key(User.id]
+    user: i32, 
+```
+It can also specify on_delete and on_update constraints: 
+```rust
+    #[foreign_key(User.id, on_delete="cascade"]
+    user: i32, 
+```
+
+### default
+It can be used to set a default for a table. 
+```rust
+    #[default = 0]
+    is_admin: bool, 
+```
+
+### unique
+It is used to mark a unique constraint. 
+```rust
+    #[unique]
+    email: String, 
+```
+For multicolumn unique constraints the following syntax is used: 
+```rust
+    #[unique(hash)]
+    username: String,
+    hash: i32,
+```
