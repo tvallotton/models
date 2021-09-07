@@ -35,11 +35,11 @@ struct Queue {
     sort: TopologicalSort<String>,
     tables_run: usize,
 }
-pub struct Sorter {
+pub struct Scheduler {
     inner: Mutex<Queue>,
     directory: Mutex<String>,
 }
-impl Sorter {
+impl Scheduler {
     pub fn new() -> Self {
         Self {
             inner: Mutex::new(Queue {

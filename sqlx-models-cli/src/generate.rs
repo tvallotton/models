@@ -1,5 +1,5 @@
 use crate::opt::GenerateOpt;
-use std::process::*;
+
 pub async fn generate(opt: GenerateOpt) {
     let _process = tokio::process::Command::new("cargo")
         .arg("test")

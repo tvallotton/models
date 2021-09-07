@@ -125,7 +125,7 @@
 mod migration;
 mod model;
 mod prelude;
-mod sorter;
+mod scheduler;
 mod error;
 pub use sqlx_models_proc_macro::Model;
 
@@ -138,8 +138,8 @@ pub mod private {
         table::{constraint, Column},
         Migration, Table,
     };
-    pub use super::sorter::Sorter;
-    pub static MIGRATIONS: Lazy<Sorter> = Lazy::new(Sorter::new);
+    pub use super::scheduler::Scheduler;
+    pub static MIGRATIONS: Lazy<Scheduler> = Lazy::new(Scheduler::new);
     /// Do not use the types defined in this module.
     /// They are intended to be used only through the macro API.
     /// Changes in this module are not considered to be breaking changes.
