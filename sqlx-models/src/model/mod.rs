@@ -48,7 +48,7 @@ impl sqlx_models_parser::dialect::Dialect for Dialect {
 }
 
 pub trait Model {
-    fn target(dialect: Dialect) -> Table;
+    fn target(self,) -> Table;
 }
 
 pub trait SqlType {

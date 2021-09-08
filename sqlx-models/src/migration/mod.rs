@@ -1,20 +1,22 @@
 use crate::prelude::*;
-
-use std::sync::MutexGuard;
-use std::*;
+use std::{
+    fs::*,
+    sync::{Mutex, MutexGuard},
+};
 mod schema;
 pub mod table;
-
+use crate::model::Model;
 use schema::*;
 
 pub use table::Table;
 
 pub struct Migration {
     schema: Schema,
-    target: Table,
+    dialect: Dialect,
 }
 
 impl Migration {
+    #[throws(Error)]
     pub(crate) fn get_dialect() -> Dialect {
         let url = &DATABASE_URL;
         match url.scheme() {
@@ -23,30 +25,37 @@ impl Migration {
             "mysql" => Mysql,
             "mssql" => Mssql,
             "any" => Any,
-            _ => panic!("scheme \"{}\" is not supported", url.scheme()),
+            _ => error!("scheme \"{}\" is not supported", url.scheme()),
         }
     }
-
-    pub fn new<T: crate::model::Model>(directory: MutexGuard<String>) {
-        let dialect = Self::get_dialect();
+    #[throws(Error)]
+    pub(crate) fn new(model: &dyn Model) -> Self {
+        let dialect = Self::get_dialect()?;
         Self {
-            schema: Schema::new(dialect, &*directory),
-            target: T::target(dialect),
+            schema: Schema::new(dialect)?,
+            dialect,
         }
-        .run();
+    }
+    pub(crate) fn run(&self, model: &dyn Model) {
+        match self.generate_migrations(model) {
+            Ok(_) => println!(""),
+            Err(error) => error.commit(),
+        }
     }
 
-    pub fn run(mut self) {
-        let changes = self.get_changes();
-
+    #[throws(Error)]
+    fn generate_migrations(&self, model: &dyn Model) {
+        let mut migr = Self::new(model)?;
+        let target = model.target(self.dialect);
+        let changes = migr.get_changes(&target);
         if !changes.is_empty() {
-            self.save_changes(self.target.name.clone(), changes);
+            migr.save_changes(target.name.clone(), changes)?;
         }
     }
-    pub fn get_changes(&mut self) -> Vec<Statement> {
+    fn get_changes(&mut self, target: &Table) -> Vec<Statement> {
         let mut changes = vec![];
         loop {
-            let stmts = self.schema.get_changes(self.target.clone());
+            let stmts = self.schema.get_changes(target.clone());
             if stmts.is_empty() {
                 break;
             }
@@ -57,16 +66,15 @@ impl Migration {
         }
         changes
     }
-
+    #[throws(Error)]
     fn save_changes(&self, name: ObjectName, stmts: Vec<Statement>) {
         let time = chrono::Utc::now().timestamp_nanos();
         {
-            let mut file =
-                std::fs::File::create(format!("migrations/{}_{}.sql", time, name)).unwrap();
+            let mut file = File::create(format!("migrations/{}_{}.sql", time, name))?;
             for stmt in stmts {
                 use std::io::Write;
                 let stmt = Self::formatted_stmt(stmt);
-                write!(file, "{};\n\n", stmt).unwrap();
+                write!(file, "{};\n\n", stmt)?;
             }
         }
     }

@@ -1,6 +1,7 @@
+use crate::migration::Migration;
 use crate::migration::Table;
+use crate::model::Model;
 use crate::prelude::*;
-
 use sqlx_models_parser::ast::{ForeignKey, TableConstraint};
 use std::sync::Mutex;
 use std::sync::MutexGuard;
@@ -28,32 +29,28 @@ impl From<Table> for Node {
     }
 }
 
-fn get_migrations_dir() -> String {
-    var("MIGRATIONS_DIR").unwrap_or_else(|_| "migrations/".into())
+struct InnerScheduler {
+    migration: Result<Migration, Error>,
+    queue: TopologicalSort<String>,
+    finished: Vec<String>,
 }
-struct Queue {
-    sort: TopologicalSort<String>,
-    tables_run: usize,
-}
-pub struct Scheduler {
-    inner: Mutex<Queue>,
-    directory: Mutex<String>,
-}
+pub struct Scheduler(Mutex<InnerScheduler>);
+
 impl Scheduler {
-    pub fn new() -> Self {
-        Self {
-            inner: Mutex::new(Queue {
-                sort: TopologicalSort::new(),
-                tables_run: 0,
-            }),
-            directory: Mutex::new(get_migrations_dir()),
-        }
+    pub fn new(model: &dyn Model) -> Self {
+        let migration = Migration::new(model);
+        Self(Mutex::new(InnerScheduler {
+            migration,
+            queue: TopologicalSort::new(),
+            finished: vec![],
+        }))
     }
-    pub fn get_directory<T: crate::model::Model>(&self) -> MutexGuard<String> {
-        let dialect = crate::migration::Migration::get_dialect();
-        let table = T::target(dialect);
+    #[throws(Error)]
+    pub fn do_migration(&self, model: &dyn Model) -> MutexGuard<()> {
+
         let name;
-        {
+        {   
+            let table = model.target(); 
             let node: Node = table.into();
             let mut sort = self.inner.lock().unwrap();
             name = node.name.clone();
@@ -65,19 +62,19 @@ impl Scheduler {
         self.lock(&name)
     }
 
-    fn lock(&self, name: &str) -> MutexGuard<String> {
+    fn lock(&self, name: &str) -> MutexGuard<()> {
         for _ in 0..500 {
             {
-                let directory = self.directory.lock().unwrap();
+                let handle = self.handle.lock().unwrap();
                 let mut sort = self.inner.lock().unwrap();
                 let current_turn = sort.sort.clone().nth(sort.tables_run);
                 if Some(name) == current_turn.as_deref() {
                     sort.tables_run += 1;
-                    return directory;
+                    return handle;
                 }
             }
             sleep(Duration::from_millis(1));
         }
-        self.directory.lock().unwrap()
+        self.handle.lock().unwrap()
     }
 }

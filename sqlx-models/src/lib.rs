@@ -121,12 +121,13 @@
 
 
 
+#[macro_use]
+mod error;
 
 mod migration;
 mod model;
 mod prelude;
 mod scheduler;
-mod error;
 pub use sqlx_models_proc_macro::Model;
 
 

@@ -2,7 +2,7 @@ mod schema_initialization;
 
 use super::table::Table;
 use crate::prelude::*;
-use fs::*;
+// use fs::*;
 use std::{convert::TryInto, path::PathBuf};
 use Statement::*;
 
@@ -21,9 +21,9 @@ impl Schema {
         }
     }
 
-    pub(super) fn update_schema(&mut self, stmt: Statement) {
+    pub(crate) fn update_schema(&mut self, stmt: Statement) {
         match stmt {
-            CreateTable(_) => self.create_table(stmt.try_into()),
+            CreateTable(_) => self.create_table(stmt.try_into().unwrap()),
             AlterTable(ast::AlterTable {
                 name,
                 operation: AlterTableOperation::RenameTable { table_name },
@@ -83,8 +83,9 @@ impl Schema {
                 name
             ));
     }
-    fn create_table(&mut self, table: Result<Table, String>) {
-        let table = table.unwrap();
+
+    fn create_table(&mut self, table: Table) {
+        let table = table;
         let tables = &mut self.tables;
         if !table.if_not_exists && tables.contains_key(&table.name) && !table.or_replace {
             panic!(

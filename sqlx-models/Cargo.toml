@@ -21,6 +21,7 @@ sqlformat = "0.1.7"
 once_cell = "1.8.0"
 topological-sort = "0.1.0"
 thiserror = "1.0.29"
+itertools = "0.10.1"
 
 [dev-dependencies]
 sqlx = { version = "0.5.7", features = ["any","runtime-async-std-native-tls",] }
