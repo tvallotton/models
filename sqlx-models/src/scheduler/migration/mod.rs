@@ -8,9 +8,10 @@ use crate::{
 };
 use queue::Queue;
 pub use schema::Schema;
+use std::fs::File;
 
 pub(crate) struct Migration {
-    pub schema: Result<Schema, Error>,
+    pub result: Result<Schema, Error>,
     pub queue: Queue,
 
     pub success: Vec<String>,
@@ -18,29 +19,49 @@ pub(crate) struct Migration {
 
 impl Migration {
     pub fn new() -> Self {
-        let schema = Schema::new();
+        let result = Schema::new();
         Self {
-            schema,
+            result,
             queue: Queue::new(),
             success: vec![],
         }
     }
 
-    fn migrate(&self) {
+    fn migrate(&mut self) {
         loop {
-            
+            match self.queue.pop() {
+                Some(target) => self.migrate_table(target),
+                None => {
+                    if self.queue.len() != 0 && self.result.is_ok() {
+                        self.result = Err(Error::CycleError(
+                            self.queue.tables.keys().cloned().collect(),
+                        ));
+                    }
+                    break;
+                }
+            }
         }
     }
 
     fn migrate_table(&mut self, target: Table) {
-        if self.schema.is_ok() {
-            let changes = self.get_changes(target);
+        if let Ok(schema) = &mut self.result {
+            let table_name = target.dep_name();
+            let changes = Self::get_changes(target, schema);
+            
+            match Self::save(&table_name, changes) {
+                Ok(()) => {
+                    self.success.push(table_name.clone());
+                }
+                Err(error) => {
+                    self.result = Err(error);
+                }
+            }
         }
     }
 
-    fn get_changes(&mut self, target: Table) -> Vec<Statement> {
+    fn get_changes(target: Table, schema: &mut Schema) -> Vec<Statement> {
         let mut changes = vec![];
-        let schema = self.schema.as_mut().unwrap();
+
         loop {
             let stmts = schema.get_changes(target.clone());
             if stmts.is_empty() {
@@ -52,5 +73,29 @@ impl Migration {
             }
         }
         changes
+    }
+
+    #[throws(Error)]
+    fn save(name: &String, stmts: Vec<Statement>) {
+        let time = chrono::Utc::now().timestamp_millis();
+        {
+            let file_name = format!(
+                "migrations/{}_{}.sql", //
+                time, name
+            );
+            let mut file = File::create(file_name) //
+                .map_err(|_| Error::IOError)?;
+            for stmt in stmts {
+                use std::io::Write;
+                let stmt = Self::formatted_stmt(stmt);
+                write!(file, "{};\n\n", stmt).map_err(|_| Error::IOError)?;
+            }
+        }
+    }
+
+    fn formatted_stmt(stmt: Statement) -> String {
+        use sqlformat::QueryParams;
+        let stmt = format!("{}", stmt);
+        sqlformat::format(&stmt, &QueryParams::None, FORMAT_OPTIONS)
     }
 }

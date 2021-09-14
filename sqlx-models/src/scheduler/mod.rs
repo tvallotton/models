@@ -21,11 +21,10 @@ impl Scheduler {
     pub fn register(&self, table: Table) {
         let len;
         {
-            let mut inner = self.0.lock().unwrap();
-            len = inner.queue.len();
-            for dep in table.dependencies() {
-                inner.queue.insert(table.dep_name(), dep)
-            }
+            let mut migration = self.0.lock().unwrap();
+            len = migration.queue.len();
+
+            migration.queue.insert(table)
         }
 
         if len == 0 {

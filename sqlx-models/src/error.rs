@@ -2,6 +2,7 @@ use crate::prelude::*;
 use sqlx_models_parser::parser::ParserError;
 use thiserror::Error;
 use std::sync::Arc; 
+use std::collections::HashSet; 
 #[macro_use]
 macro_rules! error {
     ($($args:expr),+) => {
@@ -18,7 +19,7 @@ pub enum Error {
     #[error("Could not read or create migration file.")]
     IOError,
     #[error("Dependency cycle detected invlonving the tables: {0:?}.")]
-    CycleError(Vec<String>),
+    CycleError(HashSet<String>),
     #[error("The environment variable DATABASE_URL is not set. Set it or store it in an `.env` file.")]
     DatabaseUrlNotSet,
     #[error("The DATABASE_URL environment variable could not be parsed.")]
