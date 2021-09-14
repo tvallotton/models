@@ -120,7 +120,7 @@
 //! If we later modify those structures in our application, we can generate new migrations to update the tables. 
 
 
-#[allow(dead_code)]
+
 #[macro_use]
 mod error;
 

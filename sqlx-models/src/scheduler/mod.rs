@@ -1,5 +1,5 @@
 use crate::prelude::*;
-use std::{fs::*, sync::Mutex};
+use std::sync::Mutex;
 mod migration;
 pub(crate) use migration::Schema;
 
@@ -29,42 +29,25 @@ impl Scheduler {
 
         if len == 0 {
             std::thread::sleep(time::Duration::from_millis(250));
-            self.0.lock().unwrap();
+            self.commit()
         }
     }
 
-    pub fn commit(&self) {}
+    fn commit(&self) {
+        let mut migr = self.0.lock().unwrap();
+        migr.migrate();
+        let err = migr.result.as_ref().err();
+        let err_msg = err.map(|err| format!("{}", err));
+        let kind = err.map(Error::kind);
+        
 
-    // fn run<T>(&self, table: Table) {
-    //     match self.generate_migrations(table) {
-    //         Ok(_) => println!(""),
-    //         Err(error) => error.commit(),
-    //     }
-    // }
-
-    // #[throws(Error)]
-    // fn generate_migrations(&self, target: Table) {
-    //     let changes = self.get_changes(&target);
-    //     if !changes.is_empty() {
-    //         self.save_changes(target.name.clone(), changes)?;
-    //     }
-    // }
-
-    // #[throws(Error)]
-    // fn save_changes(&self, name: ObjectName, stmts: Vec<Statement>) {
-    //     let time = chrono::Utc::now().timestamp_nanos();
-    //     {
-    //         let mut file = File::create(format!("migrations/{}_{}.sql", time, name))?;
-    //         for stmt in stmts {
-    //             use std::io::Write;
-    //             let stmt = Self::formatted_stmt(stmt);
-    //             write!(file, "{};\n\n", stmt)?;
-    //         }
-    //     }
-    // }
-    fn formatted_stmt(stmt: Statement) -> String {
-        use sqlformat::QueryParams;
-        let stmt = format!("{}", stmt);
-        sqlformat::format(&stmt, &QueryParams::None, FORMAT_OPTIONS)
+        let json = serde_json::json!({
+            "success": &migr.success,
+            "error": {
+                "kind": err_msg,
+                "message": kind
+            },
+        });
+        println!("<SQLX-OUTPUT>{0}</SQLX-OUTPUT>", json);
     }
 }

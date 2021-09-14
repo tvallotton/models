@@ -3,7 +3,7 @@ mod schema;
 use crate::prelude::*;
 use crate::{
     error::Error, //
-    model::Dialect,
+    // model::Dialect,
     scheduler::table::Table,
 };
 use queue::Queue;
@@ -27,7 +27,7 @@ impl Migration {
         }
     }
 
-    fn migrate(&mut self) {
+    pub fn migrate(&mut self)  {
         loop {
             match self.queue.pop() {
                 Some(target) => self.migrate_table(target),
@@ -37,7 +37,7 @@ impl Migration {
                             self.queue.tables.keys().cloned().collect(),
                         ));
                     }
-                    break;
+                    break
                 }
             }
         }
@@ -47,7 +47,7 @@ impl Migration {
         if let Ok(schema) = &mut self.result {
             let table_name = target.dep_name();
             let changes = Self::get_changes(target, schema);
-            
+
             match Self::save(&table_name, changes) {
                 Ok(()) => {
                     self.success.push(table_name.clone());

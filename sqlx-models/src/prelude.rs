@@ -1,6 +1,6 @@
 pub(crate) use crate::error::Error;
 pub(crate) use crate::model::{Dialect, Dialect::*};
-pub(crate) use crate::scheduler::{table::Column, Table};
+pub(crate) use crate::scheduler::Table;
 pub use ::std::{fs, io, *};
 pub(crate) use ast::*;
 pub(crate) use collections::HashMap;
@@ -33,7 +33,6 @@ fn get_uri() -> Result<Url, Error> {
 fn get_migrations_dir() -> String {
     var("MIGRATIONS_DIR").unwrap_or_else(|_| "migrations/".into())
 }
-
 
 pub(crate) static MIGRATIONS_DIR: Lazy<String> = Lazy::new(get_migrations_dir);
 
