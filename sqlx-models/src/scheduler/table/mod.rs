@@ -2,17 +2,19 @@ mod column;
 pub mod constraint;
 mod get_changes;
 
-use super::Schema;
+pub(crate) use super::Schema;
 use crate::prelude::*;
 pub use column::Column;
+
 
 use std::convert::TryFrom;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Table {
-    pub name: ObjectName,
+    pub dialect: Dialect,
     pub(crate) if_not_exists: bool,
     pub(crate) or_replace: bool,
+    pub name: ObjectName,
     pub columns: Vec<Column>,
     pub constraints: Vec<TableConstraint>,
 }
@@ -104,14 +106,31 @@ impl Table {
             .collect();
     }
 
-    pub fn new(name: &str) -> Self {
+    pub fn new(name: &str, dialect: Dialect) -> Self {
         Table {
             name: ObjectName(vec![Ident::new(name)]),
             columns: vec![],
             constraints: vec![],
+            if_not_exists: false, 
             or_replace: false,
-            if_not_exists: false,
+            dialect,
         }
+    }
+
+    pub(crate) fn dep_name(&self) -> String {
+        self.name.to_string().to_lowercase()
+    }
+
+    pub(crate) fn dependencies(&self) -> Vec<String> {
+        self.constraints
+            .iter()
+            .filter_map(|constr| match constr {
+                TableConstraint::ForeignKey(ForeignKey { foreign_table, .. }) => {
+                    Some(foreign_table.to_string().to_lowercase())
+                }
+                _ => None,
+            })
+            .collect()
     }
 
     pub(super) fn drop_col(&mut self, name: Ident, if_exists: bool) {
@@ -149,8 +168,9 @@ impl TryFrom<Statement> for Table {
         match value {
             Statement::CreateTable(table) => Ok(Table {
                 name: table.name,
-                if_not_exists: table.if_not_exists,
-                or_replace: table.or_replace,
+                dialect: Dialect::Any,
+                if_not_exists: false,
+                or_replace: false,
                 columns: table.columns.into_iter().map(Into::into).collect(),
                 constraints: table.constraints,
             }),
@@ -183,3 +203,5 @@ impl From<Table> for Statement {
         }))
     }
 }
+
+

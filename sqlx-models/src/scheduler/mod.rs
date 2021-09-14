@@ -1,80 +1,71 @@
-use crate::migration::Migration;
-use crate::migration::Table;
-use crate::model::Model;
 use crate::prelude::*;
-use sqlx_models_parser::ast::{ForeignKey, TableConstraint};
-use std::sync::Mutex;
-use std::sync::MutexGuard;
-use std::thread::sleep;
-use std::time::Duration;
-use topological_sort::TopologicalSort;
-struct Node {
-    name: String,
-    dep: Vec<String>,
-}
-impl From<Table> for Node {
-    fn from(table: Table) -> Self {
-        let dep = table
-            .constraints
-            .into_iter()
-            .filter_map(|constr| match constr {
-                TableConstraint::ForeignKey(ForeignKey { foreign_table, .. }) => {
-                    Some(foreign_table.to_string().to_lowercase())
-                }
-                _ => None,
-            })
-            .collect();
-        let name = table.name.to_string().to_lowercase();
-        Self { name, dep }
-    }
-}
+use std::{fs::*, sync::Mutex};
+mod migration;
+pub(crate) use migration::Schema;
 
-struct InnerScheduler {
-    migration: Result<Migration, Error>,
-    queue: TopologicalSort<String>,
-    finished: Vec<String>,
-}
-pub struct Scheduler(Mutex<InnerScheduler>);
+pub mod table;
+
+use migration::Migration;
+
+pub use table::Table;
+
+pub struct Scheduler(Mutex<Migration>);
 
 impl Scheduler {
-    pub fn new(model: &dyn Model) -> Self {
-        let migration = Migration::new(model);
-        Self(Mutex::new(InnerScheduler {
-            migration,
-            queue: TopologicalSort::new(),
-            finished: vec![],
-        }))
+    pub(crate) fn new() -> Self {
+        Self(Mutex::new(Migration::new()))
     }
-    #[throws(Error)]
-    pub fn do_migration(&self, model: &dyn Model) -> MutexGuard<()> {
-
-        let name;
-        {   
-            let table = model.target(); 
-            let node: Node = table.into();
-            let mut sort = self.inner.lock().unwrap();
-            name = node.name.clone();
-            for dep in node.dep {
-                sort.sort.add_dependency(dep, &node.name);
+    /// Allows tables to register themselves into the migration.
+    /// The first table to register will wait for 250 milliseconds before
+    /// generating the migration files.
+    pub fn register(&self, table: Table) {
+        let len;
+        {
+            let mut inner = self.0.lock().unwrap();
+            len = inner.queue.len();
+            for dep in table.dependencies() {
+                inner.queue.insert(table.dep_name(), dep)
             }
         }
-        sleep(Duration::from_millis(50));
-        self.lock(&name)
+
+        if len == 0 {
+            std::thread::sleep(time::Duration::from_millis(250));
+            self.0.lock().unwrap();
+        }
     }
 
-    fn lock(&self, name: &str) -> MutexGuard<()> {
-        for _ in 0..500 {
-            {
-                let handle = self.handle.lock().unwrap();
-                let mut sort = self.inner.lock().unwrap();
-                let current_turn = sort.sort.clone().nth(sort.tables_run);
-                if Some(name) == current_turn.as_deref() {
-                    sort.tables_run += 1;
-                    return handle;
-                }
-            }
-            sleep(Duration::from_millis(1));
-        }
-        self.handle.lock().unwrap()
+    pub fn commit(&self) {}
+
+    // fn run<T>(&self, table: Table) {
+    //     match self.generate_migrations(table) {
+    //         Ok(_) => println!(""),
+    //         Err(error) => error.commit(),
+    //     }
+    // }
+
+    // #[throws(Error)]
+    // fn generate_migrations(&self, target: Table) {
+    //     let changes = self.get_changes(&target);
+    //     if !changes.is_empty() {
+    //         self.save_changes(target.name.clone(), changes)?;
+    //     }
+    // }
+
+    // #[throws(Error)]
+    // fn save_changes(&self, name: ObjectName, stmts: Vec<Statement>) {
+    //     let time = chrono::Utc::now().timestamp_nanos();
+    //     {
+    //         let mut file = File::create(format!("migrations/{}_{}.sql", time, name))?;
+    //         for stmt in stmts {
+    //             use std::io::Write;
+    //             let stmt = Self::formatted_stmt(stmt);
+    //             write!(file, "{};\n\n", stmt)?;
+    //         }
+    //     }
+    // }
+    fn formatted_stmt(stmt: Statement) -> String {
+        use sqlformat::QueryParams;
+        let stmt = format!("{}", stmt);
+        sqlformat::format(&stmt, &QueryParams::None, FORMAT_OPTIONS)
     }
 }

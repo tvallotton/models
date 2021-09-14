@@ -5,13 +5,28 @@ use itertools::Itertools;
 impl Schema {
     /// constructs a new Schema from the "migrations/" directory.
     #[throws(Error)]
-    pub fn new(dialect: Dialect) -> Self {
+    pub fn new() -> Self {
+        let dialect = Self::get_dialect()?; 
         let mut out = Self {
             dialect,
             tables: HashMap::new(),
         };
         out.init()?;
         out
+    }
+
+    /// Retrieves the dilect from the DATABASE_URL.
+    #[throws(Error)]
+    pub(crate) fn get_dialect() -> Dialect {
+        let url = (*DATABASE_URL).clone()?;
+        match url.scheme() {
+            "sqlite" => Sqlite,
+            "postgres" => Postgres,
+            "mysql" => Mysql,
+            "mssql" => Mssql,
+            "any" => Any,
+            _ => error!("scheme \"{}\" is not supported", url.scheme()),
+        }
     }
 
     /// Computes the current state of the schema
@@ -25,7 +40,7 @@ impl Schema {
     }
     /// It retrieves a vec of all statements in the "migrations/" directory
     /// In the order they were written.
-    
+
     fn get_statements(&mut self) -> Result<Vec<Statement>, Error> {
         self.read_dir()
             .into_iter()
@@ -34,12 +49,10 @@ impl Schema {
             .into_iter()
             .map_ok(|x| x.to_lowercase())
             .map_ok(|sql| parse_sql(&self.dialect, &sql))
-            .map(|result| Ok(result?))
-            .map(|result| {
-                match result {
-                    Ok(result) => Ok(result?),
-                    Err(err) => Err(err)
-                }
+            .map(|result| Ok(result.map_err(|_| Error::IOError)?))
+            .map(|result| match result {
+                Ok(result) => Ok(result?),
+                Err(err) => Err(err),
             })
             .fold_ok(vec![], |mut a, mut b| {
                 a.append(&mut b);

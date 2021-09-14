@@ -21,6 +21,9 @@ impl Table {
         out
     }
 
+
+  
+
     fn get_vecs<T: Name>(now: &[T], target: &[T]) -> (Vec<T>, Vec<T>, Vec<T>) {
         let mut to_change = vec![];
         let mut to_delete = vec![];

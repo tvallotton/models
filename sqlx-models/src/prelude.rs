@@ -1,6 +1,6 @@
 pub(crate) use crate::error::Error;
-pub(crate) use crate::migration::{table::Column, Table};
 pub(crate) use crate::model::{Dialect, Dialect::*};
+pub(crate) use crate::scheduler::{table::Column, Table};
 pub use ::std::{fs, io, *};
 pub(crate) use ast::*;
 pub(crate) use collections::HashMap;
@@ -19,22 +19,22 @@ pub(crate) fn parse_sql(
     Parser::parse_sql(dialect, sql)
 }
 
-pub static DATABASE_URL: Lazy<Url> = Lazy::new(get_uri);
+pub static DATABASE_URL: Lazy<Result<Url, Error>> = Lazy::new(get_uri);
 
-fn get_uri() -> Url {
+fn get_uri() -> Result<Url, Error> {
     dotenv().ok();
     let database_url = if let Ok(url) = var("DATABASE_URL") {
-        url
+        Ok(url)
     } else {
-        env::var("DATABASE_URL").expect("The DATABASE_URL environment variable must be set")
+        env::var("DATABASE_URL").map_err(|_| Error::DatabaseUrlNotSet)
     };
-    Url::parse(&database_url).expect("The DATABASE_URL environment variable could not be parsed.")
+    Url::parse(&database_url?).map_err(|_| Error::InvalidDatabaseUrl)
 }
 fn get_migrations_dir() -> String {
     var("MIGRATIONS_DIR").unwrap_or_else(|_| "migrations/".into())
 }
 
-use std::sync::Mutex;
+
 pub(crate) static MIGRATIONS_DIR: Lazy<String> = Lazy::new(get_migrations_dir);
 
 use sqlformat::{FormatOptions, Indent};

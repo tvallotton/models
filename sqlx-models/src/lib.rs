@@ -120,14 +120,14 @@
 //! If we later modify those structures in our application, we can generate new migrations to update the tables. 
 
 
-
+#[allow(dead_code)]
 #[macro_use]
 mod error;
 
-mod migration;
+mod scheduler;
 mod model;
 mod prelude;
-mod scheduler;
+// mod scheduler;
 pub use sqlx_models_proc_macro::Model;
 
 
@@ -135,14 +135,14 @@ pub use sqlx_models_proc_macro::Model;
 pub mod private {
     use once_cell::sync::Lazy;
 
-    pub use super::migration::{
+    pub use super::scheduler::{
         table::{constraint, Column},
-        Migration, Table,
+        Table,
     };
     pub use super::scheduler::Scheduler;
     pub static MIGRATIONS: Lazy<Scheduler> = Lazy::new(Scheduler::new);
     /// Do not use the types defined in this module.
     /// They are intended to be used only through the macro API.
     /// Changes in this module are not considered to be breaking changes.
-    pub use super::model::{Dialect, Model, SqlType};
+    pub use super::model::{Dialect, Model, IntoSQL};
 }

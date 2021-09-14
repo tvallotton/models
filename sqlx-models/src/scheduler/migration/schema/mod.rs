@@ -1,13 +1,13 @@
 mod schema_initialization;
 
-use super::table::Table;
+use crate::scheduler::Table;
 use crate::prelude::*;
 // use fs::*;
 use std::{convert::TryInto, path::PathBuf};
 use Statement::*;
 
 #[derive(Debug, Clone)]
-pub(crate) struct Schema {
+pub struct Schema {
     pub dialect: Dialect,
     pub tables: HashMap<ObjectName, Table>,
 }

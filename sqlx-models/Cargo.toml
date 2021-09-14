@@ -7,6 +7,12 @@ license = "MIT OR Apache-2.0"
 description = "A work in progress implementation of a migration tool for sqlx."
 keywords = ["database", "postgres", "database-management", "migration"]
 
+
+
+[features]
+json = ["serde_json", "serde"]
+binary = ["bincode", "serde"]
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
 dotenv = "0.15.0"
@@ -22,6 +28,21 @@ once_cell = "1.8.0"
 topological-sort = "0.1.0"
 thiserror = "1.0.29"
 itertools = "0.10.1"
+petgraph = "0.6.0"
+
+[dependencies.serde]
+version = "1.0.130"
+optional = true
+
+[dependencies.serde_json]
+version = "1.0.67"
+optional = true
+
+[dependencies.bincode]
+version = "1.3.3"
+optional = true
+
+
 
 [dev-dependencies]
 sqlx = { version = "0.5.7", features = ["any","runtime-async-std-native-tls",] }
