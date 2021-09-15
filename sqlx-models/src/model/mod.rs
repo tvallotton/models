@@ -113,7 +113,7 @@ mod json {
 }
 
 #[cfg(feature = "bincode")]
-use binary::Binary;
+pub use binary::Binary;
 
 #[cfg(feature = "bincode")]
 mod binary {
