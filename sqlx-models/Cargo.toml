@@ -16,10 +16,10 @@ keywords = ["database", "postgres","sqlite", "mysql", "sql",  "database-manageme
 [dependencies]
 dotenv = "0.15.0"
 log = "0.4.14"
-sqlx-models-parser = {path="../sqlx-models-parser"}
+sqlx-models-parser = "0.0.1"
 sqlx = "0.5.7"
 url = "2.2.2"
-sqlx-models-proc-macro = {path="../sqlx-models-proc-macro"}
+sqlx-models-proc-macro = "0.0.2"
 chrono = "0.4.19"
 fehler = "1.0.0"
 sqlformat = "0.1.7"
