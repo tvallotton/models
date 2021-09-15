@@ -4,12 +4,20 @@ sqlx-modes is a work in progress implementation for a sql migration manangement 
 
 
 # Basic Tutorial
+
 install the CLI by running the following command: 
 ```
 cargo install sqlx-models-cli
 ```
 
-
+Now create a file called `.env` with the following content: 
+```
+DATABASE_URL=sqlite:/database.db
+```
+We now can create the database running the command: 
+```
+sqlx database create
+```
 now write in `src/main.rs`: 
 ```rust
 use sqlx_models::Model; 
@@ -65,12 +73,15 @@ struct Comment {
     #[foreign_key(Post.id)]
     post: i32,
 }
+fn main() {}
 ```
 
 If you now run the following command, your migrations should be automatically created (make sure your code compiles).
 ``` 
 sqlx generate
 ```
+
+
 the output generated should look something like this 
 ```sql
 -- at <TIMESTAMP>_user.sql. 

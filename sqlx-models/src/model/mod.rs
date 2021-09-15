@@ -1,5 +1,5 @@
 use crate::prelude::*;
-mod sqltypes;
+mod primitives;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Dialect {
@@ -48,11 +48,11 @@ impl sqlx_models_parser::dialect::Dialect for Dialect {
 }
 
 pub trait Model {
-    fn target(dialect: Dialect) -> Table;
+    fn target() -> Table;
 }
 
-pub trait SqlType {
-    fn as_sql() -> DataType;
+pub trait IntoSQL {
+    fn into_sql() -> DataType;
     fn null_option() -> ColumnOptionDef {
         ColumnOptionDef {
             name: None,
@@ -60,7 +60,44 @@ pub trait SqlType {
         }
     }
 }
+#[cfg(feature = "serde_json")]
+use json::Json;
 
-// impl SqlType for i64 {
+#[cfg(feature = "serde_json")]
+mod json {
 
-// }
+    use serde::*;
+    use serde_json::*;
+
+    #[derive(Debug, Serialize, Deserialize, Clone, Copy, Hash)]
+    pub struct Json<T>(pub T);
+
+    impl<T> IntoSQL for Json<T> {
+        fn into_sql() -> DataType {
+            DataType::Custom(ObjectName(vec![Ident::new("JSON")]))
+        }
+    }
+}
+
+#[cfg(feature = "json")]
+use json::Json;
+
+#[cfg(feature = "blob")]
+use binary::Binary;
+
+#[cfg(feature = "blob")]
+mod binary {
+    use serde::*;
+
+    #[derive(Debug, Serialize, Deserialize, Clone, Copy, Hash)]
+    pub struct Binary<T>(pub T);
+    impl<T> IntoSQL for Binary<T> {
+        fn into_sql() -> DataType {
+            match dialect {
+                Postgres => DataType::Bytea,
+                _ => DataType::Blob(None),
+            }
+            
+        }
+    }
+}

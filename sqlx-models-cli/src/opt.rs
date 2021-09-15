@@ -42,14 +42,17 @@ pub enum Command {
     #[clap(alias = "mig")]
     Migrate(MigrateOpt),
 
+
     #[clap(alias = "gen")]
     Generate(GenerateOpt),
 }
+
 #[derive(Clap, Debug)]
 pub struct GenerateOpt {
     #[clap(long, default_value = "migrations")]
     pub source: String,
 }
+
 
 /// Group of commands for creating and dropping your database.
 #[derive(Clap, Debug)]

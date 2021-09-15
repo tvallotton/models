@@ -28,12 +28,12 @@ impl ForeignKey {
             .on_update
             .clone()
             .map(|x| x.value())
-            .unwrap_or(String::new());
+            .unwrap_or_default();
         let on_delete = self
             .on_delete
             .clone()
             .map(|x| x.value())
-            .unwrap_or(String::new());
+            .unwrap_or_default();
         quote! {
             __sqlx_models_table.constraints.push(
                 ::sqlx_models::private::constraint::foreign_key(
@@ -82,15 +82,15 @@ impl NamedConstraint {
     pub fn into_tokens(&self, ty: &Ident) -> TokenStream2 {
         match &self.constr {
             Constraint::ForeignKey(fk) => {
-                let constr_name = self.constr_name(&ty, &[fk.column.clone()], "foreign");
+                let constr_name = self.constr_name(ty, &[fk.column.clone()], "foreign");
                 fk.into_tokens(&constr_name, &self.field_name)
             }
             Constraint::Primary(pk) => {
-                let constr_name = self.constr_name(&ty, &pk.columns, "primary");
+                let constr_name = self.constr_name(ty, &pk.columns, "primary");
                 pk.into_tokens(&constr_name, ty, &self.field_name, quote!(primary))
             }
             Constraint::Unique(u) => {
-                let constr_name = self.constr_name(&ty, &u.columns, "unique");
+                let constr_name = self.constr_name(ty, &u.columns, "unique");
                 u.into_tokens(&constr_name, ty, &self.field_name, quote!(unique))
             }
         }
@@ -118,7 +118,6 @@ impl Parse for Unique {
         let mut out = Unique::default();
         let content;
         if input.is_empty() {
-            Ok(out)
         } else {
             let _paren = parenthesized!(content in input);
             while !content.is_empty() {
@@ -127,8 +126,8 @@ impl Parse for Unique {
                     content.parse::<Token![,]>().unwrap();
                 }
             }
-            Ok(out)
         }
+        Ok(out)
     }
 }
 
@@ -154,25 +153,25 @@ impl Parse for ForeignKey {
         let mut on_delete = None;
         let mut on_update = None;
         let column = content.parse::<Ident>()?;
-        while let Ok(_) = content.parse::<Token![,]>() {
+        while content.parse::<Token![,]>().is_ok() {
             let ident: Ident = content.parse()?;
             if ident == "on_delete" {
                 content.parse::<Token![=]>()?;
                 if on_delete.is_some() {
-                    Err(Error::new(ident.span(), "Expected a single `on_delete`."))?
+                    return Err(Error::new(ident.span(), "Expected a single `on_delete`."));
                 }
                 on_delete = Some(content.parse()?);
             } else if ident == "on_update" {
                 content.parse::<Token![=]>()?;
                 if on_update.is_some() {
-                    Err(Error::new(ident.span(), "Expected a single `on_update`."))?
+                    return Err(Error::new(ident.span(), "Expected a single `on_update`."));
                 }
                 on_update = Some(content.parse()?);
             } else {
-                Err(Error::new(
+                return Err(Error::new(
                     ident.span(),
                     "Expected `on_delete` or `on_update`.",
-                ))?
+                ));
             }
         }
         Ok(ForeignKey {
@@ -204,20 +203,20 @@ impl Constraints {
 impl Constraint {
     pub fn column_names(&self) -> Vec<Ident> {
         match &self {
-            &Constraint::Primary(primary) => primary.columns.iter().cloned().collect(),
-            &Constraint::ForeignKey(foreign) => vec![foreign.column.clone()],
-            &Constraint::Unique(unique) => unique.columns.iter().cloned().collect(),
+            Constraint::Primary(primary) => primary.columns.to_vec(),
+            Constraint::ForeignKey(foreign) => vec![foreign.column.clone()],
+            Constraint::Unique(unique) => unique.columns.to_vec(),
         }
     }
     pub fn method(&self) -> TokenStream2 {
         match self {
-            &Constraint::Primary(_) => {
+            Constraint::Primary(_) => {
                 quote!(primary)
             }
-            &Constraint::ForeignKey(_) => {
+            Constraint::ForeignKey(_) => {
                 quote!(foreign_key)
             }
-            &Constraint::Unique(_) => {
+            Constraint::Unique(_) => {
                 quote!(unique)
             }
         }

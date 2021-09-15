@@ -22,8 +22,8 @@ fn generate_migration_unchecked(name: &Ident) -> TokenStream2 {
     quote! {
         #[test]
         fn #test_name() {
-            ::sqlx_models::private::Migration::new::<#name>(
-                ::sqlx_models::private::MIGRATIONS.get_directory::<#name>()
+            ::sqlx_models::private::MIGRATIONS.register(
+                <#name as ::sqlx_models::private::Model>::target()
             );
         }
     }

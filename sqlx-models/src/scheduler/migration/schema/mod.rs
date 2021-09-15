@@ -1,34 +1,36 @@
 mod schema_initialization;
 
-use super::table::Table;
 use crate::prelude::*;
-use fs::*;
+use crate::scheduler::Table;
+// use fs::*;
 use std::{convert::TryInto, path::PathBuf};
 use Statement::*;
 
 #[derive(Debug, Clone)]
-pub(crate) struct Schema {
-    pub dialect: Dialect,
+pub struct Schema {
+    
     pub tables: HashMap<ObjectName, Table>,
 }
 
 impl Schema {
+    #[throws(Error)]
     pub fn get_changes(&self, target: Table) -> Vec<Statement> {
+        
         if let Some(table) = self.tables.get(&target.name) {
-            table.get_changes(&target, self)
+            table.get_changes(&target)?
         } else {
             vec![target.clone().into()]
         }
     }
-
-    pub(super) fn update_schema(&mut self, stmt: Statement) {
+    #[throws(Error)]
+    pub(crate) fn update_schema(&mut self, stmt: Statement) {
         match stmt {
-            CreateTable(_) => self.create_table(stmt.try_into()),
+            CreateTable(_) => self.create_table(stmt.try_into().unwrap()),
             AlterTable(ast::AlterTable {
                 name,
                 operation: AlterTableOperation::RenameTable { table_name },
             }) => self.rename_table(name, table_name),
-            AlterTable(alter) => self.alter_table(alter.name, alter.operation),
+            AlterTable(alter) => self.alter_table(alter.name, alter.operation)?,
             Drop(drop) => self.drop_tables(drop.names, drop.if_exists, drop.cascade),
             _ => (),
         }
@@ -73,18 +75,21 @@ impl Schema {
                 self.tables.remove(name);
             })
     }
-
+    #[throws(Error)]
     fn alter_table(&mut self, name: ObjectName, op: AlterTableOperation) {
         self.tables
             .get_mut(&name) //
             .map(|table| table.alter_table(op))
-            .expect(&format!(
-                "Failed to load migrations. Could not find the table \"{}\"",
-                name
-            ));
+            .ok_or_else(|| {
+                error!(
+                    "Failed to load migrations. Could not find the table \"{}\"",
+                    name
+                )
+            })?;
     }
-    fn create_table(&mut self, table: Result<Table, String>) {
-        let table = table.unwrap();
+
+    fn create_table(&mut self, table: Table) {
+        let table = table;
         let tables = &mut self.tables;
         if !table.if_not_exists && tables.contains_key(&table.name) && !table.or_replace {
             panic!(
