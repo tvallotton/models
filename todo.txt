@@ -1,8 +1,16 @@
 impl: 
-    1. generate migrations in the right order. 
-    2. make cli.
+    1. touch any rs file in src before running. 
+    2. compile and then run tests. 
+    3. touch any rs file after running. 
+    
     3. define custom datatypes. 
     4. getters for forign keys. 
+
+bugs: 
+    it sometimes adds columns that are later removed my a move in sqlite, so they are added again later. 
+done: 
+    # generate migrations in the right order. 
+
 
 test: 
     1. make constraints removable

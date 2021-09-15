@@ -6,27 +6,13 @@ impl Schema {
     /// constructs a new Schema from the "migrations/" directory.
     #[throws(Error)]
     pub fn new() -> Self {
-        let dialect = Self::get_dialect()?; 
+        
         let mut out = Self {
-            dialect,
+            
             tables: HashMap::new(),
         };
         out.init()?;
         out
-    }
-
-    /// Retrieves the dilect from the DATABASE_URL.
-    #[throws(Error)]
-    pub(crate) fn get_dialect() -> Dialect {
-        let url = (*DATABASE_URL).clone()?;
-        match url.scheme() {
-            "sqlite" => Sqlite,
-            "postgres" => Postgres,
-            "mysql" => Mysql,
-            "mssql" => Mssql,
-            "any" => Any,
-            _ => error!("scheme \"{}\" is not supported", url.scheme()),
-        }
     }
 
     /// Computes the current state of the schema
@@ -35,21 +21,22 @@ impl Schema {
     fn init(&mut self) {
         let stmts = self.get_statements()?;
         for stmt in stmts {
-            self.update_schema(stmt);
+            self.update_schema(stmt)?;
         }
     }
     /// It retrieves a vec of all statements in the "migrations/" directory
     /// In the order they were written.
-
+    
     fn get_statements(&mut self) -> Result<Vec<Statement>, Error> {
-        self.read_dir()
+        let dialect = (DIALECT.clone())?; 
+        self.read_dir()?
             .into_iter()
             .filter(|file| file.is_file())
             .map(read_to_string)
             .into_iter()
             .map_ok(|x| x.to_lowercase())
-            .map_ok(|sql| parse_sql(&self.dialect, &sql))
-            .map(|result| Ok(result.map_err(|_| Error::IOError)?))
+            .map_ok(|sql| parse_sql(&dialect, &sql))
+            .map(|result| Ok(result?))
             .map(|result| match result {
                 Ok(result) => Ok(result?),
                 Err(err) => Err(err),
@@ -60,6 +47,7 @@ impl Schema {
             })
     }
     /// returns a list of all the files in the migrations directory.
+    #[throws(Error)]
     fn read_dir(&self) -> Vec<PathBuf> {
         let directory = &*MIGRATIONS_DIR;
         let mut dir: Vec<_> = read_dir(directory)
@@ -67,7 +55,7 @@ impl Schema {
                 create_dir(directory) //
                     .and_then(|_| read_dir(directory))
             })
-            .expect(&format!("Could not read the \"{}\" directiory.", directory))
+            .map_err(|_| error!("Could not read the \"{}\" directiory.", directory))?
             .map(|x| x.unwrap().path())
             .collect();
         dir.sort();

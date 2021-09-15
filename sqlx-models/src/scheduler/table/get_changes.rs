@@ -21,9 +21,6 @@ impl Table {
         out
     }
 
-
-  
-
     fn get_vecs<T: Name>(now: &[T], target: &[T]) -> (Vec<T>, Vec<T>, Vec<T>) {
         let mut to_change = vec![];
         let mut to_delete = vec![];
@@ -40,7 +37,6 @@ impl Table {
         }
 
         for c0 in now {
-            
             if !target.iter().any(|c1| c1.name() == c0.name()) {
                 to_delete.push(c0.clone());
             }
@@ -78,9 +74,9 @@ impl Table {
             },
         })
     }
-
-    fn move_to(&self, delete: Change, change: Columns, create: Constraints, s: &Schema) -> Stmts {
-        let mut out = vec![];
+    #[throws(Error)]
+    fn move_to(&self, delete: Change, change: Columns, create: Constraints) -> Stmts {
+        let mut out: Stmts = vec![];
 
         let mut old_table = self.clone();
         let mut new_table = self.clone();
@@ -119,14 +115,14 @@ impl Table {
         // create table
         out.push(new_table.clone().into());
         // move self to temporary
-        out.extend(old_table.move_stmt(&new_table, s));
+        out.extend(old_table.move_stmt(&new_table)?);
 
         // move temporary back to self
         out.push(new_table.rename_stmt(&old_table.name));
         out
     }
-
-    fn move_stmt(&self, target: &Table, schema: &Schema) -> Stmts {
+    #[throws(Error)]
+    fn move_stmt(&self, target: &Table) -> Stmts {
         let mut out = vec![];
         let insert = format!(
             "INSERT INTO {} ({}) SELECT {} FROM {};",
@@ -147,7 +143,7 @@ impl Table {
             object_type: ObjectType::Table,
             if_exists: false,
             names: vec![self.name.clone()],
-            cascade: !schema.dialect.requires_move(),
+            cascade: !DIALECT.clone()?.requires_move(),
             purge: false,
         }));
         out
@@ -178,18 +174,15 @@ impl Table {
             .into_iter()
             .chain(to_change.clone().into_iter())
             .collect();
-        let to_create = to_create
-            .into_iter()
-            .chain(to_change.into_iter())
-            .collect();
+        let to_create = to_create.into_iter().chain(to_change.into_iter()).collect();
 
         (to_delete, to_create)
     }
     pub fn col_changes(&self, target: &Table) -> (Columns, Columns, Columns) {
         Self::get_vecs(&self.columns, &target.columns)
     }
-
-    pub(crate) fn get_changes(&self, target: &Table, schema: &Schema) -> Stmts {
+    #[throws(Error)]
+    pub(crate) fn get_changes(&self, target: &Table) -> Stmts {
         let mut stmts = vec![];
         let (del_col, change, create_col) = self.col_changes(target);
         let (del_cons, create_cons) = self.constrs_changes(target);
@@ -200,10 +193,10 @@ impl Table {
         }
 
         if ((!del_col.is_empty() || !create_cons.is_empty() || !del_cons.is_empty())
-            && schema.dialect.requires_move())
+            && DIALECT.clone()?.requires_move())
             || !change.is_empty()
         {
-            let s = self.move_to((del_col, del_cons), change, create_cons, schema);
+            let s = self.move_to((del_col, del_cons), change, create_cons)?;
             stmts.extend(s);
         } else {
             for cons in del_cons {

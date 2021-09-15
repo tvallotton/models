@@ -1,14 +1,14 @@
 //! # SQLX-MODELS
 //! sqlx-modes is a work in progress implementation for a sql migration manangement tool for applications using sqlx.
 //! # Basic Tutorial
-//! install the CLI by running the following command: 
+//! install the CLI by running the following command:
 //! ```
 //! cargo install sqlx-models-cli
 //! ```
 //!
-//! now write in `src/main.rs`: 
+//! now write in `src/main.rs`:
 //! ```rust
-//! use sqlx_models::Model; 
+//! use sqlx_models::Model;
 //!
 //! #[derive(Model)]
 //! struct User {
@@ -64,12 +64,12 @@
 //! ```
 //!
 //! If you now run the following command, your migrations should be automatically created (make sure your code compiles).
-//! ``` 
+//! ```
 //! sqlx generate
 //! ```
-//! the output generated should look something like this 
+//! the output generated should look something like this
 //! ```sql
-//! -- at <TIMESTAMP>_user.sql. 
+//! -- at <TIMESTAMP>_user.sql.
 //! CREATE TABLE user (
 //!     id INTEGER NOT NULL,
 //!     email TEXT NOT NULL,
@@ -78,7 +78,7 @@
 //!     CONSTRAINT user_primary_id PRIMARY KEY (id),
 //!     CONSTRAINT user_unique_email UNIQUE (email)
 //! );
-//! -- at <TIMESTAMP>_post.sql. 
+//! -- at <TIMESTAMP>_post.sql.
 //! CREATE TABLE post (
 //!     id INTEGER NOT NULL,
 //!     author_ TEXT NOT NULL,
@@ -88,7 +88,7 @@
 //!     CONSTRAINT post_foreign_author__id FOREIGN KEY (author_) REFERENCES User(id)
 //! );
 //!
-//! -- at <TIMESTAMP>_comment.sql. 
+//! -- at <TIMESTAMP>_comment.sql.
 //! CREATE TABLE COMMENT (
 //!     id INTEGER NOT NULL,
 //!     author INTEGER NOT NULL,
@@ -97,7 +97,7 @@
 //!     CONSTRAINT comment_foreign_author_id FOREIGN KEY (author) REFERENCES User(id),
 //!     CONSTRAINT comment_foreign_post_id FOREIGN KEY (post) REFERENCES Post(id)
 //! );
-//! -- at <TIMESTAMP>_commentlike.sql. 
+//! -- at <TIMESTAMP>_commentlike.sql.
 //!
 //! CREATE TABLE commentlike (
 //!     user INTEGER NOT NULL,
@@ -108,7 +108,7 @@
 //!     CONSTRAINT commentlike_foreign_comment_id FOREIGN KEY (COMMENT) REFERENCES COMMENT(id)
 //! );
 //!
-//! -- at <TIMESTAMP>_postlike.sql. 
+//! -- at <TIMESTAMP>_postlike.sql.
 //! CREATE TABLE postlike (
 //!     user_id INTEGER NOT NULL,
 //!     post_id INTEGER NOT NULL,
@@ -117,32 +117,30 @@
 //!     CONSTRAINT postlike_foreign_post_id_id FOREIGN KEY (post_id) REFERENCES Post(id)
 //! );
 //! ```
-//! If we later modify those structures in our application, we can generate new migrations to update the tables. 
-
-
+//! If we later modify those structures in our application, we can generate new migrations to update the tables.
 
 #[macro_use]
 mod error;
 
-mod scheduler;
 mod model;
 mod prelude;
+mod scheduler;
 // mod scheduler;
 pub use sqlx_models_proc_macro::Model;
-
 
 #[doc(hidden)]
 pub mod private {
     use once_cell::sync::Lazy;
 
+    pub use super::scheduler::Scheduler;
     pub use super::scheduler::{
         table::{constraint, Column},
         Table,
     };
-    pub use super::scheduler::Scheduler;
     pub static MIGRATIONS: Lazy<Scheduler> = Lazy::new(Scheduler::new);
+    
     /// Do not use the types defined in this module.
     /// They are intended to be used only through the macro API.
     /// Changes in this module are not considered to be breaking changes.
-    pub use super::model::{Dialect, Model, IntoSQL};
+    pub use super::model::{Dialect, IntoSQL, Model};
 }

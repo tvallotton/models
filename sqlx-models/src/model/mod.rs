@@ -48,11 +48,11 @@ impl sqlx_models_parser::dialect::Dialect for Dialect {
 }
 
 pub trait Model {
-    fn target(dialect: Dialect) -> Table;
+    fn target() -> Table;
 }
 
 pub trait IntoSQL {
-    fn into_sql(dialect: Dialect) -> DataType;
+    fn into_sql() -> DataType;
     fn null_option() -> ColumnOptionDef {
         ColumnOptionDef {
             name: None,
@@ -73,7 +73,7 @@ mod json {
     pub struct Json<T>(pub T);
 
     impl<T> IntoSQL for Json<T> {
-        fn into_sql(_dialect: Dialect) -> DataType {
+        fn into_sql() -> DataType {
             DataType::Custom(ObjectName(vec![Ident::new("JSON")]))
         }
     }
@@ -92,7 +92,7 @@ mod binary {
     #[derive(Debug, Serialize, Deserialize, Clone, Copy, Hash)]
     pub struct Binary<T>(pub T);
     impl<T> IntoSQL for Binary<T> {
-        fn into_sql(dialect: Dialect) -> DataType {
+        fn into_sql() -> DataType {
             match dialect {
                 Postgres => DataType::Bytea,
                 _ => DataType::Blob(None),

@@ -5,26 +5,12 @@ use constraint::*;
 use Data::*;
 
 use self::column::Column;
-
-struct ColumnNames(Vec<Ident>);
-
-impl Parse for ColumnNames {
-    fn parse(input: parse::ParseStream) -> Result<Self> {
-        let mut out = ColumnNames(vec![]);
-        let content;
-        if input.is_empty() {
-            Ok(out)
-        } else {
-            let _paren = parenthesized!(content in input);
-            while !content.is_empty() {
-                out.0.push(content.parse().unwrap());
-                if !content.is_empty() {
-                    content.parse::<Token![,]>().unwrap();
-                }
-            }
-            Ok(out)
-        }
-    }
+pub struct Model {
+    pub name: Ident,
+    name_lowercase: Ident,
+    data: DataStruct,
+    columns: Vec<Column>,
+    constraints: Vec<NamedConstraint>,
 }
 
 struct ForeignKey {
@@ -48,17 +34,7 @@ impl Parse for ForeignKey {
     }
 }
 
-// fn is_attribute(path: &Path) -> bool {
-//     path.is_ident("foreign_key") || path.is_ident("primary_key") || path.is_ident("unique")
-// }
 
-pub struct Model {
-    pub name: Ident,
-    name_lowercase: Ident,
-    data: DataStruct,
-    columns: Vec<Column>,
-    constraints: Vec<NamedConstraint>,
-}
 impl Parse for Model {
     fn parse(input: parse::ParseStream) -> Result<Self> {
         let input: DeriveInput = input.parse()?;
@@ -89,7 +65,7 @@ impl ToTokens for Model {
         let constraints = &self.get_constraints();
         let template = quote! {
           impl ::sqlx_models::private::Model for #name {
-            fn target(__sqlx_models_dialect: ::sqlx_models::private::Dialect) -> ::sqlx_models::private::Table {
+            fn target() -> ::sqlx_models::private::Table {
                 let mut __sqlx_models_table = ::sqlx_models::private::Table::new(stringify!(#name_lowercase));
                 #columns
                 #constraints
@@ -117,7 +93,7 @@ impl Model {
                 .collect();
             self.constraints.extend(constrs);
 
-            let column = Column::new(&field)?;
+            let column = Column::new(field)?;
             self.columns.push(column);
         }
         Ok(())

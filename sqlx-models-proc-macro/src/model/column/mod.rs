@@ -19,8 +19,8 @@ impl ToTokens for Column {
                 __sqlx_models_table.columns.push(
                     ::sqlx_models::private::Column::new_with_default(
                         stringify!(#col_name),
-                        <#ty as ::sqlx_models::private::SqlType>::as_sql(),
-                        <#ty as ::sqlx_models::private::SqlType>::null_option(),
+                        <#ty as ::sqlx_models::private::IntoSQL>::into_sql(),
+                        <#ty as ::sqlx_models::private::IntoSQL>::null_option(),
                         #default
                 ));
             }
@@ -29,8 +29,8 @@ impl ToTokens for Column {
                 __sqlx_models_table.columns.push(
                     ::sqlx_models::private::Column::new(
                         stringify!(#col_name),
-                        <#ty as ::sqlx_models::private::SqlType>::as_sql(),
-                        <#ty as ::sqlx_models::private::SqlType>::null_option(),
+                        <#ty as ::sqlx_models::private::IntoSQL>::into_sql(),
+                        <#ty as ::sqlx_models::private::IntoSQL>::null_option(),
                 ));
             }
         };
@@ -55,3 +55,4 @@ impl Column {
         Ok(None)
     }
 }
+

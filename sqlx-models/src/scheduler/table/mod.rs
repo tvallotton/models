@@ -2,16 +2,14 @@ mod column;
 pub mod constraint;
 mod get_changes;
 
-pub(crate) use super::Schema;
+
 use crate::prelude::*;
 pub use column::Column;
-
 
 use std::convert::TryFrom;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Table {
-    pub dialect: Dialect,
     pub(crate) if_not_exists: bool,
     pub(crate) or_replace: bool,
     pub name: ObjectName,
@@ -106,14 +104,13 @@ impl Table {
             .collect();
     }
 
-    pub fn new(name: &str, dialect: Dialect) -> Self {
+    pub fn new(name: &str) -> Self {
         Table {
             name: ObjectName(vec![Ident::new(name)]),
             columns: vec![],
             constraints: vec![],
-            if_not_exists: false, 
+            if_not_exists: false,
             or_replace: false,
-            dialect,
         }
     }
 
@@ -168,7 +165,6 @@ impl TryFrom<Statement> for Table {
         match value {
             Statement::CreateTable(table) => Ok(Table {
                 name: table.name,
-                dialect: Dialect::Any,
                 if_not_exists: false,
                 or_replace: false,
                 columns: table.columns.into_iter().map(Into::into).collect(),
@@ -203,5 +199,3 @@ impl From<Table> for Statement {
         }))
     }
 }
-
-

@@ -1,11 +1,10 @@
 use anyhow::Result;
-use dotenv::dotenv;
-mod generate; 
+
 use crate::opt::{Command, DatabaseCommand, MigrateCommand};
 
 mod database;
-// mod migration;
-// mod migrator;
+
+mod generate;
 mod migrate;
 mod opt;
 mod prepare;
@@ -13,9 +12,8 @@ mod prepare;
 pub use crate::opt::Opt;
 
 pub async fn run(opt: Opt) -> Result<()> {
-    dotenv().ok();
-
     match opt.command {
+
         Command::Generate(opt) => generate::generate(opt).await,
         Command::Migrate(migrate) => match migrate.command {
             MigrateCommand::Add {

@@ -30,9 +30,26 @@ fn get_uri() -> Result<Url, Error> {
     };
     Url::parse(&database_url?).map_err(|_| Error::InvalidDatabaseUrl)
 }
+
+/// Retrieves the dilect from the DATABASE_URL.
+#[throws(Error)]
+pub(crate) fn get_dialect() -> Dialect {
+    let url = (*DATABASE_URL).clone()?;
+    match url.scheme() {
+        "sqlite" => Sqlite,
+        "postgres" => Postgres,
+        "mysql" => Mysql,
+        "mssql" => Mssql,
+        "any" => Any,
+        _ => Err(error!("scheme \"{}\" is not supported", url.scheme()))?,
+    }
+}
+
 fn get_migrations_dir() -> String {
     var("MIGRATIONS_DIR").unwrap_or_else(|_| "migrations/".into())
 }
+
+pub static DIALECT: Lazy<Result<Dialect, Error>> = Lazy::new(|| get_dialect()); 
 
 pub(crate) static MIGRATIONS_DIR: Lazy<String> = Lazy::new(get_migrations_dir);
 
