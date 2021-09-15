@@ -22,6 +22,7 @@ This command will have created an sqlite file called `database.db`.
 You can now derive the `Models` trait on your structures, 
 and `sqlx-models` will manage the migrations for you. For example, write at `src/main.rs`: 
 ```rust
+#![allow(dead_code)]
 use sqlx_models::Model; 
 
 #[derive(Model)]
