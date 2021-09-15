@@ -124,7 +124,7 @@ It is used to mark a foreign key constraint.
     #[foreign_key(User.id)]
     user: i32, 
 ```
-It can also specify on_delete and on_update constraints: 
+It can also specify `on_delete` and `on_update` constraints: 
 ```rust
     #[foreign_key(User.id, on_delete="cascade"]
     user: i32, 
