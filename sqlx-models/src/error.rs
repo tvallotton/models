@@ -35,8 +35,8 @@ impl Error {
             &Self::Cycle(_) => "CycleError",
             &Self::Message(_) => "Error",
             &Self::IO(_) => "IOError",
-            &Self::DatabaseUrlNotSet => "Database URL error",
-            &Self::InvalidDatabaseUrl => "Database URL error",
+            &Self::DatabaseUrlNotSet => "URL Error",
+            &Self::InvalidDatabaseUrl => "URL error",
             &Self::Syntax(_) => "SyntaxError",
         }
     }

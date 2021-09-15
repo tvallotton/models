@@ -2,7 +2,6 @@ mod column;
 pub mod constraint;
 mod get_changes;
 
-
 use crate::prelude::*;
 pub use column::Column;
 
@@ -76,7 +75,7 @@ impl Table {
             },
         })
     }
-
+    #[throws(Error)]
     pub(super) fn alter_table(&mut self, op: AlterTableOperation) {
         use AlterTableOperation::*;
         match op {
@@ -93,7 +92,7 @@ impl Table {
                 old_column_name,
                 new_column_name,
             } => self.rename_col(old_column_name, new_column_name),
-            _ => panic!(""),
+            op => throw!(error!("Unsupported operation {}", op)),
         }
     }
     pub fn drop_constraint(&mut self, rm_name: Ident) {

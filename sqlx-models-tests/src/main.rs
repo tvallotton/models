@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use sqlx_models::Model;
 
 
@@ -53,6 +54,7 @@ struct Comment {
     #[foreign_key(Post.id)]
     post: i32,
 }
+
 fn main() {
 
 }

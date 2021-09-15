@@ -21,8 +21,12 @@ impl Output {
                 "Generated {}/{} {}",
                 style(num).cyan(),
                 style("migrate").green(),
-                style(name).white()
+                name
             )
+        }
+
+        if let Some(err) = self.error {
+            println!("{}: {}", style(err.kind).red(), err.message)
         }
     }
 }
@@ -52,7 +56,7 @@ pub async fn generate(opt: GenerateOpt) {
     let output = String::from_utf8(output).unwrap();
     let regex = regex::Regex::new("<SQLX-MODELS-OUTPUT>(.+)</SQLX-MODELS-OUTPUT>").unwrap();
 
-    let x = regex.captures(&output).unwrap();
+    let x = regex.captures(&output).expect(&output);
 
     if let Some(json) = x.get(1) {
         from_str::<Output>(json.as_str()).unwrap().print();

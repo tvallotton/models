@@ -86,8 +86,8 @@ impl Migration {
         let time = chrono::Utc::now().timestamp_millis();
 
         let file_name = format!(
-            "migrations/{}_{}.sql", //
-            time, name
+            "{}/{}_{}.sql", //
+            *MIGRATIONS_DIR, time, name
         );
         let mut file = File::create(file_name)?;
         for stmt in stmts {
