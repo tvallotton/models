@@ -1,33 +1,81 @@
 use crate::opt::GenerateOpt;
+use console::style;
+use serde::*;
+use serde_json::from_str;
+#[derive(Serialize, Deserialize)]
+
+struct MigrationError {
+    kind: String,
+    message: String,
+}
+#[derive(Serialize, Deserialize)]
+struct Output {
+    success: Vec<(i64, String)>,
+    error: Option<MigrationError>,
+}
+
+impl Output {
+    fn print(self) {
+        for (num, name) in self.success {
+            println!(
+                "Generated {}/{} {}",
+                style(num).cyan(),
+                style("migrate").green(),
+                style(name).white()
+            )
+        }
+    }
+}
 
 pub async fn generate(opt: GenerateOpt) {
     touch_any().await.ok();
-//  let _process = tokio::process::Command::new("cargo")
-//         .arg("build")
-//         .arg("__sqlx_models_generate_migration_")
-//         .env("SQLX_MODELS_GENERATE_MIGRATIONS", "true")
-//         .env("MIGRATIONS_DIR", opt.source)
-//         .stdout(std::process::Stdio::inherit())
-//         .spawn()
-//         .unwrap()
-//         .wait()
-//         .await
-//         .unwrap();
-    let _process = tokio::process::Command::new("cargo")
+
+    if !builds(&opt).await {
+        println!(
+            "{}: Could not compile project. No migrations were generated.",
+            style("error").red()
+        );
+        return;
+    }
+
+    let output = tokio::process::Command::new("cargo")
         .arg("test")
         .arg("--")
         .arg("--nocapture")
         .arg("__sqlx_models_generate_migration_")
         .env("SQLX_MODELS_GENERATE_MIGRATIONS", "true")
-        .env("MIGRATIONS_DIR", opt.source)
-        .stdout(std::process::Stdio::inherit())
+        .env("MIGRATIONS_DIR", &opt.source)
+        .output()
+        .await
+        .unwrap()
+        .stdout;
+    let output = String::from_utf8(output).unwrap();
+    let regex = regex::Regex::new("<SQLX-MODELS-OUTPUT>(.+)</SQLX-MODELS-OUTPUT>").unwrap();
+
+    let x = regex.captures(&output).unwrap();
+
+    if let Some(json) = x.get(1) {
+        from_str::<Output>(json.as_str()).unwrap().print();
+    } else {
+        println!("No migrations generated.")
+    }
+
+    touch_any().await.ok();
+}
+
+async fn builds(opt: &GenerateOpt) -> bool {
+    tokio::process::Command::new("cargo")
+        .arg("build")
+        .arg("--tests")
+        .env("SQLX_MODELS_GENERATE_MIGRATIONS", "true")
+        .env("MIGRATIONS_DIR", &opt.source)
+        // .stdout(std::process::Stdio::piped())
         .spawn()
         .unwrap()
         .wait()
         .await
-        .unwrap();
-
-    touch_any().await.ok();
+        .unwrap()
+        .success()
 }
 
 use std::error::Error;

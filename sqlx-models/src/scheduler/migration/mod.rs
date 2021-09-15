@@ -14,7 +14,7 @@ pub(crate) struct Migration {
     pub result: Result<Schema, Error>,
     pub queue: Queue,
 
-    pub success: Vec<String>,
+    pub success: Vec<(i64, String)>,
 }
 
 impl Migration {
@@ -46,8 +46,10 @@ impl Migration {
         if let Ok(schema) = &mut self.result {
             let table_name = target.dep_name();
             let changes = Self::get_changes(target, schema)?;
-            Self::save(&table_name, changes)?;
-            self.success.push(table_name);
+            let time = Self::save(&table_name, changes)?;
+            if let Some(time) = time {
+                self.success.push((time, table_name));
+            }
         }
     }
 
@@ -77,9 +79,9 @@ impl Migration {
         changes
     }
 
-    fn save(name: &str, stmts: Vec<Statement>) -> Result<(), Error> {
+    fn save(name: &str, stmts: Vec<Statement>) -> Result<Option<i64>, Error> {
         if stmts.is_empty() {
-            return Ok(());
+            return Ok(None);
         }
         let time = chrono::Utc::now().timestamp_millis();
 
@@ -93,7 +95,7 @@ impl Migration {
             let stmt = Self::formatted_stmt(stmt);
             write!(file, "{};\n\n", stmt)?;
         }
-        Ok(())
+        Ok(Some(time))
     }
 
     fn formatted_stmt(stmt: Statement) -> String {

@@ -2,7 +2,6 @@ use crate::prelude::*;
 use std::sync::Mutex;
 mod migration;
 
-
 pub mod table;
 
 use migration::Migration;
@@ -18,7 +17,7 @@ impl Scheduler {
     /// Allows tables to register themselves into the migration.
     /// The first table to register will wait for 250 milliseconds before
     /// generating the migration files.
-    pub fn register(&self, table:  Table) {
+    pub fn register(&self, table: Table) {
         let len;
         {
             let mut migration = self.0.lock().unwrap();
@@ -34,18 +33,25 @@ impl Scheduler {
     }
 
     fn commit(&self) {
+        use serde_json::*;
         let mut migr = self.0.lock().unwrap();
         migr.migrate();
-        let err = migr.result.as_ref().err();
-        let err_msg = err.map(|err| format!("{}", err));
-        let kind = err.map(Error::kind);
+        let error;
+
+        if let Err(err) = &migr.result {
+            let err_msg = format!("{}", err);
+            let kind = err.kind();
+            error = json!({
+                "kind": kind,
+                "message": err_msg
+            })
+        } else {
+            error = json!(null)
+        }
 
         let json = serde_json::json!({
             "success": &migr.success,
-            "error": {
-                "kind": kind,
-                "message": err_msg
-            },
+            "error": error
         });
         println!("<SQLX-MODELS-OUTPUT>{0}</SQLX-MODELS-OUTPUT>", json);
     }
