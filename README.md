@@ -12,7 +12,7 @@ cargo install sqlx-models-cli
 
 Now run the following command to create an environment file with the `DATABASE_URL` variable set: 
 ```
-echo "DATABASE_URL=sqlite:/database.db" > .env
+echo "DATABASE_URL=sqlite://database.db" > .env
 ```
 We now can create the database running the command: 
 ```
