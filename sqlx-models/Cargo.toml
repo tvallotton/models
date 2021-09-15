@@ -1,6 +1,6 @@
 [package]
 name = "sqlx-models"
-version = "0.0.1"
+version = "0.0.2"
 edition = "2018"
 authors = ["Tomas Vallotton <tvallotton@uc.cl>"]
 license = "MIT OR Apache-2.0"
