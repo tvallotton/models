@@ -150,24 +150,6 @@ impl Table {
         out
     }
 
-    // fn get_changes_cols(&self, target: &Table, schema: &Schema) -> Stmts {
-    //     let (to_delete, to_change, to_create) = Self::get_vecs(&self.columns, &target.columns);
-    //     let mut stmts = vec![];
-    //     if !to_delete.is_empty() && (!to_change.is_empty() || schema.dialect.requires_move()) {
-    //         stmts.extend(self.move_to(to_delete, to_change, schema));
-    //     } else {
-    //         for col in to_delete {
-    //             let stmt = self.delete_col(col);
-    //             stmts.push(stmt)
-    //         }
-    //     }
-
-    //     for col in to_create {
-    //         let stmt = self.create_col(col);
-    //         stmts.push(stmt)
-    //     }
-    //     stmts
-    // }
     pub fn constrs_changes(&self, target: &Table) -> (Constraints, Constraints) {
         let (to_delete, to_change, to_create) =
             Self::get_vecs(&self.constraints, &target.constraints);

@@ -60,44 +60,109 @@ pub trait IntoSQL {
         }
     }
 }
-// #[cfg(feature = "serde_json")]
-// use json::Json;
 
-// #[cfg(feature = "serde_json")]
-// mod json {
+pub use json::Json;
 
-//     use serde::*;
-//     use serde_json::*;
+mod json {
+    use super::*;
+    use database::*;
+    use serde::*;
+    use serde_json::*;
+    use sqlx::*;
+    use std::error::Error;
+    use std::result::Result;
 
-//     #[derive(Debug, Serialize, Deserialize, Clone, Copy, Hash)]
-//     pub struct Json<T>(pub T);
+    #[derive(Debug, Serialize, Deserialize, Clone, Copy, Hash)]
+    pub struct Json<T>(pub T);
 
-//     impl<T> IntoSQL for Json<T> {
-//         fn into_sql() -> DataType {
-//             DataType::Custom(ObjectName(vec![Ident::new("JSON")]))
-//         }
-//     }
-// }
+    impl<T> IntoSQL for Json<T> {
+        fn into_sql() -> DataType {
+            DataType::Custom(ObjectName(vec![Ident::new("JSON")]))
+        }
+    }
 
-// #[cfg(feature = "json")]
-// use json::Json;
+    impl<'r, DB, T> Decode<'r, DB> for Json<T>
+    where
+        &'r str: Decode<'r, DB>,
+        T: Deserialize<'r>,
+        DB: Database,
+    {
+        fn decode(
+            value: <DB as HasValueRef<'r>>::ValueRef,
+        ) -> Result<Json<T>, Box<dyn Error + 'static + Send + Sync>> {
+            let value = <&str as Decode<DB>>::decode(value)?;
+            let value = from_str(value)?;
+            Ok(value)
+        }
+    }
 
-// #[cfg(feature = "blob")]
-// use binary::Binary;
+    impl<'r, DB, T> Encode<'r, DB> for Json<T>
+    where
+        DB: Database,
+        T: Serialize,
+        String: Encode<'r, DB>,
+    {
+        fn encode_by_ref(
+            &self,
+            buf: &mut <DB as sqlx::database::HasArguments<'r>>::ArgumentBuffer,
+        ) -> encode::IsNull {
+            let string = serde_json::to_string(&self).unwrap();
+            <String as Encode<'r, DB>>::encode(string, buf)
+        }
+    }
+}
 
-// #[cfg(feature = "blob")]
-// mod binary {
-//     use serde::*;
+#[cfg(feature = "bincode")]
+use binary::Binary;
 
-//     #[derive(Debug, Serialize, Deserialize, Clone, Copy, Hash)]
-//     pub struct Binary<T>(pub T);
-//     impl<T> IntoSQL for Binary<T> {
-//         fn into_sql() -> DataType {
-//             match dialect {
-//                 Postgres => DataType::Bytea,
-//                 _ => DataType::Blob(None),
-//             }
-            
-//         }
-//     }
-// }
+#[cfg(feature = "bincode")]
+mod binary {
+    use super::*;
+    use crate::private::Dialect;
+    use serde::*;
+    use sqlx::{database::HasValueRef, *};
+    use std::error::Error;
+
+    #[derive(Debug, Serialize, Deserialize, Clone, Copy, Hash)]
+    pub struct Binary<T>(pub T);
+
+    impl<T> IntoSQL for Binary<T> {
+        fn into_sql() -> DataType {
+            match &*DIALECT {
+                Ok(Dialect::Postgres) => DataType::Bytea,
+                _ => DataType::Blob(None),
+            }
+        }
+    }
+
+    impl<'r, DB, T> Decode<'r, DB> for Binary<T>
+    where
+        &'r str: Decode<'r, DB>,
+        T: Deserialize<'r>,
+        DB: Database,
+        &'r [u8]: sqlx::Decode<'r, DB>,
+    {
+        fn decode(
+            value: <DB as HasValueRef<'r>>::ValueRef,
+        ) -> std::result::Result<Binary<T>, Box<dyn Error + 'static + Send + Sync>> {
+            let bytes = <&[u8] as Decode<DB>>::decode(value)?;
+            let value = bincode::deserialize(bytes)?;
+            Ok(value)
+        }
+    }
+
+    impl<'r, DB, T> Encode<'r, DB> for Binary<T>
+    where
+        DB: Database,
+        T: Serialize,
+        Vec<u8>: Encode<'r, DB>,
+    {
+        fn encode_by_ref(
+            &self,
+            buf: &mut <DB as sqlx::database::HasArguments<'r>>::ArgumentBuffer,
+        ) -> encode::IsNull {
+            let bytes: Vec<u8> = bincode::serialize(&self).unwrap();
+            <Vec<u8> as Encode<'r, DB>>::encode(bytes, buf)
+        }
+    }
+}

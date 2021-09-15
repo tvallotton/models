@@ -40,4 +40,4 @@ optional = true
 
 [dev-dependencies]
 sqlx = { version = "0.5.7", features = ["any","runtime-async-std-native-tls"] }
-# sqlx-models = { path = "../sqlx-models" }w
+sqlx-models = { path = "../sqlx-models", features=["bincode"] }
