@@ -3,14 +3,17 @@ use crate::prelude::*;
 use TableConstraint::*;
 
 impl Name for TableConstraint {
-    fn name(&self) -> &Ident {
-        name(self)
+    fn name(&self) -> Result<&Ident, Error> {
+        Ok(name(self)
             .as_ref()
-            .expect("Anonymous constraints are not supported.")
+            .ok_or_else(|| error!("Anonymous constraints are not supported."))?)
     }
 
     fn are_equal(&self, other: &Self) -> bool {
-        self.name() == other.name()
+        match (self.name(), other.name()) {
+            (Ok(n1), Ok(n2)) => n1 == n2,
+            _ => false,
+        }
     }
 }
 

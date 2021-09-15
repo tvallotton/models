@@ -5,7 +5,7 @@ type Constraints = Vec<TableConstraint>;
 type Change = (Vec<Column>, Vec<TableConstraint>);
 type Columns = Vec<Column>;
 pub(crate) trait Name: Eq + Clone + std::fmt::Debug {
-    fn name(&self) -> &Ident;
+    fn name(&self) -> Result<&Ident, Error>;
     fn are_equal(&self, other: &Self) -> bool;
 }
 
@@ -27,17 +27,17 @@ impl Table {
         let mut to_create = vec![];
         for c1 in target {
             for c0 in now {
-                if c1.name() == c0.name() && !c1.are_equal(c0) {
+                if c1.are_equal(c0) && !c1.are_equal(c0) {
                     to_change.push(c1.clone())
                 }
             }
-            if !now.iter().any(|c0| c0.name() == c1.name()) {
+            if !now.iter().any(|c0| c0.are_equal(c1)) {
                 to_create.push(c1.clone());
             }
         }
 
         for c0 in now {
-            if !target.iter().any(|c1| c1.name() == c0.name()) {
+            if !target.iter().any(|c1| c0.are_equal(c1)) {
                 to_delete.push(c0.clone());
             }
         }
@@ -50,11 +50,12 @@ impl Table {
             operation: AlterTableOperation::AddConstraint(cons),
         })
     }
+    #[throws(Error)]
     fn delete_cons(&self, cons: TableConstraint) -> Statement {
         Statement::AlterTable(AlterTable {
             name: self.name.clone(),
             operation: AlterTableOperation::DropConstraint {
-                name: cons.name().clone(),
+                name: cons.name()?.clone(),
                 cascade: true,
                 restrict: false,
             },
@@ -96,7 +97,7 @@ impl Table {
             new_table.constraints = new_table
                 .constraints
                 .into_iter()
-                .filter(|cons| cons.name() != del.name())
+                .filter(|cons| cons.are_equal(&del))
                 .collect();
         }
 
@@ -200,7 +201,7 @@ impl Table {
             stmts.extend(s);
         } else {
             for cons in del_cons {
-                let stmt = self.delete_cons(cons);
+                let stmt = self.delete_cons(cons)?;
                 stmts.push(stmt);
             }
 

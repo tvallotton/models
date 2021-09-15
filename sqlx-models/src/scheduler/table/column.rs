@@ -12,8 +12,8 @@ pub struct Column {
 }
 
 impl super::get_changes::Name for Column {
-    fn name(&self) -> &Ident {
-        &self.name
+    fn name(&self) -> Result<&Ident, Error> {
+        Ok(&self.name)
     }
 
     fn are_equal(&self, other: &Self) -> bool {
