@@ -5,11 +5,10 @@ edition = "2018"
 authors = ["Tomas Vallotton <tvallotton@uc.cl>"]
 license = "MIT OR Apache-2.0"
 description = "A work in progress implementation of a migration tool for sqlx."
-keywords = ["database", "postgres", "database-management", "migration"]
+keywords = ["database", "postgres","sqlite", "mysql", "sql",  "database-management", "migration"]
 
 
 
-[features]
 
 
 

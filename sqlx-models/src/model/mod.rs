@@ -60,44 +60,44 @@ pub trait IntoSQL {
         }
     }
 }
-#[cfg(feature = "serde_json")]
-use json::Json;
+// #[cfg(feature = "serde_json")]
+// use json::Json;
 
-#[cfg(feature = "serde_json")]
-mod json {
+// #[cfg(feature = "serde_json")]
+// mod json {
 
-    use serde::*;
-    use serde_json::*;
+//     use serde::*;
+//     use serde_json::*;
 
-    #[derive(Debug, Serialize, Deserialize, Clone, Copy, Hash)]
-    pub struct Json<T>(pub T);
+//     #[derive(Debug, Serialize, Deserialize, Clone, Copy, Hash)]
+//     pub struct Json<T>(pub T);
 
-    impl<T> IntoSQL for Json<T> {
-        fn into_sql() -> DataType {
-            DataType::Custom(ObjectName(vec![Ident::new("JSON")]))
-        }
-    }
-}
+//     impl<T> IntoSQL for Json<T> {
+//         fn into_sql() -> DataType {
+//             DataType::Custom(ObjectName(vec![Ident::new("JSON")]))
+//         }
+//     }
+// }
 
-#[cfg(feature = "json")]
-use json::Json;
+// #[cfg(feature = "json")]
+// use json::Json;
 
-#[cfg(feature = "blob")]
-use binary::Binary;
+// #[cfg(feature = "blob")]
+// use binary::Binary;
 
-#[cfg(feature = "blob")]
-mod binary {
-    use serde::*;
+// #[cfg(feature = "blob")]
+// mod binary {
+//     use serde::*;
 
-    #[derive(Debug, Serialize, Deserialize, Clone, Copy, Hash)]
-    pub struct Binary<T>(pub T);
-    impl<T> IntoSQL for Binary<T> {
-        fn into_sql() -> DataType {
-            match dialect {
-                Postgres => DataType::Bytea,
-                _ => DataType::Blob(None),
-            }
+//     #[derive(Debug, Serialize, Deserialize, Clone, Copy, Hash)]
+//     pub struct Binary<T>(pub T);
+//     impl<T> IntoSQL for Binary<T> {
+//         fn into_sql() -> DataType {
+//             match dialect {
+//                 Postgres => DataType::Bytea,
+//                 _ => DataType::Blob(None),
+//             }
             
-        }
-    }
-}
+//         }
+//     }
+// }
