@@ -5,17 +5,16 @@ edition = "2018"
 authors = ["Tomas Vallotton <tvallotton@uc.cl>"]
 license = "MIT OR Apache-2.0"
 description = "A work in progress implementation of a migration tool for sqlx."
-keywords = ["database", "postgres","sqlite", "sql", "migration"]
-
+keywords = ["database", "postgres", "sqlite", "sql", "migration"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
 dotenv = "0.15.0"
 log = "0.4.14"
-sqlx-models-parser = "0.0.1"
+sqlx-models-parser = { path = "../sqlx-models-parser" }
 sqlx = "0.5.7"
 url = "2.2.2"
-sqlx-models-proc-macro = "0.0.2"
+sqlx-models-proc-macro = { path = "../sqlx-models-proc-macro" }
 chrono = "0.4.19"
 fehler = "1.0.0"
 sqlformat = "0.1.7"
@@ -27,17 +26,13 @@ itertools = "0.10.1"
 [dependencies.serde]
 version = "1.0.130"
 
-
 [dependencies.serde_json]
 version = "1.0.67"
-
 
 [dependencies.bincode]
 version = "1.3.3"
 optional = true
 
-
-
 [dev-dependencies]
-sqlx = { version = "0.5.7", features = ["any","runtime-async-std-native-tls"] }
-sqlx-models = { path = "../sqlx-models", features=["bincode"] }
+sqlx = { version = "0.5.7", features = ["any", "runtime-async-std-native-tls"] }
+sqlx-models = { path = "../sqlx-models", features = ["bincode"] }

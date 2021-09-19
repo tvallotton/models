@@ -27,11 +27,12 @@ impl ToTokens for DefaultExpr {
 impl Parse for DefaultExpr {
     fn parse(input: parse::ParseStream) -> Result<Self> {
         use sqlx_models_parser::{dialect::*, parser::Parser, tokenizer::*};
-        input.parse::<Token![=]>()?;
 
+        let content;
+        let _paren = parenthesized!(content in input);
         let span = Span::call_site();
         let mut is_string = false;
-        let expr = match input.parse::<Lit>() {
+        let expr = match content.parse::<Lit>() {
             Ok(Lit::Bool(boolean)) => boolean.value().to_string(),
             Ok(Lit::Int(int)) => int.to_string(),
             Ok(Lit::Float(float)) => float.to_string(),
