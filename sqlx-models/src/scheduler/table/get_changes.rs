@@ -58,7 +58,10 @@ impl Table {
         }
 
         for c0 in now {
-            if target.iter().all(|t| !c0.are_equal(t)) {
+            if target
+                .iter()
+                .all(|t| !c0.are_equal(t) && !c0.are_modified(t))
+            {
                 to_delete.push(c0.clone());
             }
         }
@@ -128,10 +131,10 @@ impl Table {
                 .iter()
                 .position(|col| col.name == ch.name)
                 .unwrap();
+
             new_table.columns[i] = ch;
         }
         for cr in create {
-
             new_table.constraints.push(cr);
         }
 

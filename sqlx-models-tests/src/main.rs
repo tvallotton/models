@@ -10,12 +10,9 @@ struct User {
     id: i32,
     #[unique]
     email: String,
-    #[default = "password"]
-    password_: String,
-    #[default = 0]
-    is_admin: bool,
-    
-    friends: Json<Vec<i32>>,
+    password: String,
+    #[default(0)]
+    is_admin: bool, 
 }
 
 #[derive(Model)]
@@ -25,6 +22,7 @@ struct PostLike {
     user_id: i32,
     #[foreign_key(Post.id)]
     post_id: i32,
+    friends: Json<Vec<i32>>
 }
 
 #[derive(Model)]
@@ -34,7 +32,7 @@ struct CommentLike {
     user: i32,
     #[foreign_key(Comment.id)]
     comment: i32,
-    #[default = false]
+    #[default(false)]
     is_dislike: bool,
 }
 
@@ -44,9 +42,10 @@ struct Post {
     id: i32,
     #[foreign_key(User.id)]
     author_: String,
-    #[default = "<UNTITLED POST>"]
+    #[default("<UNTITLED POST>")]
     title: String,
     content: String,
+    tags: Json<Vec<String>>
 }
 
 #[derive(Model)]
@@ -63,16 +62,16 @@ async fn main() {
     use sqlx::Connection;
     let conn = sqlx::SqlitePool::connect("database.db").await.unwrap();
 
-    let users: Vec<User> = sqlx::query_as("select id, is_admin, email, password, friends from user;")
+    let users: Vec<User> = sqlx::query_as("select * from user;")
         .fetch_all(&conn)
         .await
         .unwrap();
     println!("{:?}", users);
-    // let user = User {
-    //     id: 0,
-    //     is_admin: true,
-    //     email: "tvallotton@uc.cl".into(),
-    //     password: "password".into(),
-    //     friends: Json(vec![1, 2, 3]),
-    // };
+    let user = User {
+        id: 0,
+        is_admin: true,
+        email: "tvallotton@uc.cl".into(),
+        password: "password".into(),
+        friends: Json(vec![1, 2, 3]),
+    };
 }
