@@ -29,7 +29,7 @@ impl Schema {
                 operation: AlterTableOperation::RenameTable { table_name },
             }) => self.rename_table(name, table_name)?,
             AlterTable(alter) => self.alter_table(alter.name, alter.operation)?,
-            Drop(drop) => self.drop_tables(drop.names, drop.if_exists, drop.cascade)?,
+            Drop(drop) => self.drop_tables(drop)?,
             _ => (),
         }
     }
@@ -66,15 +66,15 @@ impl Schema {
 
     /// dropts a list of tables
     #[throws(Error)]
-    fn drop_tables(&mut self, names: Vec<ObjectName>, if_exists: bool, cascade: bool) {
-        for name in names.iter() {
-            if !if_exists && !self.tables.contains_key(name) {
+    fn drop_tables(&mut self, drop: ast::Drop) {
+        for name in drop.names.iter() {
+            if !drop.if_exists && !self.tables.contains_key(name) {
                 throw!(error!(
                     "Table \"{}\" cannot be dropped as it does not exist.",
                     name
                 ))
             }
-            if cascade {
+            if drop.cascade {
                 self.cascade(name);
             }
             self.tables.remove(name);

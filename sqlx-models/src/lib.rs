@@ -160,7 +160,7 @@ mod prelude;
 mod scheduler;
 #[cfg(feature = "bincode")]
 pub use model::Binary;
-pub use model::Json;
+
 // mod scheduler;
 pub use sqlx_models_proc_macro::Model;
 

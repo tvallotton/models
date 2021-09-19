@@ -30,7 +30,10 @@ impl Migration {
     pub fn migrate(&mut self) {
         loop {
             match self.queue.pop() {
-                Some(target) => self.migrate_table(target),
+                Some(target) => 
+                    
+                    self.migrate_table(target),
+                
                 None => {
                     if self.queue.len() != 0 && self.result.is_ok() {
                         self.result =
@@ -43,9 +46,14 @@ impl Migration {
     }
     #[throws(Error)]
     fn try_migration(&mut self, target: Table) {
+
         if let Ok(schema) = &mut self.result {
+
             let table_name = target.dep_name();
+
+            
             let changes = Self::get_changes(target, schema)?;
+            
             let time = Self::save(&table_name, changes)?;
             if let Some(time) = time {
                 self.success.push((time, table_name));
@@ -71,10 +79,13 @@ impl Migration {
             if stmts.is_empty() {
                 break;
             }
+            
             for stmt in stmts {
+                println!("{};\n\n", stmt);
                 changes.push(stmt.clone());
                 schema.update_schema(stmt)?;
             }
+            break;
         }
         changes
     }

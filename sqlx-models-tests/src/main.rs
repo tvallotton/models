@@ -1,17 +1,20 @@
 #![allow(dead_code)]
+
 use sqlx_models::Model;
 
+use sqlx::types::Json;
 
-
-#[derive(Model)]
+#[derive(Model, sqlx::FromRow, Debug)]
 struct User {
     #[primary_key]
     id: i32,
     #[unique]
     email: String,
-    password: String,
+    #[default = "password"]
+    password_: String,
     #[default = 0]
     is_admin: bool,
+    friends: Json<Vec<i32>>,
 }
 
 #[derive(Model)]
@@ -54,7 +57,21 @@ struct Comment {
     #[foreign_key(Post.id)]
     post: i32,
 }
+#[tokio::main]
+async fn main() {
+    use sqlx::Connection;
+    let conn = sqlx::SqlitePool::connect("database.db").await.unwrap();
 
-fn main() {
-
+    let users: Vec<User> = sqlx::query_as("select id, is_admin, email, password, friends from user;")
+        .fetch_all(&conn)
+        .await
+        .unwrap();
+    println!("{:?}", users);
+    // let user = User {
+    //     id: 0,
+    //     is_admin: true,
+    //     email: "tvallotton@uc.cl".into(),
+    //     password: "password".into(),
+    //     friends: Json(vec![1, 2, 3]),
+    // };
 }

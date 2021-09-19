@@ -4,9 +4,27 @@ type Stmts = Vec<Statement>;
 type Constraints = Vec<TableConstraint>;
 type Change = (Vec<Column>, Vec<TableConstraint>);
 type Columns = Vec<Column>;
-pub(crate) trait Name: Eq + Clone + std::fmt::Debug {
-    fn name(&self) -> Result<&Ident, Error>;
-    fn are_equal(&self, other: &Self) -> bool;
+pub(crate) trait Compare: Eq + Clone + std::fmt::Debug {
+    fn bodies_are_equal(&self, other: &Self) -> bool;
+    fn name(&self) -> Result<String, Error>;
+    fn are_modified(&self, other: &Self) -> bool {
+        dbg!(self.names_are_equal(&other)) && !self.bodies_are_equal(other)
+    }
+    fn names_are_equal(&self, other: &Self) -> bool {
+        let first = match self.name() {
+            Ok(name) => name,
+            Err(_) => return false,
+        };
+        let second = match other.name() {
+            Ok(name) => name,
+            Err(_) => return false,
+        };
+        first == second
+    }
+
+    fn are_equal(&self, other: &Self) -> bool {
+        self.names_are_equal(other) && self.bodies_are_equal(other)
+    }
 }
 
 impl Table {
@@ -21,23 +39,24 @@ impl Table {
         out
     }
 
-    fn get_vecs<T: Name>(now: &[T], target: &[T]) -> (Vec<T>, Vec<T>, Vec<T>) {
+    fn get_vecs<T: Compare>(now: &[T], target: &[T]) -> (Vec<T>, Vec<T>, Vec<T>) {
         let mut to_change = vec![];
         let mut to_delete = vec![];
         let mut to_create = vec![];
         for c1 in target {
             for c0 in now {
-                if c1.are_equal(c0) && !c1.are_equal(c0) {
+                if c1.are_modified(c0) {
                     to_change.push(c1.clone())
                 }
             }
+
             if !now.iter().any(|c0| c0.are_equal(c1)) {
                 to_create.push(c1.clone());
             }
         }
 
         for c0 in now {
-            if !target.iter().any(|c1| c0.are_equal(c1)) {
+            if target.iter().all(|t| !c0.are_equal(t)) {
                 to_delete.push(c0.clone());
             }
         }
@@ -55,7 +74,7 @@ impl Table {
         Statement::AlterTable(AlterTable {
             name: self.name.clone(),
             operation: AlterTableOperation::DropConstraint {
-                name: cons.name()?.clone(),
+                name: Ident::new(&cons.name()?),
                 cascade: true,
                 restrict: false,
             },
@@ -170,17 +189,21 @@ impl Table {
         let (del_col, change, create_col) = self.col_changes(target);
         let (del_cons, create_cons) = self.constrs_changes(target);
 
-        for col in create_col {
-            let stmt = self.create_col(col);
-            stmts.push(stmt)
-        }
-
-        if ((!del_col.is_empty() || !create_cons.is_empty() || !del_cons.is_empty())
-            && DIALECT.clone()?.requires_move())
-            || !change.is_empty()
-        {
+        let weak_requirements =
+            !del_col.is_empty() || !create_cons.is_empty() || !del_cons.is_empty();
+        let require_move = DIALECT.clone()?.requires_move();
+        let change_col = !change.is_empty();
+        
+        if (weak_requirements && require_move) || change_col {
             let s = self.move_to((del_col, del_cons), change, create_cons)?;
             stmts.extend(s);
+            // adding columns occurs after move
+            // since moving cannot add columns.
+
+            for col in create_col {
+                let stmt = self.create_col(col);
+                stmts.push(stmt)
+            }
         } else {
             for cons in del_cons {
                 let stmt = self.delete_cons(cons)?;
@@ -191,6 +214,15 @@ impl Table {
                 let stmt = self.delete_col(col);
                 stmts.push(stmt);
             }
+
+            // adding columns occurs before
+            // adding constraints,
+            // since they might depend on these columns
+            for col in create_col {
+                let stmt = self.create_col(col);
+                stmts.push(stmt)
+            }
+
             for cons in create_cons {
                 let stmt = self.create_cons(cons);
                 stmts.push(stmt);

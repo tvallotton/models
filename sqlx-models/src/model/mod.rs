@@ -61,57 +61,6 @@ pub trait IntoSQL {
     }
 }
 
-pub use json::Json;
-
-mod json {
-    use super::*;
-    use database::*;
-    use serde::*;
-    use serde_json::*;
-    use sqlx::*;
-    use std::error::Error;
-    use std::result::Result;
-
-    #[derive(Debug, Serialize, Deserialize, Clone, Copy, Hash)]
-    pub struct Json<T>(pub T);
-
-    impl<T> IntoSQL for Json<T> {
-        fn into_sql() -> DataType {
-            DataType::Custom(ObjectName(vec![Ident::new("JSON")]))
-        }
-    }
-
-    impl<'r, DB, T> Decode<'r, DB> for Json<T>
-    where
-        &'r str: Decode<'r, DB>,
-        T: Deserialize<'r>,
-        DB: Database,
-    {
-        fn decode(
-            value: <DB as HasValueRef<'r>>::ValueRef,
-        ) -> Result<Json<T>, Box<dyn Error + 'static + Send + Sync>> {
-            let value = <&str as Decode<DB>>::decode(value)?;
-            let value = from_str(value)?;
-            Ok(value)
-        }
-    }
-
-    impl<'r, DB, T> Encode<'r, DB> for Json<T>
-    where
-        DB: Database,
-        T: Serialize,
-        String: Encode<'r, DB>,
-    {
-        fn encode_by_ref(
-            &self,
-            buf: &mut <DB as sqlx::database::HasArguments<'r>>::ArgumentBuffer,
-        ) -> encode::IsNull {
-            let string = serde_json::to_string(&self).unwrap();
-            <String as Encode<'r, DB>>::encode(string, buf)
-        }
-    }
-}
-
 #[cfg(feature = "bincode")]
 pub use binary::Binary;
 

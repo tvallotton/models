@@ -6,5 +6,6 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-sqlx = { version = "0.5.7", features = ["runtime-async-std-native-tls"] }
+sqlx = { version = "0.5.7", features = ["runtime-async-std-native-tls", "json", "sqlite"] }
 sqlx-models = {path="../sqlx-models"}
+tokio = { version = "1.11.0", features = ["full"] }

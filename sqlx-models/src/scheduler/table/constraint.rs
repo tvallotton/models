@@ -1,17 +1,74 @@
-use super::get_changes::Name;
+use std::collections::HashSet;
+
+use super::get_changes::Compare;
 use crate::prelude::*;
 use TableConstraint::*;
 
-impl Name for TableConstraint {
-    fn name(&self) -> Result<&Ident, Error> {
-        Ok(name(self)
+impl Compare for TableConstraint {
+    fn name(&self) -> Result<String, Error> {
+        name(self)
             .as_ref()
-            .ok_or_else(|| error!("Anonymous constraints are not supported."))?)
+            .ok_or_else(|| error!("Anonymous constraints are not supported."))
+            .map(|name| name.to_string().to_lowercase())
     }
 
-    fn are_equal(&self, other: &Self) -> bool {
-        match (self.name(), other.name()) {
-            (Ok(n1), Ok(n2)) => n1 == n2,
+    fn bodies_are_equal(&self, other: &Self) -> bool {
+        use TableConstraint::*;
+        match (self, other) {
+            (Unique(u0), Unique(u1)) => {
+                u0.is_primary == u0.is_primary && {
+                    let cols0 = u0
+                        .columns
+                        .iter()
+                        .map(ToString::to_string)
+                        .map(|str| str.to_lowercase())
+                        .collect::<HashSet<_>>();
+                    let cols1 = u1
+                        .columns
+                        .iter()
+                        .map(ToString::to_string)
+                        .map(|str| str.to_lowercase())
+                        .collect::<HashSet<_>>();
+                    cols0 == cols1
+                }
+            }
+            (ForeignKey(f0), ForeignKey(f1)) => {
+                f1.on_delete == f0.on_update
+                    && {
+                        let cols0 = f1
+                            .referred_columns
+                            .iter()
+                            .map(ToString::to_string)
+                            .map(|str| str.to_lowercase())
+                            .collect::<HashSet<_>>();
+                        let cols1 = f0
+                            .referred_columns
+                            .iter()
+                            .map(ToString::to_string)
+                            .map(|str| str.to_lowercase())
+                            .collect::<HashSet<_>>();
+                        cols0 == cols1
+                    }
+                    && {
+                        f0.foreign_table.to_string().to_lowercase()
+                            == f1.foreign_table.to_string().to_lowercase()
+                    }
+                    && {
+                        let cols0 = f0
+                            .columns
+                            .iter()
+                            .map(ToString::to_string)
+                            .map(|str| str.to_lowercase())
+                            .collect::<HashSet<_>>();
+                        let cols1 = f1
+                            .columns
+                            .iter()
+                            .map(ToString::to_string)
+                            .map(|str| str.to_lowercase())
+                            .collect::<HashSet<_>>();
+                        cols0 == cols1
+                    }
+            }
             _ => false,
         }
     }

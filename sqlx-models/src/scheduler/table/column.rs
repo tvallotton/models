@@ -11,14 +11,30 @@ pub struct Column {
     pub options: Vec<ColumnOptionDef>,
 }
 
-impl super::get_changes::Name for Column {
-    fn name(&self) -> Result<&Ident, Error> {
-        Ok(&self.name)
+impl super::get_changes::Compare for Column {
+    fn name(&self) -> Result<String, Error> {
+        Ok(self.name.to_string().to_lowercase())
     }
 
-    fn are_equal(&self, other: &Self) -> bool {
-        self.r#type == other.r#type
-            && self.options.iter().collect::<HashSet<_>>() == self.options.iter().collect()
+    fn bodies_are_equal(&self, other: &Self) -> bool {
+        let type1 = self.r#type.to_string().to_lowercase();
+        let type2 = self.r#type.to_string().to_lowercase();
+
+        type1 == type2 && {
+            let h1 = self
+                .options
+                .iter()
+                .map(ToString::to_string)
+                .map(|string| string.to_lowercase())
+                .collect::<HashSet<_>>();
+            let h2 = other
+                .options
+                .iter()
+                .map(ToString::to_string)
+                .map(|string| string.to_lowercase())
+                .collect::<HashSet<_>>();
+            h1 == h2
+        }
     }
 }
 
