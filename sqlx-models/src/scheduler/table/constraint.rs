@@ -12,15 +12,7 @@ impl Compare for TableConstraint {
             .map(|name| name.to_string().to_lowercase())
     }
 
-    fn are_equal(&self, other: &Self) -> bool {
-        let x0 = self.to_string().to_lowercase();
-        let x1 = self.to_string().to_lowercase();
-        if x0 == x1 && !self.are_equal(other) {
-            panic!("({:?}, {:?})", self, other);
-        }
-
-        self.are_equal(other)
-    }
+    
     fn bodies_are_equal(&self, other: &Self) -> bool {
         use TableConstraint::*;
         match (self, other) {

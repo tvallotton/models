@@ -96,11 +96,14 @@ impl Table {
         }
     }
     pub fn drop_constraint(&mut self, rm_name: Ident) {
+        
         self.constraints = self
             .constraints
             .drain(..)
             .filter(|constr| constraint::name(constr).as_ref() != Some(&rm_name))
             .collect();
+            
+        
     }
 
     pub fn new(name: &str) -> Self {

@@ -25,7 +25,6 @@ pub(crate) trait Compare: Eq + Clone + std::fmt::Debug {
     }
 
     fn are_equal(&self, other: &Self) -> bool {
-        
         self.names_are_equal(other) && self.bodies_are_equal(other)
     }
 }
@@ -60,7 +59,6 @@ impl Table {
 
         for c0 in now {
             if target.iter().all(|t| !c0.are_equal(t)) {
-                
                 to_delete.push(c0.clone());
             }
         }
@@ -120,7 +118,7 @@ impl Table {
             new_table.constraints = new_table
                 .constraints
                 .into_iter()
-                .filter(|cons| cons.are_equal(&del))
+                .filter(|cons| !cons.are_equal(&del))
                 .collect();
         }
 
@@ -133,6 +131,7 @@ impl Table {
             new_table.columns[i] = ch;
         }
         for cr in create {
+
             new_table.constraints.push(cr);
         }
 
@@ -193,14 +192,13 @@ impl Table {
         let mut stmts = vec![];
         let (del_col, change, create_col) = self.col_changes(target);
         let (del_cons, create_cons) = self.constrs_changes(target);
-        dbg!(&del_cons);
-        dbg!(&create_cons);
+
         let weak_requirements =
             !del_col.is_empty() || !create_cons.is_empty() || !del_cons.is_empty();
         let require_move = DIALECT.clone()?.requires_move();
         let change_col = !change.is_empty();
 
-        if (dbg!(weak_requirements) && require_move) || change_col {
+        if (weak_requirements && require_move) || change_col {
             let s = self.move_to((del_col, del_cons), change, create_cons)?;
             stmts.extend(s);
             // adding columns occurs after move

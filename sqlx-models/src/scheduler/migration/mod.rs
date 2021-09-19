@@ -58,6 +58,7 @@ impl Migration {
             if let Some(time) = time {
                 self.success.push((time, table_name));
             }
+
         }
     }
 
