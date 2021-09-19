@@ -81,11 +81,11 @@ impl Migration {
             }
             
             for stmt in stmts {
-                println!("{};\n\n", stmt);
+                
                 changes.push(stmt.clone());
                 schema.update_schema(stmt)?;
             }
-            break;
+            
         }
         changes
     }

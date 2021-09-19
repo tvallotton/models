@@ -194,7 +194,7 @@ impl Table {
         let require_move = DIALECT.clone()?.requires_move();
         let change_col = !change.is_empty();
         
-        if (weak_requirements && require_move) || change_col {
+        if (dbg!(weak_requirements) && require_move) || change_col {
             let s = self.move_to((del_col, del_cons), change, create_cons)?;
             stmts.extend(s);
             // adding columns occurs after move

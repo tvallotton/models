@@ -13,6 +13,7 @@ impl Schema {
     /// the remaining tables.
 
     fn cascade(&mut self, name: &ObjectName) {
+        panci!("{}", name);
         use TableConstraint::*;
         self.tables //
             .values_mut()

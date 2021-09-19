@@ -41,7 +41,9 @@ impl Schema {
                 &old_name, &new_name
             )
         })?;
-        self.cascade(&old_name);
+        if !DIALECT.clone()?.requires_move() {
+            self.cascade(&old_name);
+        }
         table.name = new_name.clone();
         self.tables.insert(new_name, table);
     }
@@ -49,6 +51,7 @@ impl Schema {
     /// the remaining tables.
 
     fn cascade(&mut self, name: &ObjectName) {
+        
         use TableConstraint::*;
         self.tables //
             .values_mut()

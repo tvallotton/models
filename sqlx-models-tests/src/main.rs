@@ -14,7 +14,7 @@ struct User {
     password_: String,
     #[default = 0]
     is_admin: bool,
-    friends: Json<Vec<i32>>,
+    // friends: Json<Vec<i32>>,
 }
 
 #[derive(Model)]
