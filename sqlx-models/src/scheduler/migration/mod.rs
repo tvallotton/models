@@ -58,6 +58,7 @@ impl Migration {
             if let Some(time) = time {
                 self.success.push((time, table_name));
             }
+
         }
     }
 
@@ -75,13 +76,14 @@ impl Migration {
         let mut changes = vec![];
 
         loop {
+
             let stmts = schema.get_changes(target.clone())?;
             if stmts.is_empty() {
                 break;
             }
             
             for stmt in stmts {
-                
+                println!("{};\n", stmt);
                 changes.push(stmt.clone());
                 schema.update_schema(stmt)?;
             }

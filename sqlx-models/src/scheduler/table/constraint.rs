@@ -12,6 +12,7 @@ impl Compare for TableConstraint {
             .map(|name| name.to_string().to_lowercase())
     }
 
+    
     fn bodies_are_equal(&self, other: &Self) -> bool {
         use TableConstraint::*;
         match (self, other) {
@@ -33,7 +34,8 @@ impl Compare for TableConstraint {
                 }
             }
             (ForeignKey(f0), ForeignKey(f1)) => {
-                f1.on_delete == f0.on_update
+                f1.on_delete == f0.on_delete
+                    && f1.on_update == f0.on_update
                     && {
                         let cols0 = f1
                             .referred_columns
@@ -50,8 +52,9 @@ impl Compare for TableConstraint {
                         cols0 == cols1
                     }
                     && {
-                        f0.foreign_table.to_string().to_lowercase()
-                            == f1.foreign_table.to_string().to_lowercase()
+                        let name0 = f0.foreign_table.to_string().to_lowercase();
+                        let name1 = f1.foreign_table.to_string().to_lowercase();
+                        name0 == name1
                     }
                     && {
                         let cols0 = f0
