@@ -1,12 +1,15 @@
 [package]
 name = "sqlx-models-proc-macro"
-version = "0.0.2"
+version = "0.0.3"
 edition = "2018"
 license = "Apache-2.0"
 description = "A helper crate for `sqlx-models`"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [lib]
 proc-macro = true
+
+[features]
+helpers = []
 
 [dependencies]
 proc-macro2 = "1.0.28"

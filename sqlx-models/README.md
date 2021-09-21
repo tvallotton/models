@@ -12,7 +12,7 @@ cargo install sqlx-models-cli
 
 Now run the following command to create an environment file with the `DATABASE_URL` variable set: 
 ```
-echo "DATABASE_URL=sqlite:/database.db" > .env
+echo "DATABASE_URL=sqlite://database.db" > .env
 ```
 We now can create the database running the command: 
 ```
@@ -134,8 +134,12 @@ It can also specify `on_delete` and `on_update` constraints:
 ### default
 It can be used to set a default for a table. 
 ```rust
-    #[default = 0]
+    #[default(false)] // if using sqlite use 0 or 1
     is_admin: bool, 
+    #[default("")]
+    text: String, 
+    #[default(0)]
+    number: i32, 
 ```
 
 ### unique

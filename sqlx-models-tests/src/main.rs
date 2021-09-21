@@ -13,6 +13,7 @@ struct User {
     password: String,
     #[default(0)]
     is_admin: bool, 
+    friends: Json<Vec<i32>>
 }
 
 #[derive(Model)]
@@ -74,4 +75,7 @@ async fn main() {
         password: "password".into(),
         friends: Json(vec![1, 2, 3]),
     };
+
+
+    
 }
