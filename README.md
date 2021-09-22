@@ -131,7 +131,7 @@ It is used to mark a foreign key constraint.
 ```
 It can also specify `on_delete` and `on_update` constraints: 
 ```rust
-    #[foreign_key(User.id, on_delete="cascade"]
+    #[foreign_key(User.id, on_delete="cascade")]
     user_id: i32, 
 ```
 This is equivalent to
