@@ -157,7 +157,7 @@ It is used to mark a unique constraint.
 ```
 For multicolumn unique constraints the following syntax is used: 
 ```rust
-    #[unique(hash)]
+    #[unique(post_id)]
     user_id: String,
     post_id: i32,
 ```
