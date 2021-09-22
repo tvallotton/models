@@ -1,20 +1,23 @@
 [package]
 name = "sqlx-models"
-version = "0.0.2"
+version = "0.0.4"
 edition = "2018"
 authors = ["Tomas Vallotton <tvallotton@uc.cl>"]
 license = "MIT OR Apache-2.0"
 description = "A work in progress implementation of a migration tool for sqlx."
 keywords = ["database", "postgres", "sqlite", "sql", "migration"]
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[features]
+helpers = ["sqlx-models-proc-macro/helpers"]
+
+
 [dependencies]
 dotenv = "0.15.0"
 log = "0.4.14"
-sqlx-models-parser = { path = "../sqlx-models-parser" }
-sqlx = "0.5.7"
+sqlx-models-parser = "0.0.1"
+sqlx = {version = "0.5.7", features = ["json"]}
 url = "2.2.2"
-sqlx-models-proc-macro = { path = "../sqlx-models-proc-macro" }
+sqlx-models-proc-macro = {path ="../sqlx-models-proc-macro"}
 chrono = "0.4.19"
 fehler = "1.0.0"
 sqlformat = "0.1.7"

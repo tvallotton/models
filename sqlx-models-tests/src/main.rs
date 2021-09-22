@@ -13,6 +13,7 @@ struct User {
     password: String,
     #[default(0)]
     is_admin: bool, 
+    friends: Json<Vec<i32>>
 }
 
 #[derive(Model)]
@@ -22,6 +23,7 @@ struct PostLike {
     user_id: i32,
     #[foreign_key(Post.id)]
     post_id: i32,
+    #[unique]
     friends: Json<Vec<i32>>
 }
 
@@ -74,4 +76,7 @@ async fn main() {
         password: "password".into(),
         friends: Json(vec![1, 2, 3]),
     };
+
+
+    
 }

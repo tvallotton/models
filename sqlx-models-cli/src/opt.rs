@@ -41,18 +41,7 @@ pub enum Command {
 
     #[clap(alias = "mig")]
     Migrate(MigrateOpt),
-
-
-    #[clap(alias = "gen")]
-    Generate(GenerateOpt),
 }
-
-#[derive(Clap, Debug)]
-pub struct GenerateOpt {
-    #[clap(long, default_value = "migrations")]
-    pub source: String,
-}
-
 
 /// Group of commands for creating and dropping your database.
 #[derive(Clap, Debug)]
@@ -147,6 +136,17 @@ pub enum MigrateCommand {
         /// Location of the DB, by default will be read from the DATABASE_URL env var
         #[clap(long, short = 'D', env)]
         database_url: String,
+    },
+
+    /// Generate migrations from Model.
+    #[clap(alias = "gen")]
+    Generate {
+        /// Location of the DB, by default will be read from the DATABASE_URL env var
+        #[clap(long, short = 'D', env)]
+        database_url: String,
+        /// Used to filter through the models to execute.
+        #[clap(long)]
+        table: Option<String>,
     },
 
     /// Revert the latest migration with a down file.

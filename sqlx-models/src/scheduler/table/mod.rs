@@ -17,47 +17,6 @@ pub struct Table {
 }
 
 impl Table {
-    // fn get_changes_cols(&self, target: &Table, schema: &Schema) -> Vec<Statement> {
-    //     let mut to_change = vec![];
-    //     let mut to_delete = vec![];
-    //     let mut to_create = vec![];
-    //     for c1 in &target.columns {
-    //         for c0 in &self.columns {
-    //             if c1.name == c0.name && c1 != c0 {
-    //                 to_change.push((c0.clone(), c1.clone()))
-    //             }
-    //         }
-    //         if !self.columns.iter().any(|c0| c0.name == c1.name) {
-    //             to_create.push(c1.clone());
-    //         }
-    //     }
-
-    //     for c0 in &self.columns {
-    //         if !target.columns.iter().any(|c1| c1.name == c0.name) {
-    //             to_delete.push(c0.clone());
-    //         }
-    //     }
-    //     let mut stmts = vec![];
-    //     for (from, to) in to_change {
-    //         let stmt = self.change_with_move(from, Some(to), schema);
-    //         stmts.extend(stmt)
-    //     }
-
-    //     for col in to_create {
-    //         let stmt = self.create_col(col);
-    //         stmts.push(stmt)
-    //     }
-    //     for col in to_delete {
-    //         let stmt = self.delete_col(col, schema);
-    //         stmts.extend(stmt)
-    //     }
-    //     stmts
-    // }
-
-    // pub(super) fn get_changes(&self, target: &Table, schema: &Schema) -> Vec<Statement> {
-    //     let changes = self.get_changes_cols(target, schema);
-    //     changes
-    // }
     fn create_col(&self, col: Column) -> Statement {
         Statement::AlterTable(AlterTable {
             name: self.name.clone(),

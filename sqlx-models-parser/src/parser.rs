@@ -79,7 +79,7 @@ impl fmt::Display for ParserError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            "sql parser error: {}",
+            "{}",
             match self {
                 ParserError::TokenizerError(s) => s,
                 ParserError::ParserError(s) => s,
