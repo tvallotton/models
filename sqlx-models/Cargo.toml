@@ -1,6 +1,6 @@
 [package]
 name = "sqlx-models"
-version = "0.0.3"
+version = "0.0.4"
 edition = "2018"
 authors = ["Tomas Vallotton <tvallotton@uc.cl>"]
 license = "MIT OR Apache-2.0"
@@ -15,9 +15,9 @@ helpers = ["sqlx-models-proc-macro/helpers"]
 dotenv = "0.15.0"
 log = "0.4.14"
 sqlx-models-parser = "0.0.1"
-sqlx = "0.5.7"
+sqlx = {version = "0.5.7", features = ["json"]}
 url = "2.2.2"
-sqlx-models-proc-macro = "0.0.3"
+sqlx-models-proc-macro = {path ="../sqlx-models-proc-macro"}
 chrono = "0.4.19"
 fehler = "1.0.0"
 sqlformat = "0.1.7"

@@ -157,8 +157,7 @@ impl Table {
             self.cols_to_string(),
             self.name
         );
-        let insert = parse_sql(&dialect::GenericDialect {}, &insert)
-            .unwrap()
+        let insert = parse_sql(&dialect::GenericDialect {}, &insert)?
             .into_iter() //
             .next()
             .unwrap();

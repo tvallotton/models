@@ -122,17 +122,18 @@ pub async fn info(migration_source: &str, uri: &str) -> anyhow::Result<()> {
 
     for migration in migrator.iter() {
         println!(
-            "{}/{} {}",
-            style(migration.version).cyan(),
+            "{}: {}/{} {}",
+
             if applied_migrations.contains_key(&migration.version) {
-                style("installed").green()
+                style("Installed").green().bold()
             } else {
-                style("pending").yellow()
+                style("Pending").yellow().bold()
             },
+            migration_source,
+            style(migration.version).cyan(),
             migration.description,
         );
     }
-
     Ok(())
 }
 
@@ -201,11 +202,11 @@ pub async fn run(
                 let text = if dry_run { "Can apply" } else { "Applied" };
 
                 println!(
-                    "{} {}/{} {} {}",
-                    text,
+                    "{}: {}/{} {} {}",
+                    style(text).green().bold(),
+                    migration_source,
                     style(migration.version).cyan(),
-                    style(migration.migration_type.label()).green(),
-                    migration.description,
+                    style(&migration.description),
                     style(format!("({:?})", elapsed)).dim()
                 );
             }
@@ -254,7 +255,6 @@ pub async fn revert(
                 conn.revert(migration).await?
             };
             let text = if dry_run { "Can apply" } else { "Applied" };
-
             println!(
                 "{} {}/{} {} {}",
                 text,

@@ -1,156 +1,99 @@
-# sqlx-models
-sqlx-modes is a work in progress implementation for a sql migration management tool for applications using sqlx.
-Beware, this is still under development, and some API's may be broken in the future. 
+# SQLx Models CLI
+
+SQLx's associated command-line utility for managing databases, migrations, and enabling "offline"
+mode with `sqlx::query!()` and friends.
+
+### Install
+
+#### With Rust toolchain
+
+```bash
+# supports all databases supported by SQLx
+$ cargo install sqlx-models-cli
+
+# only for postgres
+$ cargo install sqlx-modles-cli --no-default-features --features postgres
+```
+
+### Usage
+
+All commands require that a database url is provided. This can be done either with the `--database-url` command line option or by setting `DATABASE_URL`, either in the environment or in a `.env` file
+in the current working directory.
+
+For more details, run `sqlx <command> --help`.
+
+```dotenv
+# Postgres
+DATABASE_URL=postgres://postgres@localhost/my_database
+```
+
+#### Create/drop the database at `DATABASE_URL`
+
+```bash
+$ sqlx database create
+$ sqlx database drop
+```
+#### Generate automated migrations
+You can automatically generate migrations with the following command: 
+```
+$ sqlx migrate generate
+```
+You may also use the shortcut:
+```
+$ sqlx mig gen
+```
+This will generate one sql table for each model in your application using the `sqlx-models` crate.
 
 
-# Basic Tutorial
+#### Create and run migrations
 
-install the CLI by running the following command: 
+```bash
+$ sqlx migrate add <name>
 ```
-cargo install sqlx-models-cli
+Creates a new file in `migrations/<timestamp>_<name>.sql`. Add your database schema changes to
+this new file.
+
+---
+```bash
+$ sqlx migrate run
+```
+Compares the migration history of the running database against the `migrations/` folder and runs
+any scripts that are still pending.
+
+#### Enable building in "offline mode" with `query!()`
+
+Note: must be run as `cargo sqlx`.
+
+```bash
+cargo sqlx prepare
 ```
 
-Now run the following command to create an environment file with the `DATABASE_URL` variable set: 
-```
-echo "DATABASE_URL=sqlite://database.db" > .env
-```
-We now can create the database running the command: 
-```
-sqlx database create
-```
-This command will have created an sqlite file called `database.db`. 
-You can now derive the `Models` trait on your structures, 
-and `sqlx-models` will manage the migrations for you. For example, write at `src/main.rs`: 
-```rust
-#![allow(dead_code)]
-use sqlx_models::Model; 
+Saves query metadata to `sqlx-data.json` in the current directory; check this file into version
+control and an active database connection will no longer be needed to build your project.
 
-#[derive(Model)]
-struct User {
-    #[primary_key]
-    id: i32,
-    #[unique]
-    email: String,
-    password: String,
-    #[default = 0]
-    is_admin: bool,
+Has no effect unless the `offline` feature of `sqlx` is enabled in your project. Omitting that
+feature is the most likely cause if you get a `sqlx-data.json` file that looks like this:
+
+```json
+{
+    "database": "PostgreSQL"
 }
-
-#[derive(Model)]
-struct Post {
-    #[primary_key]
-    id: i32,
-    #[foreign_key(User.id)]
-    author_: String,
-    #[default = "<UNTITLED POST>"]
-    title: String,
-    content: String,
-}
-
-#[derive(Model)]
-struct PostLike {
-    #[foreign_key(User.id)]
-    #[primary_key(post_id)]
-    user_id: i32,
-    #[foreign_key(Post.id)]
-    post_id: i32,
-}
-
-#[derive(Model)]
-struct CommentLike {
-    #[foreign_key(User.id)]
-    #[primary_key(comment)]
-    user: i32,
-    #[foreign_key(Comment.id)]
-    comment: i32,
-    #[default = false]
-    is_dislike: bool,
-}
-
-#[derive(Model)]
-struct Comment {
-    #[primary_key]
-    id: i32,
-    #[foreign_key(User.id)]
-    author: i32,
-    #[foreign_key(Post.id)]
-    post: i32,
-}
-fn main() {}
 ```
 
-If you now run the following command, your migrations should be automatically created.
-``` 
-sqlx generate
-```
-The output should look like this: 
-```
-Generated 1631716729974/migrate user
-Generated 1631716729980/migrate post
-Generated 1631716729986/migrate comment
-Generated 1631716729993/migrate postlike
-Generated 1631716729998/migrate commentlike
-```
-You can check out the generated migrations at the `migrations/` folder. To commit this migrations you can execute the following command: 
-```
-sqlx migrate run
-```
-The output should look like this: 
-```
-Applied 1631716729974/migrate user (342.208µs)
-Applied 1631716729980/migrate post (255.958µs)
-Applied 1631716729986/migrate comment (287.792µs)
-Applied 1631716729993/migrate postlike (349.834µs)
-Applied 1631716729998/migrate commentlike (374.625µs)
-```
-If we later modify those structures in our application, we can generate new migrations to update the tables. 
+---
 
-## Avaibale Attributes
-### primary_key
-It's used to mark the primary key fo the table. 
-```rust
-    #[primary_key]
-    id: i32, 
-```
-for tables with multicolumn primary keys, the following syntax is used: 
-```rust
-    #[primary_key(second_id)]
-    first_id: i32, 
-    second_id: i32, 
+```bash
+cargo sqlx prepare --check
 ```
 
-### foreign_key
-It is used to mark a foreign key constraint. 
-```rust
-    #[foreign_key(User.id)]
-    user: i32, 
-```
-It can also specify `on_delete` and `on_update` constraints: 
-```rust
-    #[foreign_key(User.id, on_delete="cascade"]
-    user: i32, 
-```
+Exits with a nonzero exit status if the data in `sqlx-data.json` is out of date with the current
+database schema and queries in the project. Intended for use in Continuous Integration.
 
-### default
-It can be used to set a default for a table. 
-```rust
-    #[default(false)] // if using sqlite use 0 or 1
-    is_admin: bool, 
-    #[default("")]
-    text: String, 
-    #[default(0)]
-    number: i32, 
-```
+#### Force building in offline mode
 
-### unique
-It is used to mark a unique constraint. 
-```rust
-    #[unique]
-    email: String, 
-```
-For multicolumn unique constraints the following syntax is used: 
-```rust
-    #[unique(hash)]
-    username: String,
-    hash: i32,
-```
+To make sure an accidentally-present `DATABASE_URL` environment variable or `.env` file does not
+result in `cargo build` (trying to) access the database, you can set the `SQLX_OFFLINE` environment
+variable to `true`.
+
+If you want to make this the default, just add it to your `.env` file. `cargo sqlx prepare` will
+still do the right thing and connect to the database.

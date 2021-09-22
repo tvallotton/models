@@ -1,4 +1,3 @@
-use crate::opt::GenerateOpt;
 use console::style;
 use serde::*;
 use serde_json::from_str;
@@ -15,40 +14,45 @@ struct Output {
 }
 
 impl Output {
-    fn print(self) {
+    fn print(self, source: &str) {
         for (num, name) in self.success {
             println!(
-                "Generated {}/{} {}",
+                "{}: {}/{} {}",
+                style("Generated").bold().green(),
+                style(source),
                 style(num).cyan(),
-                style("migrate").green(),
-                name
+                style(name)
             )
         }
 
         if let Some(err) = self.error {
-            println!("{}: {}", style(err.kind).red(), err.message)
+            println!("{}: {}", style(err.kind).red().bold(), err.message)
         }
     }
 }
 
-pub async fn generate(opt: GenerateOpt) {
+pub async fn generate(database_url: &str, table: Option<String>, source: &str) {
     touch_any().await.ok();
 
-    if !builds(&opt).await {
+    if !builds(database_url, source).await {
         println!(
             "{}: Could not compile project. No migrations were generated.",
             style("error").red()
         );
         return;
     }
-
+    let filter_tests = format!(
+        "__sqlx_models_generate_migration_{}",
+        table.as_deref().unwrap_or("")
+    );
     let output = tokio::process::Command::new("cargo")
         .arg("test")
         .arg("--")
         .arg("--nocapture")
-        .arg("__sqlx_models_generate_migration_")
+        .arg(&filter_tests)
         .env("SQLX_MODELS_GENERATE_MIGRATIONS", "true")
-        .env("MIGRATIONS_DIR", &opt.source)
+        .env("MIGRATIONS_DIR", source)
+        .env("DATABASE_URL", database_url)
         .output()
         .await
         .unwrap()
@@ -56,24 +60,31 @@ pub async fn generate(opt: GenerateOpt) {
     let output = String::from_utf8(output).unwrap();
     let regex = regex::Regex::new("<SQLX-MODELS-OUTPUT>(.+)</SQLX-MODELS-OUTPUT>").unwrap();
 
+    if output.contains("running 0 tests") {
+        if let Some(table) = table {
+            println!("No models named {}.", &table)
+        } else {
+            println!("No models in the application")
+        }
+        return;
+    }
     let x = regex.captures(&output).expect(&output);
 
     if let Some(json) = x.get(1) {
-        from_str::<Output>(json.as_str()).unwrap().print();
+        from_str::<Output>(json.as_str()).unwrap().print(source);
     } else {
-        println!("No migrations generated.")
+        println!("Everything is up to date.");
     }
-
     touch_any().await.ok();
 }
 
-async fn builds(opt: &GenerateOpt) -> bool {
+async fn builds(database_url: &str, source: &str) -> bool {
     tokio::process::Command::new("cargo")
         .arg("build")
         .arg("--tests")
         .env("SQLX_MODELS_GENERATE_MIGRATIONS", "true")
-        .env("MIGRATIONS_DIR", &opt.source)
-        // .stdout(std::process::Stdio::piped())
+        .env("MIGRATIONS_DIR", database_url)
+        .env("DATABASE_URL", source)
         .spawn()
         .unwrap()
         .wait()

@@ -23,6 +23,7 @@ struct PostLike {
     user_id: i32,
     #[foreign_key(Post.id)]
     post_id: i32,
+    #[unique]
     friends: Json<Vec<i32>>
 }
 
