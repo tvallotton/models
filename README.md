@@ -59,7 +59,7 @@ struct PostLike {
 #[derive(Model)]
 struct CommentLike {
     #[foreign_key(User.id)]
-    #[primary_key(comment)]
+    #[primary_key(comment_id)]
     user_id: i32,
     #[foreign_key(Comment.id)]
     comment_id: i32,
