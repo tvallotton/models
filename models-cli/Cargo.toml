@@ -1,0 +1,11 @@
+[package]
+name = "models-cli"
+version = "0.0.1"
+edition = "2018"
+readme = "../README.md"
+license = "Apache-2.0"
+authors = ["Tomas Vallotton <tvallotton@uc.cl>"]
+description = "Future migration management library for applications using a database"
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
