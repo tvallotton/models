@@ -41,18 +41,18 @@ struct Post {
     #[primary_key]
     id: i32,
     #[foreign_key(User.id)]
-    author_: String,
-    #[default("<UNTITLED POST>")]
+    author: String,
+    #[default("<Untitled Post>")]
     title: String,
     content: String,
 }
 
 #[derive(Model)]
 struct PostLike {
-    #[foreign_key(User.id)]
+    #[foreign_key(User.id, on_delete="cascade")]
     #[primary_key(post_id)]
     user_id: i32,
-    #[foreign_key(Post.id)]
+    #[foreign_key(Post.id, on_delete="cascade")]
     post_id: i32,
 }
 
@@ -60,9 +60,9 @@ struct PostLike {
 struct CommentLike {
     #[foreign_key(User.id)]
     #[primary_key(comment)]
-    user: i32,
+    user_id: i32,
     #[foreign_key(Comment.id)]
-    comment: i32,
+    comment_id: i32,
     #[default(0)]
     is_dislike: bool,
 }
