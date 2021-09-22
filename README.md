@@ -63,7 +63,7 @@ struct CommentLike {
     user: i32,
     #[foreign_key(Comment.id)]
     comment: i32,
-    #[default(false)]
+    #[default(0)]
     is_dislike: bool,
 }
 
