@@ -1,25 +1,25 @@
 # sqlx-models
 sqlx-modes is a work in progress implementation for a sql migration management tool for applications using sqlx.
-
+Beware, this is still under development, and some API's may be broken in the future. 
 
 
 # Basic Tutorial
 
 install the CLI by running the following command: 
 ```
-cargo install sqlx-models-cli
+$ cargo install sqlx-models-cli
 ```
 
 Now run the following command to create an environment file with the `DATABASE_URL` variable set: 
 ```
-echo "DATABASE_URL=sqlite://database.db" > .env
+$ echo "DATABASE_URL=sqlite://database.db" > .env
 ```
 We now can create the database running the command: 
 ```
-sqlx database create
+$ sqlx database create
 ```
 This command will have created an sqlite file called `database.db`. 
-You can now derive the `Models` trait on your structures, 
+You can now derive the `Model` trait on your structures, 
 and `sqlx-models` will manage the migrations for you. For example, write at `src/main.rs`: 
 ```rust
 #![allow(dead_code)]
@@ -32,7 +32,7 @@ struct User {
     #[unique]
     email: String,
     password: String,
-    #[default = 0]
+    #[default(0)]
     is_admin: bool,
 }
 
@@ -42,7 +42,7 @@ struct Post {
     id: i32,
     #[foreign_key(User.id)]
     author_: String,
-    #[default = "<UNTITLED POST>"]
+    #[default("<UNTITLED POST>")]
     title: String,
     content: String,
 }
@@ -63,7 +63,7 @@ struct CommentLike {
     user: i32,
     #[foreign_key(Comment.id)]
     comment: i32,
-    #[default = false]
+    #[default(false)]
     is_dislike: bool,
 }
 
@@ -81,15 +81,15 @@ fn main() {}
 
 If you now run the following command, your migrations should be automatically created.
 ``` 
-sqlx generate
+$ sqlx migrate generate
 ```
 The output should look like this: 
 ```
-Generated 1631716729974/migrate user
-Generated 1631716729980/migrate post
-Generated 1631716729986/migrate comment
-Generated 1631716729993/migrate postlike
-Generated 1631716729998/migrate commentlike
+Generated: migrations/1632280793452 user
+Generated: migrations/1632280793459 post
+Generated: migrations/1632280793465 postlike
+Generated: migrations/1632280793471 comment
+Generated: migrations/1632280793476 commentlike
 ```
 You can check out the generated migrations at the `migrations/` folder. To commit this migrations you can execute the following command: 
 ```
@@ -118,6 +118,10 @@ for tables with multicolumn primary keys, the following syntax is used:
     first_id: i32, 
     second_id: i32, 
 ```
+This is equivalent to
+```sql
+    PRIMARY KEY (first_id, second_id),
+```
 
 ### foreign_key
 It is used to mark a foreign key constraint. 
@@ -128,14 +132,21 @@ It is used to mark a foreign key constraint.
 It can also specify `on_delete` and `on_update` constraints: 
 ```rust
     #[foreign_key(User.id, on_delete="cascade"]
-    user: i32, 
+    user_id: i32, 
 ```
-
+This is equivalent to
+```sql
+    FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE,
+```
 ### default
-It can be used to set a default for a table. 
+It can be used to set a default value for a column. 
 ```rust
-    #[default = 0]
+    #[default(false)] // if using sqlite use 0 or 1
     is_admin: bool, 
+    #[default("")]
+    text: String, 
+    #[default(0)]
+    number: i32, 
 ```
 
 ### unique
@@ -147,6 +158,10 @@ It is used to mark a unique constraint.
 For multicolumn unique constraints the following syntax is used: 
 ```rust
     #[unique(hash)]
-    username: String,
-    hash: i32,
+    user_id: String,
+    post_id: i32,
+```
+This is equivalent to
+```sql
+    UNIQUE (user_id, post_id),
 ```

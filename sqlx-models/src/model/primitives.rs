@@ -92,9 +92,9 @@ impl IntoSQL for bool {
         DataType::Boolean
     }
 }
-
-use sqlx::types::Json; 
-
+#[cfg(feature = "json")]
+use sqlx::types::Json;
+#[cfg(feature = "json")]
 impl<T> IntoSQL for Json<T> {
     fn into_sql() -> DataType {
         DataType::Custom(ObjectName(vec![Ident::new("JSON")]))

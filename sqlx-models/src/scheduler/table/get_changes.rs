@@ -8,7 +8,7 @@ pub(crate) trait Compare: Eq + Clone + std::fmt::Debug {
     fn bodies_are_equal(&self, other: &Self) -> bool;
     fn name(&self) -> Result<String, Error>;
     fn are_modified(&self, other: &Self) -> bool {
-        let names = self.names_are_equal(&other);
+        let names = self.names_are_equal(other);
         let bodies = self.bodies_are_equal(other);
         names && !bodies
     }

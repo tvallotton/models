@@ -10,11 +10,18 @@ use queue::Queue;
 pub use schema::Schema;
 use std::fs::File;
 
+pub(crate) struct Tuple(i64, String);
+impl fmt::Debug for Tuple {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "[{},{:?}]", self.0, self.1)
+    }
+}
+
 pub(crate) struct Migration {
     pub result: Result<Schema, Error>,
     pub queue: Queue,
 
-    pub success: Vec<(i64, String)>,
+    pub success: Vec<Tuple>,
 }
 
 impl Migration {
@@ -30,10 +37,8 @@ impl Migration {
     pub fn migrate(&mut self) {
         loop {
             match self.queue.pop() {
-                Some(target) => 
-                    
-                    self.migrate_table(target),
-                
+                Some(target) => self.migrate_table(target),
+
                 None => {
                     if self.queue.len() != 0 && self.result.is_ok() {
                         self.result =
@@ -46,28 +51,21 @@ impl Migration {
     }
     #[throws(Error)]
     fn try_migration(&mut self, target: Table) {
-
         if let Ok(schema) = &mut self.result {
-
             let table_name = target.dep_name();
 
-            
             let changes = Self::get_changes(target, schema)?;
-            
+
             let time = Self::save(&table_name, changes)?;
             if let Some(time) = time {
-                self.success.push((time, table_name));
+                self.success.push(Tuple(time, table_name));
             }
-
         }
     }
 
     fn migrate_table(&mut self, target: Table) {
-        match self.try_migration(target) {
-            Err(error) => {
-                self.result = Err(error);
-            }
-            _ => (),
+        if let Err(error) = self.try_migration(target) {
+            self.result = Err(error);
         }
     }
 
@@ -76,18 +74,16 @@ impl Migration {
         let mut changes = vec![];
 
         loop {
-
             let stmts = schema.get_changes(target.clone())?;
             if stmts.is_empty() {
                 break;
             }
-            
+
             for stmt in stmts {
                 println!("{};\n", stmt);
                 changes.push(stmt.clone());
                 schema.update_schema(stmt)?;
             }
-            
         }
         changes
     }

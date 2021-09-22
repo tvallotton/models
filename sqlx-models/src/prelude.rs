@@ -4,7 +4,7 @@ pub(crate) use crate::scheduler::Table;
 pub use ::std::{fs, io, *};
 pub(crate) use ast::*;
 pub(crate) use collections::HashMap;
-pub(crate) use dotenv::*;
+
 pub(crate) use fehler::*;
 pub(crate) use once_cell::sync::Lazy;
 pub(crate) use parser::Parser;
@@ -19,39 +19,23 @@ pub(crate) fn parse_sql(
     Parser::parse_sql(dialect, sql)
 }
 
-pub static DATABASE_URL: Lazy<Result<Url, Error>> = Lazy::new(get_uri);
+pub static DATABASE_URL: Lazy<Result<Url, Error>> = Lazy::new(|| {
+    let url = env::var("DATABASE_URL").unwrap();
+    Url::parse(&url).map_err(|_| Error::InvalidDatabaseUrl)
+});
+pub(crate) static MIGRATIONS_DIR: Lazy<String> = Lazy::new(|| env::var("MIGRATIONS_DIR").unwrap());
 
-fn get_uri() -> Result<Url, Error> {
-    dotenv().ok();
-    let database_url = if let Ok(url) = var("DATABASE_URL") {
-        Ok(url)
-    } else {
-        env::var("DATABASE_URL").map_err(|_| Error::DatabaseUrlNotSet)
-    };
-    Url::parse(&database_url?).map_err(|_| Error::InvalidDatabaseUrl)
-}
-
-/// Retrieves the dilect from the DATABASE_URL.
-#[throws(Error)]
-pub(crate) fn get_dialect() -> Dialect {
+pub static DIALECT: Lazy<Result<Dialect, Error>> = Lazy::new(|| {
     let url = (*DATABASE_URL).clone()?;
-    match url.scheme() {
+    Ok(match url.scheme() {
         "sqlite" => Sqlite,
         "postgres" => Postgres,
         "mysql" => Mysql,
         "mssql" => Mssql,
         "any" => Any,
-        _ => Err(error!("scheme \"{}\" is not supported", url.scheme()))?,
-    }
-}
-
-fn get_migrations_dir() -> String {
-    var("MIGRATIONS_DIR").unwrap_or_else(|_| "migrations/".into())
-}
-
-pub static DIALECT: Lazy<Result<Dialect, Error>> = Lazy::new(|| get_dialect()); 
-
-pub(crate) static MIGRATIONS_DIR: Lazy<String> = Lazy::new(get_migrations_dir);
+        _ => return Err(error!("scheme \"{}\" is not supported", url.scheme())),
+    })
+});
 
 use sqlformat::{FormatOptions, Indent};
 

@@ -17,7 +17,7 @@ impl Compare for TableConstraint {
         use TableConstraint::*;
         match (self, other) {
             (Unique(u0), Unique(u1)) => {
-                u0.is_primary == u0.is_primary && {
+                u0.is_primary == u1.is_primary && {
                     let cols0 = u0
                         .columns
                         .iter()

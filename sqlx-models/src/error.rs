@@ -21,10 +21,7 @@ pub enum Error {
     IO(#[from] Arc<io::Error>),
     #[error("Dependency cycle detected invlonving the tables: {0:?}.")]
     Cycle(HashSet<String>),
-    #[error(
-        "The environment variable DATABASE_URL is not set. Set it or store it in an `.env` file."
-    )]
-    DatabaseUrlNotSet,
+ 
     #[error("The DATABASE_URL environment variable could not be parsed.")]
     InvalidDatabaseUrl,
 }
@@ -32,12 +29,11 @@ pub enum Error {
 impl Error {
     pub(crate) fn kind(&self) -> &'static str {
         match self {
-            &Self::Cycle(_) => "CycleError",
-            &Self::Message(_) => "Error",
-            &Self::IO(_) => "IOError",
-            &Self::DatabaseUrlNotSet => "URL Error",
-            &Self::InvalidDatabaseUrl => "URL error",
-            &Self::Syntax(_) => "SyntaxError",
+            Self::Cycle(_) => "CycleError",
+            Self::Message(_) => "error",
+            Self::IO(_) => "IOError",
+            Self::InvalidDatabaseUrl => "error",
+            Self::Syntax(_) => "SyntaxError",
         }
     }
 }

@@ -33,7 +33,6 @@ impl Scheduler {
     }
 
     fn commit(&self) {
-        use serde_json::*;
         let mut migr = self.0.lock().unwrap();
         migr.migrate();
         let error;
@@ -41,18 +40,20 @@ impl Scheduler {
         if let Err(err) = &migr.result {
             let err_msg = format!("{}", err);
             let kind = err.kind();
-            error = json!({
-                "kind": kind,
-                "message": err_msg
-            })
+            error = format!(
+                r#"{{"kind":{kind},"message":{message}}}"#,
+                kind = kind,
+                message = err_msg
+            );
         } else {
-            error = json!(null)
+            error = "null".into();
         }
 
-        let json = serde_json::json!({
-            "success": &migr.success,
-            "error": error
-        });
+        let json = format!(
+            r#"{{"success": {success:?},"error": {error}}}"#,
+            success = &migr.success,
+            error = error
+        );
         println!("<SQLX-MODELS-OUTPUT>{0}</SQLX-MODELS-OUTPUT>", json);
     }
 }

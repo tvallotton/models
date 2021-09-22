@@ -61,10 +61,10 @@ pub trait IntoSQL {
     }
 }
 
-#[cfg(feature = "bincode")]
+#[cfg(feature = "binary")]
 pub use binary::Binary;
 
-#[cfg(feature = "bincode")]
+#[cfg(feature = "binary")]
 mod binary {
     use super::*;
     use crate::private::Dialect;
