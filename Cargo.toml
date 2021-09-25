@@ -2,4 +2,6 @@
 
 members = [
     "models",
+    "models-cli",
+    "models-parser"
 ]
