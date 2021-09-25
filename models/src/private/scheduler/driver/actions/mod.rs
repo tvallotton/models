@@ -4,12 +4,10 @@ mod crud;
 
 mod compare;
 use super::schema::Schema;
-use action::Action;
+use action::{depends, Action};
 mod constraint;
 use compare::*;
 use crud::*;
-
-
 
 pub(crate) struct Actions<'input> {
     table: Option<&'input Table>,
@@ -71,7 +69,7 @@ impl<'input> Actions<'input> {
         Self::get_crud(current, target)
     }
 
-    fn init(&self) {
+    fn init(&'input mut self) {
         if self.table.is_none() {
             let action = Action::create_table(self.target);
             self.actions.push(action);
@@ -80,8 +78,32 @@ impl<'input> Actions<'input> {
         let columns = self.columns();
         let constraints = self.constraints();
 
-        if self.move_required(&columns, &constraints) {
+        if move_required(&columns, &constraints) {
+            self.perform_move(&columns, &constraints);
         } else {
+        }
+    }
+
+    pub fn perform_move(&'input mut self, cols: &ColCRUD<'input>, cons: &ConsCRUD<'input>) {
+        let move_action = Action::move_to(self.table.unwrap(), &cols, &mut cons);
+        self.actions.push(move_action);
+        let table_name = &self.target.name;
+
+        // moves do not create columns as their names may conflict with constraints.
+        for col in cols.create {
+            let action = Action::create_column(table_name, col);
+            self.actions.push(action);
+        }
+        // created constraints that could not have been created in move.
+        // Not all constraints may be created in a move
+        // because they depended on columns that where not yet created.
+        // SQLite does not enforce constraints so these are all created
+        // in the move step
+        for cons in cons.create {
+            if depends(cons, &cols.create) && !matches!(*DIALECT, SQLite) {
+                let action = Action::create_cons(table_name, cons);
+                self.actions.push(action);
+            }
         }
     }
 
@@ -89,17 +111,16 @@ impl<'input> Actions<'input> {
         todo!()
     }
 
-    pub fn move_required(self, cols: &ColCRUD<'input>, cons: &ConsCRUD<'input>) -> bool {
-        let sqlite_conditions = DIALECT.requires_move()
-            && !(cols.update.is_empty()
-                && cols.delete.is_empty()
-                && cons.delete.is_empty()
-                && cons.create.is_empty()
-                && cons.update.is_empty());
-        sqlite_conditions || !cols.update.is_empty()
-    }
-
     pub fn is_fallible() -> bool {
         todo!()
     }
+}
+pub fn move_required<'table>(cols: &ColCRUD<'table>, cons: &ConsCRUD<'table>) -> bool {
+    let sqlite_conditions = DIALECT.requires_move()
+        && !(cols.update.is_empty()
+            && cols.delete.is_empty()
+            && cons.delete.is_empty()
+            && cons.create.is_empty()
+            && cons.update.is_empty());
+    sqlite_conditions || !cols.update.is_empty()
 }

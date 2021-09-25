@@ -6,11 +6,7 @@ pub struct Action<'table> {
     pub data: ActionData<'table>,
 }
 pub enum ActionData<'table> {
-    CreateCol {
-        column_name: Ident,
-        dtype: DataType,
-        nullable: bool,
-    },
+    CreateCol(&'table Column),
 
     DeleteCol {
         column_name: Ident,
@@ -18,18 +14,17 @@ pub enum ActionData<'table> {
         nullable: bool,
     },
 
-    CreateConstr {
-        constr: ActionConstraint,
-    },
+    CreateConstr(&'table TableConstraint),
+
     DeleteConstr {
         name: Ident,
     },
 
     TempMove {
-        old_cols: Vec<&'table ObjectName>,
-        new_cols: Vec<&'table ObjectName>,
-        old_cons: Vec<&'table TableConstraint>,
-        new_cons: Vec<&'table TableConstraint>,
+        old_cols: Vec<&'table Column>,
+        new_cols: Vec<&'table Column>,
+
+        constraints: Vec<&'table TableConstraint>,
     },
 
     Rename {
@@ -47,28 +42,73 @@ impl<'table> Action<'table> {
             data: ActionData::CreateTable(target),
         }
     }
-
-    pub(super) fn move_to(
+    pub(super) fn create_column(table_name: &'table ObjectName, col: &'table Column) -> Self {
+        Self {
+            table_name,
+            data: ActionData::CreateCol(col),
+        }
+    }
+    pub(super) fn create_cons(name: &'table ObjectName, cons: &'table TableConstraint) -> Self {
+        Self {
+            table_name: name,
+            data: ActionData::CreateConstr(cons),
+        }
+    }
+    pub fn move_to(
         old: &'table Table,
-        cols: &mut ColCRUD<'table>,
+        cols: &ColCRUD<'table>,
         cons: &mut ConsCRUD<'table>,
-    ) {
+    ) -> Self {
         let mut new_cols = vec![];
-        let old_cols = vec![];
-        let constraints = vec![];
+        let mut old_cols = vec![];
+        let mut constraints = vec![];
 
         for col in &old.columns {
             if cols.to_delete(col) {
                 continue;
+            } else {
+                new_cols.push(col);
+                old_cols.push(col);
             }
         }
 
-        // Self {
-        //     table_name: &old.name,
-        //     data: ActionData::TempMove {
-        //         old_cols:
-        //     }
-        // }
+        for cons in cons.create {
+            if !depends(cons, &cols.create) || matches!(*DIALECT, SQLite) {
+                constraints.push(cons);
+            }
+        }
+        for cons in cons.update {
+            if !depends(cons, &cols.create) || matches!(*DIALECT, SQLite) {
+                constraints.push(cons);
+            }
+        }
+
+        Self {
+            table_name: &old.name,
+            data: ActionData::TempMove {
+                old_cols,
+                new_cols,
+                constraints,
+            },
+        }
     }
-    fn is_fallible() {}
+}
+
+pub fn depends(cons: &TableConstraint, tables: &[&Column]) -> bool {
+    let names = match cons {
+        TableConstraint::ForeignKey(fk) => fk.columns,
+        TableConstraint::Unique(unique) => unique.columns,
+        _ => return false,
+    }
+    .iter()
+    .map(ToString::to_string);
+
+    for col in names {
+        for table_name in tables.iter().map(|t| t.name().unwrap()) {
+            if col == table_name {
+                return true;
+            }
+        }
+    }
+    false
 }
