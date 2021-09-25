@@ -69,11 +69,11 @@ impl<'input> Actions<'input> {
         Self::get_crud(current, target)
     }
 
-    fn init(&'input mut self) {
+    fn init(&'input mut self) -> Result<()> {
         if self.table.is_none() {
             let action = Action::create_table(self.target);
             self.actions.push(action);
-            return;
+            return Ok(());
         }
         let columns = self.columns();
         let constraints = self.constraints();
@@ -81,7 +81,35 @@ impl<'input> Actions<'input> {
         if move_required(&columns, &constraints) {
             self.perform_move(&columns, &constraints);
         } else {
+            let table_name = &self.target.name;
+            for col in columns.delete {
+                let action = Action::drop_col(table_name, col);
+                self.actions.push(action);
+            }
+            for cons in constraints.delete {
+                let action = Action::drop_cons(table_name, cons)?;
+                self.actions.push(action);
+            }
+            for cons in constraints.update {
+                let action = Action::drop_cons(table_name, cons)?;
+                self.actions.push(action);
+            }
+
+            for col in columns.create {
+                let action = Action::create_column(table_name, col);
+                self.actions.push(action);
+            }
+            for cons in constraints.create {
+                let action = Action::create_cons(table_name, cons);
+                self.actions.push(action);
+            }
+
+            for cons in constraints.update {
+                let action = Action::create_cons(table_name, cons);
+                self.actions.push(action);
+            }
         }
+        Ok(())
     }
 
     pub fn perform_move(&'input mut self, cols: &ColCRUD<'input>, cons: &ConsCRUD<'input>) {

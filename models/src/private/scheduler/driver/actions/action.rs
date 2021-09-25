@@ -3,20 +3,18 @@ use super::*;
 use crate::prelude::*;
 pub struct Action<'table> {
     pub table_name: &'table ObjectName,
-    pub data: ActionData<'table>,
+    pub variant: ActionVariant<'table>,
 }
-pub enum ActionData<'table> {
+pub enum ActionVariant<'table> {
     CreateCol(&'table Column),
 
-    DeleteCol {
-        column_name: Ident,
-        dtype: DataType,
-        nullable: bool,
+    DropCol {
+        name: &'table Ident,
     },
 
     CreateConstr(&'table TableConstraint),
 
-    DeleteConstr {
+    DropConstr {
         name: Ident,
     },
 
@@ -39,19 +37,37 @@ impl<'table> Action<'table> {
     pub(super) fn create_table(target: &'table Table) -> Self {
         Self {
             table_name: &target.name,
-            data: ActionData::CreateTable(target),
+            variant: ActionVariant::CreateTable(target),
+        }
+    }
+    pub(super) fn drop_cons(
+        name: &'table ObjectName,
+        cons: &'table TableConstraint,
+    ) -> Result<Self> {
+        Ok(Self {
+            table_name: name,
+            variant: ActionVariant::DropConstr {
+                name: Ident::new(cons.name()?),
+            },
+        })
+    }
+
+    pub(super) fn drop_col(name: &'table ObjectName, col: &'table Column) -> Self {
+        Self {
+            table_name: name,
+            variant: ActionVariant::DropCol { name: &col.name },
         }
     }
     pub(super) fn create_column(table_name: &'table ObjectName, col: &'table Column) -> Self {
         Self {
             table_name,
-            data: ActionData::CreateCol(col),
+            variant: ActionVariant::CreateCol(col),
         }
     }
     pub(super) fn create_cons(name: &'table ObjectName, cons: &'table TableConstraint) -> Self {
         Self {
             table_name: name,
-            data: ActionData::CreateConstr(cons),
+            variant: ActionVariant::CreateConstr(cons),
         }
     }
     pub fn move_to(
@@ -85,7 +101,7 @@ impl<'table> Action<'table> {
 
         Self {
             table_name: &old.name,
-            data: ActionData::TempMove {
+            variant: ActionVariant::TempMove {
                 old_cols,
                 new_cols,
                 constraints,
