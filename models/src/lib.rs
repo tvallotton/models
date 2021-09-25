@@ -1,10 +1,11 @@
+
+#[macro_use]
+pub mod error;
+
 mod dialect;
 
 mod prelude;
 mod private;
-#[macro_use]
-pub mod error;
-
 #[cfg(feature = "tokio_postgres")]
 mod postgres;
 #[cfg(feature = "rusqlite")]

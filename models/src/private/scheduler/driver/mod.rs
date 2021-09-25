@@ -1,17 +1,18 @@
 use crate::prelude::*;
 mod actions;
+pub mod migration;
 mod queue;
+mod report;
 mod schema;
-mod tuple;
+use actions::Actions;
 use queue::*;
+pub(crate) use report::*;
 use schema::*;
-use actions::Actions; 
-pub(crate) use tuple::*;
 
 pub(crate) struct Driver {
     result: Result<Schema>,
     queue: Queue,
-    success: Vec<Tuple>,
+    success: Vec<Report>,
 }
 
 impl Driver {
@@ -75,17 +76,15 @@ impl Driver {
     }
 
     fn get_migrations(self, target: Table) -> Result<Vec<Migration>> {
-        let mut migrations = vec![];
         let schema = &mut self.result?;
         let actions = Actions::new(&schema, &target);
 
         let migrations = actions.as_migrations();
         for migr in &migrations {
-            for stmt in migr.up {
+            for stmt in migr.up() {
                 schema.update(&stmt)?;
             }
         }
-
         Ok(migrations)
     }
 }

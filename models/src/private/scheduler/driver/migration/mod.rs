@@ -1,10 +1,11 @@
-use super::driver::Tuple;
+use ::driver::Report;
 use crate::prelude::*;
 use fs::{create_dir, File};
 pub(crate) struct Migration {
     up: Vec<Statement>,
     down: Vec<Statement>,
     name: ObjectName,
+    reversible: bool,
 }
 
 fn timestamp() -> u128 {
@@ -15,11 +16,12 @@ fn timestamp() -> u128 {
 }
 
 impl Migration {
-    fn new(name: ObjectName) -> Self {
+    fn new(name: ObjectName, reversible: bool) -> Self {
         Self {
             up: vec![],
             down: vec![],
             name,
+            reversible
         }
     }
 
@@ -28,7 +30,7 @@ impl Migration {
     }
 
     pub fn is_empty(&self) -> bool {
-        self.up.is_empty() && self.down.is_empty()
+        self.up.is_empty() && self.down.map(|x| x.is_empty()).unwrap_or_default()
     }
 
     pub fn commit(self) -> Result<Option<Tuple>> {
@@ -37,11 +39,10 @@ impl Migration {
         }
         let time = timestamp();
 
-        let dir_name = format!("{}/{}_{}", *MIGRATIONS_DIR, time, self.name);
-        create_dir(dir_name)?;
+        let name = format!("{}/{}_{}", *MIGRATIONS_DIR, time, self.name);
 
-        let up_name = format!("{}/up.sql", dir_name);
-        let down_name = format!("{}/down.sql", dir_name);
+        let up_name = format!("{}/up.sql", name);
+        let down_name = format!("{}/down.sql", name);
         let mut up_file = File::create(up_name)?;
         let mut down_file = File::create(down_name)?;
 

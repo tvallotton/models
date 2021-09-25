@@ -1,7 +1,7 @@
 use crate::prelude::*;
 pub mod driver;
 pub mod table;
-pub mod migration; 
+
 use table::*;
 
 use driver::*;

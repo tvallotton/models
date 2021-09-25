@@ -60,13 +60,13 @@ impl Schema {
     pub fn update(&mut self, stmt: &Statement) -> Result {
         use Statement::*;
         match stmt {
-            CreateTable(_) => self.create_table(stmt.try_into().unwrap())?,
+            CreateTable(_) => self.create_table(stmt.try_into().unwrap()),
             AlterTable(ast::AlterTable {
                 name,
                 operation: AlterTableOperation::RenameTable { table_name },
-            }) => self.rename_table(name, table_name)?,
-            AlterTable(alter) => self.alter_table(alter.name, alter.operation)?,
-            Drop(drop) => self.drop_tables(drop)?,
+            }) => self.rename_table(name, table_name),
+            AlterTable(alter) => self.alter_table(alter.name, alter.operation),
+            Drop(drop) => self.drop_tables(drop),
             _ => (),
         }
     }

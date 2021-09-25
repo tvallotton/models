@@ -14,6 +14,10 @@ impl Dialect {
     pub(crate) fn requires_move(&self) -> bool {
         matches!(self, Dialect::SQLite | Dialect::Any)
     }
+
+    pub(crate) fn has_default_constr_name(&self) -> bool {
+        matches!(self, Dialect::PostgreSQL)
+    }
 }
 
 impl dialect::Dialect for Dialect {

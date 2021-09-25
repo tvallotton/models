@@ -4,7 +4,7 @@
 pub use crate::prelude::*;
 mod scheduler;
 use once_cell::sync::Lazy;
-pub(crate) use scheduler::migration::Migration;
+pub(crate) use scheduler::driver::migration::Migration;
 pub use scheduler::{
     table::{Column, Table},
     Scheduler,
