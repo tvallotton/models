@@ -18,6 +18,10 @@ impl Dialect {
     pub(crate) fn has_default_constr_name(&self) -> bool {
         matches!(self, Dialect::PostgreSQL)
     }
+
+    pub(crate) fn supports_cascade(&self) -> bool {
+        !matches!(self, SQLite)
+    }
 }
 
 impl dialect::Dialect for Dialect {

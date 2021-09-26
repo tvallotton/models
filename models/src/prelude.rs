@@ -4,11 +4,7 @@ pub(crate) use crate::private::*;
 pub(crate) use convert::{TryFrom, TryInto};
 pub(crate) use models_parser::{ast::*, *};
 pub(crate) use once_cell::sync::Lazy;
-pub(crate) use std::{
-    collections::HashMap,
-    sync::{ Mutex},
-    *,
-};
+pub(crate) use std::{collections::HashMap, sync::Mutex, *};
 pub(crate) use Dialect::*;
 pub(crate) type Result<T = (), E = Error> = std::result::Result<T, E>;
 

@@ -1,6 +1,6 @@
 use crate::prelude::*;
 use models_parser::{dialect::*, parser::*, *};
-
+#[derive(Clone)]
 pub struct Column {
     pub name: Ident,
     pub r#type: DataType,
@@ -8,6 +8,7 @@ pub struct Column {
 }
 
 impl Column {
+ 
     pub fn new(name: &str, r#type: DataType, options: ColumnOptionDef) -> Self {
         Column {
             name: Ident::new(name.to_lowercase()),

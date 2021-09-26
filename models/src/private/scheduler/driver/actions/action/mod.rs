@@ -1,6 +1,7 @@
-use super::constraint::ActionConstraint;
 use super::*;
-use crate::prelude::*;
+mod temp_move;
+use temp_move::Move;
+
 pub struct Action<'table> {
     pub table_name: &'table ObjectName,
     pub variant: ActionVariant<'table>,
@@ -8,26 +9,15 @@ pub struct Action<'table> {
 pub enum ActionVariant<'table> {
     CreateCol(&'table Column),
 
-    DropCol {
-        name: &'table Ident,
-    },
+    DropCol(Ident),
 
     CreateConstr(&'table TableConstraint),
 
-    DropConstr {
-        name: Ident,
-    },
+    DropConstr(Ident),
 
-    TempMove {
-        old_cols: Vec<&'table Column>,
-        new_cols: Vec<&'table Column>,
+    TempMove(Move<'table>),
 
-        constraints: Vec<&'table TableConstraint>,
-    },
-
-    Rename {
-        new_name: ObjectName,
-    },
+    Rename { new_name: ObjectName },
 
     CreateTable(&'table Table),
 }
@@ -46,16 +36,14 @@ impl<'table> Action<'table> {
     ) -> Result<Self> {
         Ok(Self {
             table_name: name,
-            variant: ActionVariant::DropConstr {
-                name: Ident::new(cons.name()?),
-            },
+            variant: ActionVariant::DropConstr(Ident::new(cons.name()?)),
         })
     }
 
     pub(super) fn drop_col(name: &'table ObjectName, col: &'table Column) -> Self {
         Self {
             table_name: name,
-            variant: ActionVariant::DropCol { name: &col.name },
+            variant: ActionVariant::DropCol(col.name.clone()),
         }
     }
     pub(super) fn create_column(table_name: &'table ObjectName, col: &'table Column) -> Self {
@@ -70,7 +58,7 @@ impl<'table> Action<'table> {
             variant: ActionVariant::CreateConstr(cons),
         }
     }
-    pub fn move_to(
+    pub(super) fn move_to(
         old: &'table Table,
         cols: &ColCRUD<'table>,
         cons: &mut ConsCRUD<'table>,
@@ -101,12 +89,62 @@ impl<'table> Action<'table> {
 
         Self {
             table_name: &old.name,
-            variant: ActionVariant::TempMove {
+            variant: ActionVariant::TempMove(Move {
                 old_cols,
                 new_cols,
                 constraints,
-            },
+            }),
         }
+    }
+
+    pub(super) fn to_statements(self) -> Result<Vec<Statement>> {
+        use ActionVariant::*;
+        let out = vec![];
+        let table_name = self.table_name.clone();
+        match self.variant {
+            TempMove(r#move) => {
+                return r#move.to_statements(table_name);
+            }
+            CreateTable(table) => {
+                let statement = Statement::from(table.clone());
+                out.push(statement);
+            }
+            other => {
+                let operation = match other {
+                    CreateCol(column) => AlterTableOperation::AddColumn {
+                        column_def: ColumnDef::from(*column),
+                    },
+
+                    DropCol(column_name) => AlterTableOperation::DropColumn {
+                        column_name,
+                        if_exists: false,
+                        cascade: DIALECT.supports_cascade(),
+                    },
+                    DropConstr(name) => AlterTableOperation::DropConstraint {
+                        name,
+                        cascade: DIALECT.supports_cascade(),
+                        restrict: false,
+                    },
+                    CreateConstr(constr) => AlterTableOperation::DropConstraint {
+                        name: Ident::new(constr.name().unwrap()),
+                        cascade: DIALECT.supports_cascade(),
+                        restrict: false,
+                    },
+                    Rename { new_name } => AlterTableOperation::RenameTable {
+                        table_name: new_name,
+                    },
+
+                    _ => todo!(),
+                };
+
+                let statement = Statement::AlterTable(AlterTable {
+                    name: table_name,
+                    operation,
+                });
+                out.push(statement);
+            }
+        }
+        Ok(out)
     }
 }
 

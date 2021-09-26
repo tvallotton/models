@@ -1,4 +1,4 @@
-use ::driver::Report;
+use super::Report;
 use crate::prelude::*;
 use fs::{create_dir, File};
 pub(crate) struct Migration {
@@ -30,16 +30,16 @@ impl Migration {
     }
 
     pub fn is_empty(&self) -> bool {
-        self.up.is_empty() && self.down.map(|x| x.is_empty()).unwrap_or_default()
+        self.up.is_empty() && self.down.is_empty()
     }
 
-    pub fn commit(self) -> Result<Option<Tuple>> {
+    pub fn commit(self) -> Result<Option<Report>> {
         if self.is_empty() {
             return Ok(None);
         }
-        let time = timestamp();
+        let timestamp = timestamp();
 
-        let name = format!("{}/{}_{}", *MIGRATIONS_DIR, time, self.name);
+        let name = format!("{}/{}_{}", *MIGRATIONS_DIR, timestamp, self.name);
 
         let up_name = format!("{}/up.sql", name);
         let down_name = format!("{}/down.sql", name);
@@ -60,7 +60,11 @@ impl Migration {
             write!(down_file, "{};\n\n", stmt)?;
         }
         let name = self.name.to_string().to_lowercase();
-        Ok(Some(Tuple(time, name)))
+        Ok(Some(Report {
+            timestamp, 
+            name,
+            reversible: self.reversible
+        }))
     }
 
     #[cfg(feature = "sqlformat")]

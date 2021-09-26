@@ -19,8 +19,8 @@ impl Queue {
     }
 
     pub fn insert(&mut self, table: Table) {
-        let table_name = table.name();
-        self.tables.insert(table_name.clone(), table);
+        let table_name = &table.name();
+        self.tables.insert(table_name.clone(), table.clone());
         self.sort.insert(table_name.clone());
         for dep in table.deps() {
             self.sort.add_dependency(dep, table_name.clone())
@@ -31,7 +31,7 @@ impl Queue {
         self.sort.pop().and_then(|value| self.tables.remove(&value))
     }
 
-    pub fn remaining_tables(self) -> Vec<String> {
-        self.tables.into_iter().map(|(k, _)| k).collect()
+    pub fn remaining_tables(&self) -> Vec<String> {
+        self.tables.clone().into_iter().map(|(k, _)| k).collect()
     }
 }

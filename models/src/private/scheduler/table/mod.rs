@@ -1,13 +1,13 @@
 use crate::prelude::*;
 mod column;
-mod constraint;
+use crate::private::scheduler::driver::actions::Compare;
 pub use column::*;
-pub use constraint::*;
 
+#[derive(Clone)]
 pub struct Table {
     pub(crate) name: ObjectName,
-    if_not_exists: bool,
-    or_replace: bool,
+    pub if_not_exists: bool,
+    pub or_replace: bool,
     pub(crate) columns: Vec<Column>,
     pub(crate) constraints: Vec<TableConstraint>,
 }
@@ -25,6 +25,62 @@ impl Table {
                     Some(foreign_table.to_string().to_lowercase())
                 }
                 _ => None,
+            })
+            .collect()
+    }
+
+    pub(super) fn alter_table(&mut self, op: AlterTableOperation) -> Result {
+        use AlterTableOperation::*;
+        match op {
+            AddColumn { column_def } => self.columns.push(column_def.into()),
+            AddConstraint(constr) => self.constraints.push(constr),
+            DropConstraint { name, .. } => self.drop_constraint(name.to_string()),
+
+            DropColumn {
+                column_name,
+                if_exists,
+                ..
+            } => self.drop_col(column_name, if_exists),
+            RenameColumn {
+                old_column_name,
+                new_column_name,
+            } => self.rename_col(old_column_name, new_column_name),
+            op => return Err(error!("Unsupported operation {}", op)),
+        }
+        Ok(())
+    }
+
+    pub(super) fn drop_col(&mut self, name: Ident, if_exists: bool) {
+        let len = self.columns.len();
+        self.columns = self
+            .columns
+            .drain(..)
+            .filter(|col| col.name != name)
+            .collect();
+        assert!(
+            len != self.columns.len() || if_exists,
+            "Column \"{}\" does not exists",
+            name
+        );
+    }
+
+    pub fn drop_constraint(&mut self, rm_name: String) {
+        self.constraints = self
+            .constraints
+            .drain(..)
+            .filter(|constr| constr.name().ok().as_ref() != Some(&rm_name))
+            .collect();
+    }
+    pub(super) fn rename_col(&mut self, old: Ident, new: Ident) {
+        self.columns = self
+            .columns
+            .iter()
+            .map(Clone::clone)
+            .map(|mut col| {
+                if col.name == old {
+                    col.name = new.clone();
+                }
+                col
             })
             .collect()
     }

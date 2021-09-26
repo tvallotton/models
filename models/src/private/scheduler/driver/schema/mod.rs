@@ -60,29 +60,30 @@ impl Schema {
     pub fn update(&mut self, stmt: &Statement) -> Result {
         use Statement::*;
         match stmt {
-            CreateTable(_) => self.create_table(stmt.try_into().unwrap()),
+            CreateTable(_) => self.create_table(stmt.clone().try_into().unwrap()),
             AlterTable(ast::AlterTable {
                 name,
                 operation: AlterTableOperation::RenameTable { table_name },
             }) => self.rename_table(name, table_name),
             AlterTable(alter) => self.alter_table(alter.name, alter.operation),
             Drop(drop) => self.drop_tables(drop),
-            _ => (),
+            _ => Ok(()),
         }
     }
 
-    fn rename_table(&mut self, old_name: ObjectName, new_name: ObjectName) -> Result {
+    fn rename_table(&mut self, old_name: &ObjectName, new_name: &ObjectName) -> Result {
         let mut table = self.tables.remove(&old_name).ok_or_else(|| {
             error!(
                 "Attempt to rename table {:?} to {:?}, but it does not exist",
                 &old_name, &new_name
             )
         })?;
-        if !DIALECT.clone()?.requires_move() {
+        if !DIALECT.requires_move() {
             self.cascade(&old_name);
         }
         table.name = new_name.clone();
-        self.tables.insert(new_name, table);
+        self.tables.insert(new_name.clone(), table);
+        Ok(())
     }
 
     fn cascade(&mut self, name: &ObjectName) {
@@ -109,7 +110,7 @@ impl Schema {
     //     }
     // }
 
-    fn drop_tables(&mut self, drop: ast::Drop) -> Result {
+    fn drop_tables(&mut self, drop: &ast::Drop) -> Result {
         for name in drop.names.iter() {
             if !drop.if_exists && !self.tables.contains_key(name) {
                 return Err(error!(
@@ -133,7 +134,7 @@ impl Schema {
                     "Failed to load migrations. Could not find the table \"{}\"",
                     name
                 )
-            })??;
+            })?;
         Ok(())
     }
     fn create_table(&mut self, table: Table) -> Result {

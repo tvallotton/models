@@ -5,8 +5,7 @@ mod crud;
 mod compare;
 use super::schema::Schema;
 use action::{depends, Action};
-mod constraint;
-use compare::*;
+pub use compare::*;
 use crud::*;
 
 pub(crate) struct Actions<'input> {
@@ -139,9 +138,7 @@ impl<'input> Actions<'input> {
         todo!()
     }
 
-    pub fn is_fallible() -> bool {
-        todo!()
-    }
+
 }
 pub fn move_required<'table>(cols: &ColCRUD<'table>, cons: &ConsCRUD<'table>) -> bool {
     let sqlite_conditions = DIALECT.requires_move()

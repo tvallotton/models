@@ -1,5 +1,5 @@
 use crate::prelude::*;
-mod actions;
+pub(crate) mod actions;
 pub mod migration;
 mod queue;
 mod report;
@@ -24,7 +24,7 @@ impl Driver {
             success: vec![],
         }
     }
-    pub fn is_first(self) -> bool {
+    pub fn is_first(&self) -> bool {
         self.queue.len() == 0
     }
 

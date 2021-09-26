@@ -1,7 +1,7 @@
 pub use crate::prelude::*;
 pub use collections::HashSet;
 
-pub trait Compare {
+pub (crate) trait Compare {
     fn bodies_are_equal(&self, other: &Self) -> bool;
     fn name(&self) -> Result<String>;
     fn are_modified(&self, other: &Self) -> bool {
@@ -24,9 +24,14 @@ pub trait Compare {
     fn are_equal(&self, other: &Self) -> bool {
         self.names_are_equal(other) && self.bodies_are_equal(other)
     }
+
+    fn ident(&self) -> Ident;
 }
 
 impl Compare for Column {
+    fn ident(&self) -> Ident {
+        self.name.clone()
+    }
     fn name(&self) -> Result<String, Error> {
         Ok(self.name.to_string().to_lowercase())
     }
@@ -54,6 +59,16 @@ impl Compare for Column {
 }
 
 impl Compare for TableConstraint {
+    fn ident(&self) -> Ident {
+        use TableConstraint::*;
+        match self {
+            Unique(ast::Unique { name, .. }) => name,
+            ForeignKey(ast::ForeignKey { name, .. }) => name,
+            Check(ast::Check { name, .. }) => name,
+        }
+        .unwrap()
+        .clone()
+    }
     fn name(&self) -> Result<String, Error> {
         use TableConstraint::*;
         match self {
