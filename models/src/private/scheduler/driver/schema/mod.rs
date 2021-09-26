@@ -65,7 +65,7 @@ impl Schema {
                 name,
                 operation: AlterTableOperation::RenameTable { table_name },
             }) => self.rename_table(name, table_name),
-            AlterTable(alter) => self.alter_table(alter.name, alter.operation),
+            AlterTable(alter) => self.alter_table(alter.name.clone(), alter.operation.clone()),
             Drop(drop) => self.drop_tables(drop),
             _ => Ok(()),
         }

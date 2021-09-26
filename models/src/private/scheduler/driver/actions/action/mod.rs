@@ -61,7 +61,7 @@ impl<'table> Action<'table> {
     pub(super) fn move_to(
         old: &'table Table,
         cols: &ColCRUD<'table>,
-        cons: &mut ConsCRUD<'table>,
+        cons: &ConsCRUD<'table>,
     ) -> Self {
         let mut new_cols = vec![];
         let mut old_cols = vec![];
@@ -76,12 +76,12 @@ impl<'table> Action<'table> {
             }
         }
 
-        for cons in cons.create {
+        for &cons in &cons.create {
             if !depends(cons, &cols.create) || matches!(*DIALECT, SQLite) {
                 constraints.push(cons);
             }
         }
-        for cons in cons.update {
+        for &cons in &cons.update {
             if !depends(cons, &cols.create) || matches!(*DIALECT, SQLite) {
                 constraints.push(cons);
             }
@@ -99,7 +99,7 @@ impl<'table> Action<'table> {
 
     pub(super) fn to_statements(self) -> Result<Vec<Statement>> {
         use ActionVariant::*;
-        let out = vec![];
+        let mut out = vec![];
         let table_name = self.table_name.clone();
         match self.variant {
             TempMove(r#move) => {
@@ -112,7 +112,7 @@ impl<'table> Action<'table> {
             other => {
                 let operation = match other {
                     CreateCol(column) => AlterTableOperation::AddColumn {
-                        column_def: ColumnDef::from(*column),
+                        column_def: ColumnDef::from(column.clone()),
                     },
 
                     DropCol(column_name) => AlterTableOperation::DropColumn {
@@ -150,12 +150,12 @@ impl<'table> Action<'table> {
 
 pub fn depends(cons: &TableConstraint, tables: &[&Column]) -> bool {
     let names = match cons {
-        TableConstraint::ForeignKey(fk) => fk.columns,
-        TableConstraint::Unique(unique) => unique.columns,
+        TableConstraint::ForeignKey(fk) => fk.columns.clone(),
+        TableConstraint::Unique(unique) => unique.columns.clone(),
         _ => return false,
     }
-    .iter()
-    .map(ToString::to_string);
+    .into_iter()
+    .map(|x| x.to_string());
 
     for col in names {
         for table_name in tables.iter().map(|t| t.name().unwrap()) {

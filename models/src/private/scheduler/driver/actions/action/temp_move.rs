@@ -10,7 +10,7 @@ pub struct Move<'table> {
 
 impl<'table> Move<'table> {
     pub fn to_statements(self, table_name: ObjectName) -> Result<Vec<Statement>> {
-        let stmt = vec![];
+        let mut stmt = vec![];
         let create_table = self.create_table();
         let insert = self.insert_statement(table_name.clone())?;
         let drop = self.drop_statement(table_name.clone());
