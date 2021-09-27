@@ -1,13 +1,11 @@
 # Models
-Models is a work in progress implementation for a sql migration management tool for applications using sqlx.
-Beware, this is still under development, and some API's may be broken in the future. 
-
+Models is a work in progress implementation for a sql migration management tool.
 
 # Basic Tutorial
 
 install the CLI by running the following command: 
 ```
-$ cargo install sqlx-models-cli
+$ cargo install models-cli
 ```
 
 Now run the following command to create an environment file with the `DATABASE_URL` variable set: 
@@ -16,14 +14,14 @@ $ echo "DATABASE_URL=sqlite://database.db" > .env
 ```
 We now can create the database running the command: 
 ```
-$ sqlx database create
+$ models database create
 ```
 This command will have created an sqlite file called `database.db`. 
 You can now derive the `Model` trait on your structures, 
-and `sqlx-models` will manage the migrations for you. For example, write at `src/main.rs`: 
+and `models` will manage the migrations for you. For example, write at `src/main.rs`: 
 ```rust
 #![allow(dead_code)]
-use sqlx_models::Model; 
+use models::Model; 
 
 #[derive(Model)]
 struct User {
@@ -81,7 +79,7 @@ fn main() {}
 
 If you now run the following command, your migrations should be automatically created.
 ``` 
-$ sqlx migrate generate
+$ models migrate generate
 ```
 The output should look like this: 
 ```
@@ -93,7 +91,7 @@ Generated: migrations/1632280793476 commentlike
 ```
 You can check out the generated migrations at the `migrations/` folder. To commit this migrations you can execute the following command: 
 ```
-sqlx migrate run
+models migrate run
 ```
 The output should look like this: 
 ```
