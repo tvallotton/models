@@ -1,1 +1,0 @@
-This is a helper crate for `sqlx-models`. Don't directly depend on it.

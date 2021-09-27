@@ -1,5 +1,5 @@
-# sqlx-models
-sqlx-modes is a work in progress implementation for a sql migration management tool for applications using sqlx.
+# Models
+Models is a work in progress implementation for a sql migration management tool for applications using sqlx.
 Beware, this is still under development, and some API's may be broken in the future. 
 
 
