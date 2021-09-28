@@ -1,9 +1,8 @@
 [workspace]
-members = [
-    "sqlx-models-parser",
-    "sqlx-models", 
-    "sqlx-models-tests",
-    "sqlx-models-proc-macro", 
-    "sqlx-models-cli",
-]
 
+members = [
+    "models",
+    "models-cli",
+    "models-parser",
+    "models-tests",
+]

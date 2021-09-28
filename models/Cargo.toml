@@ -1,0 +1,30 @@
+[package]
+name = "models"
+version = "0.1.0"
+edition = "2018"
+license = "Apache-2.0"
+description = "A migration management library for applications using PostgresSQL, MySQL or SQLite."
+keywords = ["database", "postgres", "sqlite", "sql", "migration"]
+readme = "../README.md"
+authors = ["Tomas Vallotton <tvallotton@uc.cl>"]
+
+[features]
+default = ["sqlformat"]
+# postgres = []
+# sqlx = []
+# rusqlite = []
+# tokio_postgres = []
+# serde features
+# json = []
+# binary = []
+
+
+[dependencies]
+thiserror = "1.0.29"
+models-parser = { version = "0.1.0", path = "../models-parser"}
+models-proc-macro ={version = "0.1.0", path = "../models-proc-macro"}
+once_cell = "1.8.0"
+url = "2.2.2"
+topological-sort = "0.1.0"
+sqlformat = { version = "0.1.8", optional = true }
+# chrono = {version = "0.4.19", optional = true }
