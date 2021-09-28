@@ -39,29 +39,29 @@ struct Post {
     #[primary_key]
     id: i32,
     #[foreign_key(User.id)]
-    author_: String,
-    #[default("<UNTITLED POST>")]
+    author: String,
+    #[default("<Untitled Post>")]
     title: String,
     content: String,
 }
 
 #[derive(Model)]
 struct PostLike {
-    #[foreign_key(User.id)]
+    #[foreign_key(User.id, on_delete="cascade")]
     #[primary_key(post_id)]
     user_id: i32,
-    #[foreign_key(Post.id)]
+    #[foreign_key(Post.id, on_delete="cascade")]
     post_id: i32,
 }
 
 #[derive(Model)]
 struct CommentLike {
     #[foreign_key(User.id)]
-    #[primary_key(comment)]
-    user: i32,
+    #[primary_key(comment_id)]
+    user_id: i32,
     #[foreign_key(Comment.id)]
-    comment: i32,
-    #[default(false)]
+    comment_id: i32,
+    #[default(0)]
     is_dislike: bool,
 }
 
@@ -129,7 +129,7 @@ It is used to mark a foreign key constraint.
 ```
 It can also specify `on_delete` and `on_update` constraints: 
 ```rust
-    #[foreign_key(User.id, on_delete="cascade"]
+    #[foreign_key(User.id, on_delete="cascade")]
     user_id: i32, 
 ```
 This is equivalent to
@@ -155,7 +155,7 @@ It is used to mark a unique constraint.
 ```
 For multicolumn unique constraints the following syntax is used: 
 ```rust
-    #[unique(hash)]
+    #[unique(post_id)]
     user_id: String,
     post_id: i32,
 ```
