@@ -16,37 +16,21 @@ impl ToTokens for Column {
         let default = &self.default;
         let temp = if let Some(default) = default {
             quote! {
-<<<<<<< HEAD
-                __sqlx_models_table.columns.push(
-                    ::sqlx_models::private::Column::new_with_default(
-                        stringify!(#col_name),
-                        <#ty as ::sqlx_models::private::IntoSQL>::into_sql(),
-                        <#ty as ::sqlx_models::private::IntoSQL>::null_option(),
-=======
                 __models_table.columns.push(
                     ::models::private::Column::new_with_default(
                         stringify!(#col_name),
                         <#ty as ::models::types::IntoSQL>::into_sql(),
                         <#ty as ::models::types::IntoSQL>::IS_NULLABLE,
->>>>>>> down-migrations
                         #default
                 ));
             }
         } else {
             quote! {
-<<<<<<< HEAD
-                __sqlx_models_table.columns.push(
-                    ::sqlx_models::private::Column::new(
-                        stringify!(#col_name),
-                        <#ty as ::sqlx_models::private::IntoSQL>::into_sql(),
-                        <#ty as ::sqlx_models::private::IntoSQL>::null_option(),
-=======
                 __models_table.columns.push(
                     ::models::private::Column::new(
                         stringify!(#col_name),
                         <#ty as ::models::types::IntoSQL>::into_sql(),
                         <#ty as ::models::types::IntoSQL>::IS_NULLABLE,
->>>>>>> down-migrations
                 ));
             }
         };
@@ -71,7 +55,3 @@ impl Column {
         Ok(None)
     }
 }
-<<<<<<< HEAD
-
-=======
->>>>>>> down-migrations

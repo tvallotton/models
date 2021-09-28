@@ -72,11 +72,7 @@ impl Schema {
                 name,
                 operation: AlterTableOperation::RenameTable { table_name },
             }) => self.rename_table(name, table_name),
-<<<<<<< HEAD:models/src/private/scheduler/driver/schema/mod.rs
-            AlterTable(alter) => self.alter_table(alter.name.clone(), alter.operation.clone()),
-=======
             AlterTable(alter) => self.alter_table(&alter.name, &alter.operation),
->>>>>>> down-migrations:models/src/private/scheduler/driver/schema.rs
             Drop(drop) => self.drop_tables(drop),
             _ => Ok(()),
         }

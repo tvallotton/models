@@ -35,13 +35,8 @@ impl ForeignKey {
             .map(|x| x.value())
             .unwrap_or_default();
         quote! {
-<<<<<<< HEAD
-            __sqlx_models_table.constraints.push(
-                ::sqlx_models::private::constraint::foreign_key(
-=======
             __models_table.constraints.push(
                 ::models::private::constraint::foreign_key(
->>>>>>> down-migrations
                     #constr_name,
                     stringify!(#local_col),
                     stringify!(#foreign_table),
@@ -51,13 +46,8 @@ impl ForeignKey {
                 )
             );
             // Validation
-<<<<<<< HEAD
-            let _ = |__sqlx_models_validation: #foreign_table| {
-                __sqlx_models_validation.#foreign_col;
-=======
             let _ = |__models_validation: #foreign_table| {
                 __models_validation.#foreign_col;
->>>>>>> down-migrations
             };
         }
     }
@@ -75,24 +65,14 @@ impl Unique {
         let columns1 = self.columns.iter();
 
         quote! {
-<<<<<<< HEAD
-            __sqlx_models_table.constraints.push(
-                ::sqlx_models::private::constraint::#method(
-=======
             __models_table.constraints.push(
                 ::models::private::constraint::#method(
->>>>>>> down-migrations
                     #constr_name,
                     &[stringify!(#field_name), #(stringify!(#columns)),*]
                 )
             );
-<<<<<<< HEAD
-            let _ = |__sqlx_models_validation: #ty| {
-                #(__sqlx_models_validation.#columns1;)*
-=======
             let _ = |__models_validation: #ty| {
                 #(__models_validation.#columns1;)*
->>>>>>> down-migrations
             };
         }
     }
@@ -163,10 +143,7 @@ impl std::fmt::Debug for ForeignKey {
         Ok(())
     }
 }
-<<<<<<< HEAD
-=======
 
->>>>>>> down-migrations
 impl Parse for ForeignKey {
     fn parse(input: parse::ParseStream) -> Result<Self> {
         let content;
@@ -198,11 +175,8 @@ impl Parse for ForeignKey {
                 ));
             }
         }
-<<<<<<< HEAD
-=======
         is_valid(&on_delete)?;
         is_valid(&on_update)?;
->>>>>>> down-migrations
         Ok(ForeignKey {
             foreign_table,
             column,
@@ -252,12 +226,6 @@ impl Constraint {
     }
 }
 
-<<<<<<< HEAD
-#[test]
-fn func() {
-    let x = "asd";
-    println!("{}", quote!(#x));
-=======
 fn is_valid(on_delete: &Option<LitStr>) -> Result<()> {
     if let Some(string) = on_delete {
         if matches!(
@@ -278,5 +246,4 @@ fn is_valid(on_delete: &Option<LitStr>) -> Result<()> {
     }
 
     Ok(())
->>>>>>> down-migrations
 }

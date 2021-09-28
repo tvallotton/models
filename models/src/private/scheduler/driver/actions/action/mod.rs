@@ -64,40 +64,8 @@ impl<'table> Action<'table> {
             variant: ActionVariant::CreateConstr(cons),
         }
     }
-<<<<<<< HEAD
-    pub(super) fn move_to(
-        old: &'table Table,
-        cols: &ColCRUD<'table>,
-        cons: &ConsCRUD<'table>,
-    ) -> Self {
-        let mut new_cols = vec![];
-        let mut old_cols = vec![];
-        let mut constraints = vec![];
-
-        for col in &old.columns {
-            if cols.to_delete(col) {
-                continue;
-            } else {
-                new_cols.push(col);
-                old_cols.push(col);
-            }
-        }
-
-        for &cons in &cons.create {
-            if !depends(cons, &cols.create) || matches!(*DIALECT, SQLite) {
-                constraints.push(cons);
-            }
-        }
-        for &cons in &cons.update {
-            if !depends(cons, &cols.create) || matches!(*DIALECT, SQLite) {
-                constraints.push(cons);
-            }
-        }
-
-=======
     pub fn move_to(old: &'table Table, cols: &ColCRUD<'table>, cons: &ConsCRUD<'table>) -> Self {
         let move_ = Move::new(old, cons, cols);
->>>>>>> down-migrations
         Self {
             table_name: &old.name,
             variant: ActionVariant::TempMove(move_),
@@ -154,20 +122,11 @@ impl<'table> Action<'table> {
 
 pub fn depends(cons: &TableConstraint, tables: &[&Column]) -> bool {
     let names = match cons {
-<<<<<<< HEAD
-        TableConstraint::ForeignKey(fk) => fk.columns.clone(),
-        TableConstraint::Unique(unique) => unique.columns.clone(),
-        _ => return false,
-    }
-    .into_iter()
-    .map(|x| x.to_string());
-=======
         TableConstraint::ForeignKey(fk) => &fk.columns,
         TableConstraint::Unique(unique) => &unique.columns,
         _ => return false,
     };
     let names = names.iter().map(ToString::to_string);
->>>>>>> down-migrations
 
     for col in names {
         for table_name in tables.iter().map(|t| t.name().unwrap()) {

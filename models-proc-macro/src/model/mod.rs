@@ -34,10 +34,6 @@ impl Parse for ForeignKey {
     }
 }
 
-<<<<<<< HEAD
-
-=======
->>>>>>> down-migrations
 impl Parse for Model {
     fn parse(input: parse::ParseStream) -> Result<Self> {
         let input: DeriveInput = input.parse()?;
@@ -67,21 +63,12 @@ impl ToTokens for Model {
         let columns = &self.get_columns();
         let constraints = &self.get_constraints();
         let template = quote! {
-<<<<<<< HEAD
-          impl ::sqlx_models::private::Model for #name {
-            fn target() -> ::sqlx_models::private::Table {
-                let mut __sqlx_models_table = ::sqlx_models::private::Table::new(stringify!(#name_lowercase));
-                #columns
-                #constraints
-                __sqlx_models_table
-=======
           impl ::models::private::Model for #name {
             fn target() -> ::models::private::Table {
                 let mut __models_table = ::models::private::Table::new(stringify!(#name_lowercase));
                 #columns
                 #constraints
                 __models_table
->>>>>>> down-migrations
             }
           }
         };
