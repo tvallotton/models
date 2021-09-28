@@ -10,21 +10,20 @@ macro_rules! error {
         Error::Message(format!($($args),*))
     };
 }
-
-
+       
+       
 #[derive(Error, Debug, Clone)]
 pub enum Error {
-    #[error("{0}")]
+    #[error("syntax error: {0}")]
     Syntax(#[from] ParserError),
+    #[error("syntax error: {0}.\n       found at file \"{1}\".")]
+    SyntaxAtFile(ParserError, path::PathBuf),
     #[error("{0}")]
     Message(String),
-    #[error("Could not read or create migration file.")]
+    #[error("could not read or create migration file. {0}")]
     IO(#[from] Arc<io::Error>),
-    #[error("Dependency cycle detected invlonving the tables: {0:?}.")]
+    #[error("dependency cycle detected invlonving the tables: {0:?}. help: consider removing redundant foreign key constraints. ")]
     Cycle(Vec<String>),
-
-    #[error("The DATABASE_URL environment variable could not be parsed.")]
-    InvalidDatabaseUrl,
 }
 
 impl Error {
@@ -33,14 +32,15 @@ impl Error {
             Self::Cycle(_) => "CycleError",
             Self::Message(_) => "error",
             Self::IO(_) => "IOError",
-            Self::InvalidDatabaseUrl => "error",
             Self::Syntax(_) => "SyntaxError",
+            Self::SyntaxAtFile(_, _) => "SyntaxAtFile"
         }
     }
 
     pub(crate) fn as_json(&self) -> String {
         let err_msg = format!("{}", self);
         let kind = self.kind();
+
         format!(
             r#"{{"kind":{kind:?},"message":{message:?}}}"#,
             kind = kind,

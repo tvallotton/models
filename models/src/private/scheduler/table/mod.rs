@@ -56,7 +56,7 @@ impl Table {
                 old_column_name,
                 new_column_name,
             } => self.rename_col(old_column_name, new_column_name),
-            op => return Err(error!("Unsupported operation {}", op)),
+            op => return Err(error!("unsupported operation: \"{}\"", op)),
         }
         Ok(())
     }
@@ -94,5 +94,55 @@ impl Table {
                 col
             })
             .collect()
+    }
+}
+
+impl TryFrom<Statement> for Table {
+    type Error = Error;
+    fn try_from(value: Statement) -> Result<Self, Self::Error> {
+        if let Statement::CreateTable(table) = value {
+            let name = table
+                .name
+                .0
+                .into_iter()
+                .map(|ident| ident.value.to_lowercase())
+                .map(Ident::new)
+                .collect();
+            Ok(Table {
+                name: ObjectName(name),
+                if_not_exists: false,
+                or_replace: false,
+                columns: table.columns.into_iter().map(Into::into).collect(),
+                constraints: table.constraints,
+            })
+        } else {
+            Err(error!(
+                "Expected a \"CREATE TABLE\" statement, found {}",
+                value
+            ))
+        }
+    }
+}
+
+impl From<Table> for Statement {
+    fn from(table: Table) -> Self {
+        Statement::CreateTable(Box::new(ast::CreateTable {
+            or_replace: false,
+            temporary: false,
+            external: false,
+            if_not_exists: false,
+            name: table.name,
+            columns: table.columns.into_iter().map(Into::into).collect(),
+            constraints: table.constraints,
+            hive_distribution: HiveDistributionStyle::NONE,
+            hive_formats: None,
+            table_properties: vec![],
+            with_options: vec![],
+            file_format: None,
+            location: None,
+            query: None,
+            without_rowid: false,
+            like: None,
+        }))
     }
 }

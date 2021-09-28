@@ -1,6 +1,7 @@
 use anyhow::Result;
 use generate::generate;
 
+
 use crate::opt::{Command, DatabaseCommand, MigrateCommand};
 
 mod database;
@@ -8,7 +9,6 @@ mod database;
 mod generate;
 mod migrate;
 mod opt;
-mod prepare;
 
 pub use crate::opt::Opt;
 
@@ -33,13 +33,8 @@ pub async fn run(opt: Opt) -> Result<()> {
                 migrate::info(&migrate.source, &database_url).await?
             }
             MigrateCommand::BuildScript { force } => migrate::build_script(&migrate.source, force)?,
-            MigrateCommand::Generate {
-                database_url,
-                table,
-                
-            } => generate(&database_url, table, &migrate.source).await,
         },
-
+        Command::Generate(gen_opt) => generate(gen_opt).await?,
         Command::Database(database) => match database.command {
             DatabaseCommand::Create { database_url } => database::create(&database_url).await?,
             DatabaseCommand::Drop { yes, database_url } => {
@@ -55,20 +50,6 @@ pub async fn run(opt: Opt) -> Result<()> {
                 database_url,
             } => database::setup(&source, &database_url).await?,
         },
-
-        Command::Prepare {
-            check: false,
-            merged,
-            args,
-            database_url,
-        } => prepare::run(&database_url, merged, args)?,
-
-        Command::Prepare {
-            check: true,
-            merged,
-            args,
-            database_url,
-        } => prepare::check(&database_url, merged, args)?,
     };
 
     Ok(())

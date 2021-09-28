@@ -3,6 +3,7 @@ use super::schema::Schema;
 use super::Report;
 use crate::prelude::*;
 use fs::File;
+use std::io::Write;
 #[derive(Debug)]
 pub(crate) struct Migration {
     up: Vec<Statement>,
@@ -29,7 +30,7 @@ impl Migration {
     pub fn create_down(&mut self, old: Schema, new: &Schema, table: &ObjectName) -> Result {
         if let Some(target) = old.get_table(table) {
             let actions = Actions::new(&new, &target)?;
-            
+
             self.down = actions
                 .as_migrations()? //
                 .into_iter()
@@ -64,38 +65,40 @@ impl Migration {
         Ok(())
     }
 
+    fn write_to_file(file_name: &str, stmts: &[Statement]) -> Result<()> {
+        let mut file = File::create(file_name)?;
+        for stmt in stmts {
+            #[cfg(feature = "sqlformat")]
+            let stmt = Self::formatted_stmt(stmt);
+            write!(file, "{};\n\n", stmt)?;
+        }
+        Ok(())
+    }
+
     pub fn commit(self) -> Result<Option<Report>> {
         if self.is_empty() {
             return Ok(None);
         }
         let timestamp = timestamp();
+        let file_name = format!("{}/{}_{}", *MIGRATIONS_DIR, timestamp, self.name);
 
-        let name = format!("{}/{}_{}", *MIGRATIONS_DIR, timestamp, self.name);
-        
-        let up_name = format!("{}.up.sql", name);
-        let down_name = format!("{}.down.sql", name);
-        let mut up_file = File::create(up_name)?;
-        let mut down_file = File::create(down_name)?;
-        
-        for stmt in self.up {
-            use std::io::Write;
-            #[cfg(feature = "sqlformat")]
-            let stmt = Self::formatted_stmt(stmt);
-            write!(up_file, "{};\n\n", stmt)?;
-        }
-        
-        for stmt in self.down {
-            use std::io::Write;
-            #[cfg(feature = "sqlformat")]
-            let stmt = Self::formatted_stmt(stmt);
-            write!(down_file, "{};\n\n", stmt)?;
-        }
         let name = self.name.to_string().to_lowercase();
-        Ok(Some(Report { timestamp, name }))
+        if !*MODELS_GENERATE_DOWN {
+            let up = format!("{}.sql", file_name);
+            Self::write_to_file(&up, &self.up)?;
+            return Ok(Some(Report { timestamp, name }));
+        } else {
+            let up = format!("{}.up.sql", file_name);
+            let down = format!("{}.down.sql", file_name);
+            Self::write_to_file(&up, &self.up)?;
+            Self::write_to_file(&down, &self.down)?;
+            return Ok(Some(Report { timestamp, name }));
+        };
     }
+    
 
     #[cfg(feature = "sqlformat")]
-    fn formatted_stmt(stmt: Statement) -> String {
+    fn formatted_stmt(stmt: &Statement) -> String {
         use sqlformat::QueryParams;
         let stmt = format!("{}", stmt);
         sqlformat::format(&stmt, &QueryParams::None, FORMAT_OPTIONS)

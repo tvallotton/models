@@ -26,7 +26,11 @@ impl ToTokens for DefaultExpr {
 
 impl Parse for DefaultExpr {
     fn parse(input: parse::ParseStream) -> Result<Self> {
+<<<<<<< HEAD
+        use sqlx_models_parser::{dialect::*, parser::Parser, tokenizer::*};
+=======
         use models_parser::{dialect::*, parser::Parser, tokenizer::*};
+>>>>>>> down-migrations
 
         let content;
         let _paren = parenthesized!(content in input);

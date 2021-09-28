@@ -2,12 +2,12 @@ use super::*;
 mod temp_move;
 use temp_move::Move;
 #[derive(Debug)]
-pub struct Action<'table> {
+pub(crate) struct Action<'table> {
     pub table_name: &'table ObjectName,
     pub variant: ActionVariant<'table>,
 }
 #[derive(Debug)]
-pub enum ActionVariant<'table> {
+pub(crate) enum ActionVariant<'table> {
     CreateCol(&'table Column),
 
     DropCol(Ident),
@@ -64,6 +64,7 @@ impl<'table> Action<'table> {
             variant: ActionVariant::CreateConstr(cons),
         }
     }
+<<<<<<< HEAD
     pub(super) fn move_to(
         old: &'table Table,
         cols: &ColCRUD<'table>,
@@ -81,30 +82,25 @@ impl<'table> Action<'table> {
                 old_cols.push(col);
             }
         }
-        
+
         for &cons in &cons.create {
-            dbg!(&cons);
-            // skip constraints that depend on columns that not yet exist.
-            if !depends(cons, &cols.create) || matches!(*DIALECT, Dialect::SQLite) {
+            if !depends(cons, &cols.create) || matches!(*DIALECT, SQLite) {
                 constraints.push(cons);
             }
         }
         for &cons in &cons.update {
-            if !depends(cons, &cols.create) || matches!(*DIALECT, Dialect::SQLite) {
+            if !depends(cons, &cols.create) || matches!(*DIALECT, SQLite) {
                 constraints.push(cons);
             }
         }
-        for &cons in &cons.keep {
-            constraints.push(cons);
-        }
 
+=======
+    pub fn move_to(old: &'table Table, cols: &ColCRUD<'table>, cons: &ConsCRUD<'table>) -> Self {
+        let move_ = Move::new(old, cons, cols);
+>>>>>>> down-migrations
         Self {
             table_name: &old.name,
-            variant: ActionVariant::TempMove(Move {
-                old_cols,
-                new_cols,
-                constraints,
-            }),
+            variant: ActionVariant::TempMove(move_),
         }
     }
 
@@ -158,11 +154,20 @@ impl<'table> Action<'table> {
 
 pub fn depends(cons: &TableConstraint, tables: &[&Column]) -> bool {
     let names = match cons {
+<<<<<<< HEAD
+        TableConstraint::ForeignKey(fk) => fk.columns.clone(),
+        TableConstraint::Unique(unique) => unique.columns.clone(),
+        _ => return false,
+    }
+    .into_iter()
+    .map(|x| x.to_string());
+=======
         TableConstraint::ForeignKey(fk) => &fk.columns,
         TableConstraint::Unique(unique) => &unique.columns,
         _ => return false,
     };
     let names = names.iter().map(ToString::to_string);
+>>>>>>> down-migrations
 
     for col in names {
         for table_name in tables.iter().map(|t| t.name().unwrap()) {

@@ -1,1 +1,1 @@
-This is a helper crate for `sqlx-models`. Don't directly depend on it.
+This is a helper crate for `models`. Don't directly depend on it.

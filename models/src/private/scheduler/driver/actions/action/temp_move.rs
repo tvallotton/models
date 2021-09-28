@@ -1,15 +1,52 @@
-use itertools::Itertools;
-
 use super::Compare;
+use super::*;
 use crate::prelude::*;
 #[derive(Debug)]
-pub struct Move<'table> {
+pub(crate) struct Move<'table> {
     pub(super) new_cols: Vec<&'table Column>,
     pub(super) old_cols: Vec<&'table Column>,
     pub(super) constraints: Vec<&'table TableConstraint>,
 }
 
 impl<'table> Move<'table> {
+    pub fn new(old: &'table Table, cons: &ConsCRUD<'table>, cols: &ColCRUD<'table>) -> Self {
+        let mut new_cols = vec![];
+        let mut old_cols = vec![];
+        let mut constraints = vec![];
+        for col in &old.columns {
+            if !cols.to_delete(col) && !cols.to_update(col) {
+                new_cols.push(col);
+                old_cols.push(col);
+            }
+        }
+        for &col in &cols.update {
+            new_cols.push(col);
+            old_cols.push(col);
+        }
+        for con in &old.constraints {
+            let to_delete = cons.to_delete(con);
+            let to_update = cons.to_update(con);
+            if !to_delete && !to_update {
+                constraints.push(con);
+            }
+        }
+        for con in &cons.update {
+            if !depends(con, &cols.create) || matches!(*DIALECT, SQLite) {
+                constraints.push(con);
+            }
+        }
+        for con in &cons.create {
+            if !depends(con, &cols.create) || matches!(*DIALECT, SQLite) {
+                constraints.push(con);
+            }
+        }
+        Self {
+            new_cols,
+            old_cols,
+            constraints,
+        }
+    }
+
     pub fn to_statements(self, table_name: ObjectName) -> Result<Vec<Statement>> {
         let mut stmt = vec![];
         let create_table = self.create_table();
@@ -38,12 +75,12 @@ impl<'table> Move<'table> {
             .new_cols
             .iter()
             .map(|&col| col.ident()) //
-            .collect_vec();
+            .collect();
         let old = self
             .old_cols
             .iter()
             .map(|&col| col.ident()) //
-            .collect_vec();
+            .collect();
 
         let insert = format!(
             "INSERT INTO temp ({}) SELECT {} FROM {};",
@@ -77,7 +114,6 @@ impl<'table> Move<'table> {
             },
         })
     }
-
 }
 
 fn to_string<T: ToString>(collection: Vec<T>) -> String {
@@ -89,4 +125,22 @@ fn to_string<T: ToString>(collection: Vec<T>) -> String {
         }
     }
     out
+}
+
+pub fn depends(cons: &TableConstraint, tables: &[&Column]) -> bool {
+    let names = match cons {
+        TableConstraint::ForeignKey(fk) => &fk.columns,
+        TableConstraint::Unique(unique) => &unique.columns,
+        _ => return false,
+    };
+    let names = names.iter().map(ToString::to_string);
+
+    for col in names {
+        for table_name in tables.iter().map(|t| t.name().unwrap()) {
+            if col.to_string() == table_name {
+                return true;
+            }
+        }
+    }
+    false
 }

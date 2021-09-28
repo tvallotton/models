@@ -166,8 +166,8 @@ pub struct Unique {
 /// `[ CONSTRAINT <name> ] CHECK (<expr>)`
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Check {
-   pub name: Option<Ident>,
-   pub expr: Box<Expr>,
+    pub name: Option<Ident>,
+    pub expr: Box<Expr>,
 }
 
 /// A referential integrity constraint (`[ CONSTRAINT <name> ] FOREIGN KEY (<columns>)

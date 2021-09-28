@@ -19,9 +19,6 @@ mod operator;
 mod query;
 mod statement;
 mod value;
-pub use expression::*;
-pub use statement::*;
-pub use ddl::*;
 #[cfg(not(feature = "std"))]
 use alloc::{
     boxed::Box,
@@ -29,6 +26,9 @@ use alloc::{
     vec::Vec,
 };
 use core::fmt;
+pub use ddl::*;
+pub use expression::*;
+pub use statement::*;
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};

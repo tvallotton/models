@@ -1,6 +1,10 @@
+use super::opt::GenerateOpt;
+use anyhow::{Error, Result};
 use console::style;
 use serde::*;
 use serde_json::from_str;
+
+
 #[derive(Serialize, Deserialize)]
 
 struct MigrationError {
@@ -14,7 +18,7 @@ struct Output {
 }
 
 impl Output {
-    fn print(self, source: &str) {
+    fn print(self, source: &str) -> Result<()> {
         for (num, name) in self.success {
             println!(
                 "{}: {}/{} {}",
@@ -26,24 +30,27 @@ impl Output {
         }
 
         if let Some(err) = self.error {
-            println!("{}: {}", style(err.kind).red().bold(), err.message)
+            Err(Error::msg(err.message))
+        } else {
+            Ok(())
         }
     }
 }
 
-pub async fn generate(database_url: &str, table: Option<String>, source: &str) {
+pub async fn generate(opt: GenerateOpt) -> Result<()> {
+    use anyhow::*;
+    std::fs::create_dir_all(&opt.source).context("Unable to create migrations directory")?;
+    opt.validate().await?;
     touch_any().await.ok();
 
-    if !builds(database_url, source).await {
-        println!(
-            "{}: Could not compile project. No migrations were generated.",
-            style("error").red()
-        );
-        return;
+    if !builds(&opt.database_url, &opt.source).await {
+        return Err(Error::msg(
+            "could not compile project. No migrations were generated.",
+        ));
     }
     let filter_tests = format!(
         "__models_generate_migration_{}",
-        table.as_deref().unwrap_or("")
+        opt.table.as_deref().unwrap_or("")
     );
     let output = tokio::process::Command::new("cargo")
         .arg("test")
@@ -51,8 +58,9 @@ pub async fn generate(database_url: &str, table: Option<String>, source: &str) {
         .arg("--nocapture")
         .arg(&filter_tests)
         .env("MODELS_GENERATE_MIGRATIONS", "true")
-        .env("MIGRATIONS_DIR", source)
-        .env("DATABASE_URL", database_url)
+        .env("MIGRATIONS_DIR", &opt.source)
+        .env("DATABASE_URL", &opt.database_url)
+        .env("MODELS_GENERATE_DOWN", opt.reversible.to_string())
         .output()
         .await
         .unwrap()
@@ -61,23 +69,24 @@ pub async fn generate(database_url: &str, table: Option<String>, source: &str) {
     let regex = regex::Regex::new("<SQLX-MODELS-OUTPUT>(.+)</SQLX-MODELS-OUTPUT>").unwrap();
 
     if output.contains("running 0 tests") {
-        if let Some(table) = table {
-            println!("No models named {}.", &table)
+        if let Some(table) = &opt.table {
+            println!("No models named {}.", table)
         } else {
             println!("No models in the application")
         }
-        return;
+        return Ok(());
     }
     let x = regex.captures(&output).expect(&output);
 
     if let Some(json) = x.get(1) {
         from_str::<Output>(json.as_str())
             .expect(json.as_str())
-            .print(source);
+            .print(&opt.source)?;
     } else {
         println!("Everything is up to date.");
     }
     touch_any().await.ok();
+    Ok(())
 }
 
 async fn builds(database_url: &str, source: &str) -> bool {
@@ -95,9 +104,7 @@ async fn builds(database_url: &str, source: &str) -> bool {
         .success()
 }
 
-use std::error::Error;
-
-pub async fn touch_any() -> Result<(), Box<dyn Error>> {
+pub async fn touch_any() -> Result<()> {
     let mut listdir = tokio::fs::read_dir("src/").await?;
     while let Some(entry) = listdir.next_entry().await? {
         let file_name = entry.file_name();

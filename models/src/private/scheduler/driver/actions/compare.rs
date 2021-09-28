@@ -1,7 +1,7 @@
 pub use crate::prelude::*;
 pub use collections::HashSet;
 
-pub (crate) trait Compare {
+pub(crate) trait Compare {
     fn bodies_are_equal(&self, other: &Self) -> bool;
     fn name(&self) -> Result<String>;
     fn are_modified(&self, other: &Self) -> bool {
@@ -18,10 +18,14 @@ pub (crate) trait Compare {
             Ok(name) => name,
             Err(_) => return false,
         };
+        
+
+        
         first == second
     }
 
     fn are_equal(&self, other: &Self) -> bool {
+        
         self.names_are_equal(other) && self.bodies_are_equal(other)
     }
 
@@ -77,7 +81,7 @@ impl Compare for TableConstraint {
             Check(ast::Check { name, .. }) => name,
         }
         .as_ref()
-        .ok_or_else(|| error!("Anonymous constraints are not supported."))
+        .ok_or_else(|| error!("anonymous constraints are not supported."))
         .map(|name| name.to_string().to_lowercase())
     }
 

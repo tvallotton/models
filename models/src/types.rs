@@ -1,48 +1,48 @@
-//!
-//! I took some of these correspondances from sqlx. It would be good to review it.
-//! # Types
-//!
-//! | Rust                 | PostgreSQL               | MySQL                    | SQLite                   |
-//! |----------------------|--------------------------|--------------------------|--------------------------|
-//! | `bool`               | BOOLEAN                  | BOOLEAN                  | BOOLEAN                  |
-//! | `i8`                 | SMALLINT                 | TINYINT                  | TINYINT                  |
-//! | `i16`                | SMALLINT                 | SMALLINT                 | SMALLINT                 |
-//! | `i32`                | INT                      | INT                      | INTEGER                  |
-//! | `i64`                | BIGINT                   | BIGINT                   | BIGINT                   |
-//! | `u8`                 | SMALLINT                 | TINYINT UNSIGNED         | TINYINT UNSIGNED         |
-//! | `u16`                | INT                      | SMALLINT UNSIGNED        | SMALLINT UNSIGNED        |
-//! | `u32`                | INT                      | INT UNSIGNED             | INT UNSIGNED             |
-//! | `u64`                | BIGINT                   | BIGINT UNSIGNED          | BIGINT UNSIGNED          |
-//! | `f32`                | REAL                     | FLOAT                    | REAL                     |
-//! | `f64`                | DOUBLE                   | DOUBLE                   | REAL                     |
-//! | `String`             | TEXT                     | TEXT                     | TEXT                     |
-//! | `Vec<u8>`            | BYTEA                   | VARBINARY, BINARY, BLOB  | VARBINARY, BINARY, BLOB  |
-//!
-//! ### [`chrono`](https://crates.io/crates/chrono)
-//!
-//! Requires the `chrono` Cargo feature flag.
-//!
-//! | Rust type                             | MySQL type(s)                                        |
-//! |---------------------------------------|------------------------------------------------------|
-//! | `chrono::DateTime<Utc>`               | TIMESTAMP                                            |
-//! | `chrono::DateTime<Local>`             | TIMESTAMP                                            |
-//! | `chrono::NaiveDateTime`               | DATETIME                                             |
-//! | `chrono::NaiveDate`                   | DATE                                                 |
-//! | `chrono::NaiveTime`                   | TIME                                                 |
-//!
-//! TODO:
-//! Fix DataType in models-parser so it preserves the original type name.
-//! e.g. INTEGER is parsed to INT which is not recognized by SQLite.
+//
+// I took some of these correspondances from sqlx. It would be good to review it.
+// # Types
+//
+// | Rust                 | PostgreSQL               | MySQL                    | SQLite                   |
+// |----------------------|--------------------------|--------------------------|--------------------------|
+// | `bool`               | BOOLEAN                  | BOOLEAN                  | BOOLEAN                  |
+// | `i8`                 | SMALLINT                 | TINYINT                  | TINYINT                  |
+// | `i16`                | SMALLINT                 | SMALLINT                 | SMALLINT                 |
+// | `i32`                | INT                      | INT                      | INTEGER                  |
+// | `i64`                | BIGINT                   | BIGINT                   | BIGINT                   |
+// | `u8`                 | SMALLINT                 | TINYINT UNSIGNED         | TINYINT UNSIGNED         |
+// | `u16`                | INT                      | SMALLINT UNSIGNED        | SMALLINT UNSIGNED        |
+// | `u32`                | INT                      | INT UNSIGNED             | INT UNSIGNED             |
+// | `u64`                | BIGINT                   | BIGINT UNSIGNED          | BIGINT UNSIGNED          |
+// | `f32`                | REAL                     | FLOAT                    | REAL                     |
+// | `f64`                | DOUBLE                   | DOUBLE                   | REAL                     |
+// | `String`             | TEXT                     | TEXT                     | TEXT                     |
+// | `Vec<u8>`            | BYTEA                   | VARBINARY, BINARY, BLOB  | VARBINARY, BINARY, BLOB  |
+//
+// ### [`chrono`](https://crates.io/crates/chrono)
+//
+// Requires the `chrono` Cargo feature flag.
+//
+// | Rust type                             | MySQL type(s)                                        |
+// |---------------------------------------|------------------------------------------------------|
+// | `chrono::DateTime<Utc>`               | TIMESTAMP                                            |
+// | `chrono::DateTime<Local>`             | TIMESTAMP                                            |
+// | `chrono::NaiveDateTime`               | DATETIME                                             |
+// | `chrono::NaiveDate`                   | DATE                                                 |
+// | `chrono::NaiveTime`                   | TIME                                                 |
+//
+// TODO:
+// Fix DataType in models-parser so it preserves the original type name.
+// e.g. INTEGER is parsed to INT which is not recognized by SQLite.
 
 use models_parser::ast::DataType;
-pub struct VarChar<const SIZE: usize>(pub String);
-pub struct VarBinary<const SIZE: usize>(pub Vec<u8>);
-#[cfg(feature = "binary")]
-pub struct Bytes<T>(pub T);
-#[cfg(feature = "json")]
-pub struct Json<T>(pub T);
-#[cfg(feature = "chrono")]
-pub use chrono::DateTime;
+// pub struct VarChar<const SIZE: usize>(pub String);
+// pub struct VarBinary<const SIZE: usize>(pub Vec<u8>);
+// #[cfg(feature = "binary")]
+// pub struct Bytes<T>(pub T);
+// #[cfg(feature = "json")]
+// pub struct Json<T>(pub T);
+// #[cfg(feature = "chrono")]
+// pub use chrono::DateTime;
 
 pub trait IntoSQL {
     fn into_sql() -> DataType;
@@ -129,9 +129,9 @@ impl IntoSQL for bool {
     }
 }
 
-#[cfg(feature = "json")]
-impl<T> IntoSQL for Json<T> {
-    fn into_sql() -> DataType {
-        DataType::Custom(ObjectName(vec![Ident::new("JSON")]))
-    }
-}
+// #[cfg(feature = "json")]
+// impl<T> IntoSQL for Json<T> {
+//     fn into_sql() -> DataType {
+//         DataType::Custom(ObjectName(vec![Ident::new("JSON")]))
+//     }
+// }

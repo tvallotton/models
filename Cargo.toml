@@ -1,9 +1,8 @@
 [workspace]
-members = [
-    "models-parser",
-    "models", 
-    "models-tests",
-    "models-proc-macro", 
-    "models-cli",
-]
 
+members = [
+    "models",
+    "models-cli",
+    "models-parser",
+    "models-tests",
+]

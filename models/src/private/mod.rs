@@ -5,15 +5,12 @@ mod scheduler;
 use once_cell::sync::Lazy;
 pub(crate) use scheduler::driver::migration::Migration;
 pub use scheduler::{
-    table::{Column, Table, constraint},
-
+    table::{constraint, Column, Table},
     Scheduler,
 };
-
 
 pub trait Model {
     fn target() -> Table;
 }
-
 
 pub static SCHEDULER: Lazy<Scheduler> = Lazy::new(Scheduler::new);
