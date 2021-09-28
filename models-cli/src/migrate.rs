@@ -121,9 +121,11 @@ pub async fn info(migration_source: &str, uri: &str) -> anyhow::Result<()> {
         .collect();
 
     for migration in migrator.iter() {
+        if let MigrationType::ReversibleDown = migration.migration_type {
+            continue;
+        }
         println!(
             "{}: {}/{} {}",
-
             if applied_migrations.contains_key(&migration.version) {
                 style("Installed").green().bold()
             } else {
@@ -257,9 +259,9 @@ pub async fn revert(
             let text = if dry_run { "Can apply" } else { "Applied" };
             println!(
                 "{} {}/{} {} {}",
-                text,
+                style(text).green().bold(),
+                migration_source,
                 style(migration.version).cyan(),
-                style(migration.migration_type.label()).green(),
                 migration.description,
                 style(format!("({:?})", elapsed)).dim()
             );

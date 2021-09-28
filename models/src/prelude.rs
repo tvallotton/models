@@ -15,7 +15,7 @@ pub(crate) static DATABASE_URL: Lazy<Url> = Lazy::new(|| {
     Url::parse(&database_url).unwrap()
 });
 pub(crate) static MIGRATIONS_DIR: Lazy<String> = Lazy::new(|| {
-    let dir = env::var("MIGRATION_DIR");
+    let dir = env::var("MIGRATIONS_DIR");
     dir.unwrap()
 });
 pub(crate) static DIALECT: Lazy<Dialect> = Lazy::new(|| match DATABASE_URL.scheme() {
@@ -34,7 +34,12 @@ pub static FORMAT_OPTIONS: FormatOptions = FormatOptions {
     lines_between_queries: 2,
 };
 
-pub(crate) fn parse_sql(sql: &str) -> Result<Vec<Statement>> {
+pub static MODELS_GENERATE_DOWN: Lazy<bool> = Lazy::new(|| {
+    let down = env::var("MODELS_GENERATE_DOWN").as_deref() == Ok("true");
+    down
+});
+
+pub(crate) fn parse_sql(sql: &str) -> Result<Vec<Statement>, parser::ParserError> {
     let stmts = parser::Parser::parse_sql(&*DIALECT, sql)?;
     Ok(stmts)
 }

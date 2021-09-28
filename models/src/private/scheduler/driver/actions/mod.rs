@@ -1,88 +1,44 @@
-use crate::prelude::*;
-mod action;
-mod crud;
-
+pub mod action;
 mod compare;
+mod crud;
+mod inner;
+
 use super::schema::Schema;
+use crate::prelude::*;
 use action::{depends, Action};
 pub use compare::*;
 use crud::*;
 
-pub(crate) struct Actions<'input> {
-    table: Option<&'input Table>,
-    target: &'input Table,
-    actions: Vec<Action<'input>>,
+use inner::*;
+#[derive(Debug)]
+pub(crate) struct Actions<'table> {
+    name: &'table ObjectName,
+    actions: Vec<Action<'table>>,
 }
-
-impl<'input> Actions<'input> {
-    pub fn new(schema: &'input Schema, target: &'input Table) -> Self {
+impl<'table> Actions<'table> {
+    pub fn new(schema: &'table Schema, target: &'table Table) -> Result<Self> {
         let table = schema.get_table(&target.name);
         let mut out = Self {
-            table,
-            target,
+            name: &target.name,
             actions: vec![],
         };
-        out.init();
-        out
-    }
-    fn get_crud<T: Compare>(current: &'input [T], target: &'input [T]) -> CRUD<'input, T> {
-        let mut update = vec![];
-        let mut delete = vec![];
-        let mut create = vec![];
-        for c1 in target {
-            for c0 in current {
-                if c1.are_modified(c0) {
-                    update.push(c1.clone())
-                }
-            }
-
-            if !current.iter().any(|c0| c0.are_equal(c1)) {
-                create.push(c1.clone());
-            }
-        }
-
-        for c0 in current {
-            if target
-                .iter()
-                .all(|t| !c0.are_equal(t) && !c0.are_modified(t))
-            {
-                delete.push(c0.clone());
-            }
-        }
-        CRUD {
-            create,
-            update,
-            delete,
-        }
+        out.init(Inner { table, target })?;
+        Ok(out)
     }
 
-    fn columns(&'input self) -> ColCRUD<'input> {
-        let current = &self.table.unwrap().columns;
-        let target = &self.target.columns;
-        Self::get_crud(current, target)
-    }
-
-    fn constraints(&'input self) -> ConsCRUD<'input> {
-        let current = &self.table.unwrap().constraints;
-        let target = &self.target.constraints;
-        Self::get_crud(current, target)
-    }
-
-    fn init(&'input mut self) -> Result<()> {
-        if self.table.is_none() {
-            let action = Action::create_table(self.target);
+    fn init(&mut self, inner: Inner<'table>) -> Result<()> {
+        if inner.table.is_none() {
+            let action = Action::create_table(inner.target);
             self.actions.push(action);
             return Ok(());
         }
-        let mut actions = vec![];
-        let columns = self.columns();
-        let constraints = self.constraints();
+        let columns = inner.columns();
+        let constraints = inner.constraints();
 
         if move_required(&columns, &constraints) {
-            let extend = self.perform_move(&columns, &constraints);
-            actions.extend(extend)
+            self.perform_move(&inner, columns, constraints);
         } else {
-            let table_name = &self.target.name;
+            let table_name = &inner.target.name;
             for col in columns.delete {
                 let action = Action::drop_col(table_name, &col);
                 actions.push(action);
@@ -91,38 +47,38 @@ impl<'input> Actions<'input> {
                 let action = Action::drop_cons(table_name, &cons)?;
                 actions.push(action);
             }
-            for &cons in &constraints.update {
-                let action = Action::drop_cons(table_name, &cons)?;
-                actions.push(action);
+            for cons in &constraints.update {
+                let action = Action::drop_cons(table_name, cons)?;
+                self.actions.push(action);
             }
 
             for col in columns.create {
                 let action = Action::create_column(table_name, &col);
                 actions.push(action);
             }
-            for &cons in &constraints.create {
-                let action = Action::create_cons(table_name, &cons);
-                actions.push(action);
+            for cons in &constraints.create {
+                let action = Action::create_cons(table_name, cons);
+                self.actions.push(action);
             }
 
-            for &cons in &constraints.update {
-                let action = Action::create_cons(table_name, &cons);
-                actions.push(action);
+            for cons in &constraints.update {
+                let action = Action::create_cons(table_name, cons);
+                self.actions.push(action);
             }
         }
         self.actions.extend(actions);
         Ok(())
     }
 
-    pub fn perform_move(
-        &'input self,
-        cols: &ColCRUD<'input>,
-        cons: &ConsCRUD<'input>,
-    ) -> Vec<Action> {
-        let mut actions = vec![];
-        let move_action = Action::move_to(self.table.unwrap(), &cols, &cons);
-        actions.push(move_action);
-        let table_name = &self.target.name;
+    fn perform_move(
+        &mut self,
+        inner: &Inner<'table>,
+        cols: ColCRUD<'table>,
+        cons: ConsCRUD<'table>,
+    ) {
+        let move_action = Action::move_to(inner.table.unwrap(), &cols, &cons);
+        self.actions.push(move_action);
+        let table_name = &inner.target.name;
 
         // moves do not create columns as their names may conflict with constraints.
         for &col in &cols.create {
@@ -143,11 +99,22 @@ impl<'input> Actions<'input> {
         actions
     }
 
-    pub fn as_migrations(self) -> Vec<Migration> {
-        todo!()
+    pub fn as_migrations(self) -> Result<Vec<Migration>> {
+        let mut migrations = vec![];
+        let mut migr = Migration::new(self.name.clone());
+        for action in self.actions {
+            if action.is_fallible() && !migr.is_empty() {
+                migrations.push(migr);
+                migr = Migration::new(self.name.clone())
+            }
+            migr.push_up(action)?;
+        }
+        migrations.push(migr);
+
+        Ok(migrations)
     }
 }
-pub fn move_required<'table>(cols: &ColCRUD<'table>, cons: &ConsCRUD<'table>) -> bool {
+pub(crate) fn move_required<'table>(cols: &ColCRUD<'table>, cons: &ConsCRUD<'table>) -> bool {
     let sqlite_conditions = DIALECT.requires_move()
         && !(cols.update.is_empty()
             && cols.delete.is_empty()

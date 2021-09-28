@@ -1,12 +1,13 @@
 use super::*;
 mod temp_move;
 use temp_move::Move;
-
-pub struct Action<'table> {
+#[derive(Debug)]
+pub(crate) struct Action<'table> {
     pub table_name: &'table ObjectName,
     pub variant: ActionVariant<'table>,
 }
-pub enum ActionVariant<'table> {
+#[derive(Debug)]
+pub(crate) enum ActionVariant<'table> {
     CreateCol(&'table Column),
 
     DropCol(Ident),
@@ -17,13 +18,18 @@ pub enum ActionVariant<'table> {
 
     TempMove(Move<'table>),
 
-    Rename { new_name: ObjectName },
-
     CreateTable(&'table Table),
 }
 
 impl<'table> Action<'table> {
-    fn into_statements(self) {}
+    pub fn is_fallible(&self) -> bool {
+        if let ActionVariant::CreateCol(col) = &self.variant {
+            col.has_default() || col.is_nullable()
+        } else {
+            false
+        }
+    }
+
     pub(super) fn create_table(target: &'table Table) -> Self {
         Self {
             table_name: &target.name,
@@ -58,46 +64,15 @@ impl<'table> Action<'table> {
             variant: ActionVariant::CreateConstr(cons),
         }
     }
-    pub(super) fn move_to(
-        old: &'table Table,
-        cols: &ColCRUD<'table>,
-        cons: &ConsCRUD<'table>,
-    ) -> Self {
-        let mut new_cols = vec![];
-        let mut old_cols = vec![];
-        let mut constraints = vec![];
-
-        for col in &old.columns {
-            if cols.to_delete(col) {
-                continue;
-            } else {
-                new_cols.push(col);
-                old_cols.push(col);
-            }
-        }
-
-        for &cons in &cons.create {
-            if !depends(cons, &cols.create) || matches!(*DIALECT, SQLite) {
-                constraints.push(cons);
-            }
-        }
-        for &cons in &cons.update {
-            if !depends(cons, &cols.create) || matches!(*DIALECT, SQLite) {
-                constraints.push(cons);
-            }
-        }
-
+    pub fn move_to(old: &'table Table, cols: &ColCRUD<'table>, cons: &ConsCRUD<'table>) -> Self {
+        let move_ = Move::new(old, cons, cols);
         Self {
             table_name: &old.name,
-            variant: ActionVariant::TempMove(Move {
-                old_cols,
-                new_cols,
-                constraints,
-            }),
+            variant: ActionVariant::TempMove(move_),
         }
     }
 
-    pub(super) fn to_statements(self) -> Result<Vec<Statement>> {
+    pub fn to_statements(self) -> Result<Vec<Statement>> {
         use ActionVariant::*;
         let mut out = vec![];
         let table_name = self.table_name.clone();
@@ -130,9 +105,6 @@ impl<'table> Action<'table> {
                         cascade: DIALECT.supports_cascade(),
                         restrict: false,
                     },
-                    Rename { new_name } => AlterTableOperation::RenameTable {
-                        table_name: new_name,
-                    },
 
                     _ => todo!(),
                 };
@@ -150,16 +122,15 @@ impl<'table> Action<'table> {
 
 pub fn depends(cons: &TableConstraint, tables: &[&Column]) -> bool {
     let names = match cons {
-        TableConstraint::ForeignKey(fk) => fk.columns.clone(),
-        TableConstraint::Unique(unique) => unique.columns.clone(),
+        TableConstraint::ForeignKey(fk) => &fk.columns,
+        TableConstraint::Unique(unique) => &unique.columns,
         _ => return false,
-    }
-    .into_iter()
-    .map(|x| x.to_string());
+    };
+    let names = names.iter().map(ToString::to_string);
 
     for col in names {
         for table_name in tables.iter().map(|t| t.name().unwrap()) {
-            if col == table_name {
+            if col.to_string() == table_name {
                 return true;
             }
         }

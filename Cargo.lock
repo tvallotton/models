@@ -992,11 +992,10 @@ dependencies = [
 
 [[package]]
 name = "models"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
- "chrono",
- "itertools",
  "models-parser",
+ "models-proc-macro",
  "once_cell",
  "sqlformat",
  "thiserror",
@@ -1005,8 +1004,32 @@ dependencies = [
 ]
 
 [[package]]
-name = "models-parser"
+name = "models-cli"
 version = "0.0.1"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "chrono",
+ "clap",
+ "console",
+ "dotenv",
+ "futures",
+ "glob",
+ "openssl",
+ "promptly",
+ "regex",
+ "remove_dir_all 0.7.0",
+ "serde",
+ "serde_json",
+ "sqlx",
+ "structopt",
+ "tokio",
+ "url",
+]
+
+[[package]]
+name = "models-parser"
+version = "0.1.0"
 dependencies = [
  "bigdecimal",
  "log",
@@ -1014,6 +1037,24 @@ dependencies = [
  "serde",
  "serde_json",
  "simple_logger",
+]
+
+[[package]]
+name = "models-proc-macro"
+version = "0.1.0"
+dependencies = [
+ "models-parser",
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "models-tests"
+version = "0.1.0"
+dependencies = [
+ "futures",
+ "models",
 ]
 
 [[package]]
@@ -1780,30 +1821,6 @@ dependencies = [
  "sqlx-core",
  "sqlx-rt",
  "syn",
- "url",
-]
-
-[[package]]
-name = "sqlx-models-cli"
-version = "0.1.1"
-dependencies = [
- "anyhow",
- "async-trait",
- "chrono",
- "clap",
- "console",
- "dotenv",
- "futures",
- "glob",
- "openssl",
- "promptly",
- "regex",
- "remove_dir_all 0.7.0",
- "serde",
- "serde_json",
- "sqlx",
- "structopt",
- "tokio",
  "url",
 ]
 

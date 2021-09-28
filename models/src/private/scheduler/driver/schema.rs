@@ -1,7 +1,8 @@
 use crate::prelude::*;
 use fs::*;
-use itertools::*;
+
 use path::PathBuf;
+#[derive(Clone)]
 pub struct Schema {
     tables: HashMap<ObjectName, Table>,
 }
@@ -14,6 +15,18 @@ impl Schema {
         out.init()?;
         Ok(out)
     }
+    #[cfg(test)]
+    fn _from_sql(sql: &str) -> Result<Self> {
+        let stmts = parse_sql(sql)?;
+        let mut out = Self {
+            tables: HashMap::new(),
+        };
+        for stmt in stmts {
+            out.update(&stmt)?;
+        }
+        Ok(out)
+    }
+
     pub fn get_table(&self, name: &ObjectName) -> Option<&Table> {
         self.tables.get(&name)
     }
@@ -25,32 +38,26 @@ impl Schema {
         }
         Ok(())
     }
+
     fn get_statements(&mut self) -> Result<Vec<Statement>> {
-        self.read_dir()?
-            .into_iter()
-            .filter(|file| file.is_file())
-            .map(read_to_string)
-            .into_iter()
-            .map_ok(|x| x.to_lowercase())
-            .map_ok(|sql| parse_sql(&sql))
-            .map(|result| Ok(result?))
-            .map(|result| match result {
-                Ok(result) => Ok(result?),
-                Err(err) => Err(err),
-            })
-            .fold_ok(vec![], |mut a, mut b| {
-                a.append(&mut b);
-                a
-            })
+        let mut out = vec![];
+        for path in self.read_dir()? {
+            if !is_up_file(&path) {
+                continue;
+            }
+            let sql = read_to_string(&path)?;
+            let stmts = match parse_sql(&sql) {
+                Ok(stmts) => stmts,
+                Err(err) => return Err(Error::SyntaxAtFile(err, path)),
+            };
+            out.extend(stmts);
+        }
+        Ok(out)
     }
     fn read_dir(&self) -> Result<Vec<PathBuf>> {
         let directory = &*MIGRATIONS_DIR;
         let mut dir: Vec<_> = read_dir(directory)
-            .or_else(|_| {
-                create_dir(directory) //
-                    .and_then(|_| read_dir(directory))
-            })
-            .map_err(|_| error!("Could not read the \"{}\" directiory.", directory))?
+            .map_err(|_| error!("could not read the \"{}\" directiory.", directory))?
             .map(|x| x.unwrap().path())
             .collect();
         dir.sort();
@@ -65,7 +72,7 @@ impl Schema {
                 name,
                 operation: AlterTableOperation::RenameTable { table_name },
             }) => self.rename_table(name, table_name),
-            AlterTable(alter) => self.alter_table(alter.name.clone(), alter.operation.clone()),
+            AlterTable(alter) => self.alter_table(&alter.name, &alter.operation),
             Drop(drop) => self.drop_tables(drop),
             _ => Ok(()),
         }
@@ -74,7 +81,7 @@ impl Schema {
     fn rename_table(&mut self, old_name: &ObjectName, new_name: &ObjectName) -> Result {
         let mut table = self.tables.remove(&old_name).ok_or_else(|| {
             error!(
-                "Attempt to rename table {:?} to {:?}, but it does not exist",
+                "attempt to rename table {:?} to {:?}, but it does not exist",
                 &old_name, &new_name
             )
         })?;
@@ -114,7 +121,7 @@ impl Schema {
         for name in drop.names.iter() {
             if !drop.if_exists && !self.tables.contains_key(name) {
                 return Err(error!(
-                    "Table \"{}\" cannot be dropped as it does not exist.",
+                    "failed to load migrations. Table \"{}\" cannot be dropped as it does not exist.",
                     name
                 ));
             }
@@ -125,16 +132,16 @@ impl Schema {
         }
         Ok(())
     }
-    fn alter_table(&mut self, name: ObjectName, op: AlterTableOperation) -> Result {
+    fn alter_table(&mut self, name: &ObjectName, op: &AlterTableOperation) -> Result {
         self.tables
             .get_mut(&name) //
             .map(|table| table.alter_table(op))
             .ok_or_else(|| {
                 error!(
-                    "Failed to load migrations. Could not find the table \"{}\"",
+                    "failed to load migrations. Could not find the table \"{}\"",
                     name
                 )
-            })?;
+            })??;
         Ok(())
     }
     fn create_table(&mut self, table: Table) -> Result {
@@ -142,11 +149,15 @@ impl Schema {
         let tables = &mut self.tables;
         if !table.if_not_exists && tables.contains_key(&table.name) && !table.or_replace {
             return Err(error!(
-                "Attempting to create table \"{}\", but it already exists.",
+                "attempting to create table \"{}\", but it already exists.",
                 table.name
             ));
         }
         tables.insert(table.name.clone(), table);
         Ok(())
     }
+}
+
+fn is_up_file(file_name: &PathBuf) -> bool {
+    file_name.is_file() && !file_name.to_str().unwrap().contains(".down.sql")
 }

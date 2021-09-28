@@ -1,6 +1,6 @@
+use self::Dialect::*;
 use dialect::*;
 use models_parser::dialect;
-
 #[derive(Clone, Copy, Debug)]
 pub(crate) enum Dialect {
     SQLite,
@@ -15,7 +15,7 @@ impl Dialect {
         matches!(self, Dialect::SQLite | Dialect::Any)
     }
 
-    pub(crate) fn has_default_constr_name(&self) -> bool {
+    pub(crate) fn _has_default_constr_name(&self) -> bool {
         matches!(self, Dialect::PostgreSQL)
     }
 

@@ -3,5 +3,6 @@
 members = [
     "models",
     "models-cli",
-    "models-parser"
+    "models-parser",
+    "models-tests",
 ]

@@ -68,22 +68,26 @@ impl Driver {
     fn try_migration(&mut self, target: Table) -> Result {
         let migrations = self.get_migrations(target)?;
         for mig in migrations {
-            mig.commit()?.map(|tuple| {
-                self.success.push(tuple);
-            });
+            if let Some(report) = mig.commit()? {
+                self.success.push(report);
+            }
         }
         Ok(())
     }
 
     fn get_migrations(&mut self, target: Table) -> Result<Vec<Migration>> {
-        let schema = self.result.as_mut().map_err(|err| err.clone())?;
-        let actions = Actions::new(&schema, &target);
+        println!("get_migrations");
+        let schema = self.result.as_mut().map_err(|x| x.clone())?;
+        let actions = Actions::new(&schema, &target)?;
 
-        let migrations = actions.as_migrations();
-        for migr in &migrations {
+        let mut migrations = actions.as_migrations()?;
+
+        for migr in &mut migrations {
+            let old_schema = schema.clone();
             for stmt in migr.up() {
                 schema.update(&stmt)?;
             }
+            migr.create_down(old_schema, schema, &target.name)?;
         }
         Ok(migrations)
     }

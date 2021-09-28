@@ -4,7 +4,6 @@ version = "0.0.3"
 edition = "2018"
 license = "Apache-2.0"
 description = "A helper crate for `models`"
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [lib]
 proc-macro = true
 
@@ -14,5 +13,5 @@ helpers = []
 [dependencies]
 proc-macro2 = "1.0.28"
 quote = "1.0.9"
-sqlx-models-parser = "0.0.1"
+models-parser ={version = "0.1.0", path = "../models-parser"}
 syn = "1.0.74"

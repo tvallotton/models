@@ -1,5 +1,7 @@
+use anyhow::Result;
+use sqlx::migrate::{MigrateError, Migrator};
+use std::path::Path;
 use structopt::StructOpt;
-
 #[derive(StructOpt, Debug)]
 pub struct Opt {
     #[structopt(subcommand)]
@@ -11,36 +13,11 @@ pub enum Command {
     #[structopt(alias = "db")]
     Database(DatabaseOpt),
 
-    /// Generate query metadata to support offline compile-time verification.
-    ///
-    /// Saves metadata for all invocations of `query!` and related macros to `sqlx-data.json`
-    /// in the current directory, overwriting if needed.
-    ///
-    /// During project compilation, the absence of the `DATABASE_URL` environment variable or
-    /// the presence of `SQLX_OFFLINE` (with a value of `true` or `1`) will constrain the
-    /// compile-time verification to only read from the cached query metadata.
-    #[structopt(alias = "prep")]
-    Prepare {
-        /// Run in 'check' mode. Exits with 0 if the query metadata is up-to-date. Exits with
-        /// 1 if the query metadata needs updating.
-        #[structopt(long)]
-        check: bool,
-
-        /// Generate a single top-level `sqlx-data.json` file when using a cargo workspace.
-        #[structopt(long)]
-        merged: bool,
-
-        /// Arguments to be passed to `cargo rustc ...`.
-        #[structopt(last = true)]
-        args: Vec<String>,
-
-        /// Location of the DB, by default will be read from the DATABASE_URL env var
-        #[structopt(long, short = "D", env)]
-        database_url: String,
-    },
-
     #[structopt(alias = "mig")]
     Migrate(MigrateOpt),
+
+    #[structopt(alias = "gen")]
+    Generate(GenerateOpt),
 }
 
 /// Group of commands for creating and dropping your database.
@@ -109,6 +86,38 @@ pub struct MigrateOpt {
     #[structopt(subcommand)]
     pub command: MigrateCommand,
 }
+/// Commands related to automatic migration generation.
+#[derive(StructOpt, Debug)]
+pub struct GenerateOpt {
+    /// Location of the DB, by default will be read from the DATABASE_URL env var
+    #[structopt(long, short = "D", env)]
+    pub database_url: String,
+    /// Path to folder containing migrations.
+    #[structopt(long, default_value = "migrations")]
+    pub source: String,
+    /// Used to filter through the models to execute.
+    #[structopt(long)]
+    pub table: Option<String>,
+    /// Used to generate a down migrations along with up migrations.
+    #[structopt(short)]
+    pub reversible: bool,
+}
+
+impl GenerateOpt {
+    
+
+    pub async fn validate(&self) -> Result<()> {
+        url::Url::parse(&self.database_url)?;
+        let migrator = Migrator::new(Path::new(&self.source)).await?;
+        for migration in migrator.iter() {
+            if migration.migration_type.is_reversible() != self.reversible {
+                Err(MigrateError::InvalidMixReversibleAndSimple)?
+            }
+        }
+
+        Ok(())
+    }
+}
 
 #[derive(StructOpt, Debug)]
 pub enum MigrateCommand {
@@ -136,17 +145,6 @@ pub enum MigrateCommand {
         /// Location of the DB, by default will be read from the DATABASE_URL env var
         #[structopt(long, short = "D", env)]
         database_url: String,
-    },
-
-    /// Generate migrations from Model.
-    #[structopt(alias = "gen")]
-    Generate {
-        /// Location of the DB, by default will be read from the DATABASE_URL env var
-        #[structopt(long, short = "D", env)]
-        database_url: String,
-        /// Used to filter through the models to execute.
-        #[structopt(long)]
-        table: Option<String>,
     },
 
     /// Revert the latest migration with a down file.
