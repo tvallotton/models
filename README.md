@@ -1,6 +1,5 @@
 # Models
-Models is a work in progress implementation for a sql migration management tool.
-Beware, this is still under development, and some API's may be broken in the future. 
+Models is an implementation for a sql migration management tool.
 
 
 # Basic Tutorial
