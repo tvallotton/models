@@ -2,7 +2,7 @@
 Models is an implementation for a SQL migration management tool.
 
 
-# Basic Tutorial
+# Quick Start
 
 install the CLI by running the following command: 
 ```
@@ -109,6 +109,19 @@ Applied 1631716729998/migrate commentlike (374.625µs)
 ```
 If we later modify those structures in our application, we can generate new migrations to update the tables. 
 
+## Reverting migration
+Models can generate down migrations with the `-r` flag. Note that simple and reversible migrations cannot be mixed: 
+```
+$ models generate -r
+```
+In order to revert the last migration executed you can run: 
+```
+$ models migrate revert
+```
+If you later want to see which migrations are yet to be applied you can also excecute: 
+```
+$ models migrate info
+```
 ## Avaibale Attributes
 ### primary_key
 It's used to mark the primary key fo the table. 
