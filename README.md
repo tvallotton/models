@@ -1,5 +1,5 @@
 # Models
-Models is an implementation for a sql migration management tool.
+Models is an implementation for a SQL migration management tool.
 
 
 # Basic Tutorial
@@ -21,7 +21,7 @@ We now can create the database running the following command:
 ```
 $ models database create
 ```
-This command will have created an sqlite file called `database.db`. 
+This command will have created an SQLite file called `database.db`. 
 You can now derive the `Model` trait on your structures, 
 and `models` will manage the migrations for you. For example, write at `src/main.rs`: 
 ```rust
