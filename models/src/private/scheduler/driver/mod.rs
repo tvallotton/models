@@ -6,6 +6,7 @@ mod report;
 mod schema;
 use actions::Actions;
 use queue::*;
+
 pub(crate) use report::*;
 use schema::*;
 
@@ -45,6 +46,7 @@ impl Driver {
     }
 
     pub fn migrate(&mut self) {
+        self.queue.remove_unregistered(); 
         loop {
             match self.queue.pop() {
                 Some(target) => self.migrate_table(target),
