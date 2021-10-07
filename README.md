@@ -1,5 +1,5 @@
 # Models
-Models is an implementation for a SQL migration management tool.
+Models is an implementation for a SQL migration management tool. It supports PostgreSQL, MySQL, and SQLite. 
 
 
 # Quick Start
