@@ -29,13 +29,12 @@ and `models` will manage the migrations for you. For example, write at `src/main
 use models::Model; 
 
 #[derive(Model)]
-struct User {
+struct Profile {
     #[primary_key]
     id: i32,
     #[unique]
     email: String,
     password: String,
-    #[default(0)]
     is_admin: bool,
 }
 
@@ -43,7 +42,7 @@ struct User {
 struct Post {
     #[primary_key]
     id: i32,
-    #[foreign_key(User.id)]
+    #[foreign_key(Profile.id)]
     author: String,
     #[default("<Untitled Post>")]
     title: String,
@@ -52,21 +51,20 @@ struct Post {
 
 #[derive(Model)]
 struct PostLike {
-    #[foreign_key(User.id, on_delete="cascade")]
+    #[foreign_key(Profile.id, on_delete="cascade")]
     #[primary_key(post_id)]
-    user_id: i32,
+    profile_id: i32,
     #[foreign_key(Post.id, on_delete="cascade")]
     post_id: i32,
 }
 
 #[derive(Model)]
 struct CommentLike {
-    #[foreign_key(User.id)]
+    #[foreign_key(Profile.id)]
     #[primary_key(comment_id)]
-    user_id: i32,
+    profile_id: i32,
     #[foreign_key(Comment.id)]
     comment_id: i32,
-    #[default(0)]
     is_dislike: bool,
 }
 
@@ -74,7 +72,7 @@ struct CommentLike {
 struct Comment {
     #[primary_key]
     id: i32,
-    #[foreign_key(User.id)]
+    #[foreign_key(Profile.id)]
     author: i32,
     #[foreign_key(Post.id)]
     post: i32,
@@ -88,7 +86,7 @@ $ models generate
 ```
 The output should look like this: 
 ```
-Generated: migrations/1632280793452 user
+Generated: migrations/1632280793452 profile
 Generated: migrations/1632280793459 post
 Generated: migrations/1632280793465 postlike
 Generated: migrations/1632280793471 comment
@@ -101,7 +99,7 @@ models migrate run
 ```
 The output should look like this: 
 ```
-Applied 1631716729974/migrate user (342.208µs)
+Applied 1631716729974/migrate profile (342.208µs)
 Applied 1631716729980/migrate post (255.958µs)
 Applied 1631716729986/migrate comment (287.792µs)
 Applied 1631716729993/migrate postlike (349.834µs)
@@ -143,17 +141,17 @@ This is equivalent to
 ### foreign_key
 It is used to mark a foreign key constraint. 
 ```rust
-    #[foreign_key(User.id)]
-    user: i32, 
+    #[foreign_key(Profile.id)]
+    profile: i32, 
 ```
 It can also specify `on_delete` and `on_update` constraints: 
 ```rust
-    #[foreign_key(User.id, on_delete="cascade")]
-    user_id: i32, 
+    #[foreign_key(Profile.id, on_delete="cascade")]
+    profile_id: i32, 
 ```
 This is equivalent to
 ```sql
-    FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE,
+    FOREIGN KEY (profile_id) REFERENCES profile (id) ON DELETE CASCADE,
 ```
 ### default
 It can be used to set a default value for a column. 
@@ -175,10 +173,10 @@ It is used to mark a unique constraint.
 For multicolumn unique constraints the following syntax is used: 
 ```rust
     #[unique(post_id)]
-    user_id: String,
+    profile_id: String,
     post_id: i32,
 ```
 This is equivalent to
 ```sql
-    UNIQUE (user_id, post_id),
+    UNIQUE (profile_id, post_id),
 ```
