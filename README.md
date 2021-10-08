@@ -43,7 +43,7 @@ struct Post {
     #[primary_key]
     id: i32,
     #[foreign_key(Profile.id)]
-    author: String,
+    author: i32,
     #[default("<Untitled Post>")]
     title: String,
     content: String,
