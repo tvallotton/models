@@ -133,7 +133,7 @@ for tables with multicolumn primary keys, the following syntax is used:
     first_id: i32, 
     second_id: i32, 
 ```
-This is equivalent to
+This is equivalent to:
 ```sql
     PRIMARY KEY (first_id, second_id),
 ```
@@ -149,7 +149,7 @@ It can also specify `on_delete` and `on_update` constraints:
     #[foreign_key(Profile.id, on_delete="cascade")]
     profile_id: i32, 
 ```
-This is equivalent to
+This is equivalent to:
 ```sql
     FOREIGN KEY (profile_id) REFERENCES profile (id) ON DELETE CASCADE,
 ```
@@ -176,7 +176,7 @@ For multicolumn unique constraints the following syntax is used:
     profile_id: String,
     post_id: i32,
 ```
-This is equivalent to
+This is equivalent to:
 ```sql
     UNIQUE (profile_id, post_id),
 ```
