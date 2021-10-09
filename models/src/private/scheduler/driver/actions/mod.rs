@@ -18,6 +18,7 @@ pub(crate) struct Actions<'table> {
 impl<'table> Actions<'table> {
     pub fn new(schema: &'table Schema, target: &'table Table) -> Result<Self> {
         let table = schema.get_table(&target.name);
+
         let mut out = Self {
             name: &target.name,
             actions: vec![],

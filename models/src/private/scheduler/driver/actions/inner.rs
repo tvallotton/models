@@ -8,6 +8,7 @@ impl<'table> Inner<'table> {
     pub fn columns(&self) -> ColCRUD<'table> {
         let current = &self.table.unwrap().columns;
         let target = &self.target.columns;
+
         CRUD::new(current, target)
     }
 

@@ -95,7 +95,6 @@ impl Migration {
             return Ok(Some(Report { timestamp, name }));
         };
     }
-    
 
     #[cfg(feature = "sqlformat")]
     fn formatted_stmt(stmt: &Statement) -> String {

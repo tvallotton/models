@@ -4,7 +4,6 @@ use console::style;
 use serde::*;
 use serde_json::from_str;
 
-
 #[derive(Serialize, Deserialize)]
 
 struct MigrationError {

@@ -1,13 +1,14 @@
 pub use crate::prelude::*;
 pub use collections::HashSet;
+use models_parser::dialect::keywords::DATABASE;
 
-pub(crate) trait Compare {
+pub(crate) trait Compare: std::fmt::Debug {
     fn bodies_are_equal(&self, other: &Self) -> bool;
     fn name(&self) -> Result<String>;
     fn are_modified(&self, other: &Self) -> bool {
         let names = self.names_are_equal(other);
-        let bodies = self.bodies_are_equal(other);
-        names && !bodies
+        
+        names && !self.bodies_are_equal(other)
     }
     fn names_are_equal(&self, other: &Self) -> bool {
         let first = match self.name() {
@@ -18,14 +19,11 @@ pub(crate) trait Compare {
             Ok(name) => name,
             Err(_) => return false,
         };
-        
 
-        
         first == second
     }
 
     fn are_equal(&self, other: &Self) -> bool {
-        
         self.names_are_equal(other) && self.bodies_are_equal(other)
     }
 
@@ -41,8 +39,8 @@ impl Compare for Column {
     }
 
     fn bodies_are_equal(&self, other: &Self) -> bool {
-        let type1 = self.r#type.to_string().to_lowercase();
-        let type2 = self.r#type.to_string().to_lowercase();
+        let type1 = &self.r#type;
+        let type2 = &other.r#type;
 
         type1 == type2 && {
             let h1 = self

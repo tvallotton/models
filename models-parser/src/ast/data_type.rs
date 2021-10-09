@@ -75,15 +75,15 @@ pub enum DataType {
     Custom(ObjectName),
     /// Arrays
     Array(Box<DataType>),
+    Json,
 }
 
 impl fmt::Display for DataType {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
+            DataType::Json => write!(f, "JSON"),
             DataType::Char(size) => format_type_with_optional_length(f, "CHAR", size),
-            DataType::Varchar(size) => {
-                format_type_with_optional_length(f, "CHARACTER VARYING", size)
-            }
+            DataType::Varchar(size) => format_type_with_optional_length(f, "VARCHAR", size),
             DataType::Uuid => write!(f, "UUID"),
             DataType::Clob(size) => write!(f, "CLOB({})", size),
             DataType::Binary(size) => write!(f, "BINARY({})", size),

@@ -5,7 +5,7 @@
 // | Rust                 | PostgreSQL               | MySQL                    | SQLite                   |
 // |----------------------|--------------------------|--------------------------|--------------------------|
 // | `bool`               | BOOLEAN                  | BOOLEAN                  | BOOLEAN                  |
-// | `i8`                 | SMALLINT                 | TINYINT                  | TINYINT                  |
+// | `i8`                 | SMALLINT                 | TINYINT                  | INTEGER                  |
 // | `i16`                | SMALLINT                 | SMALLINT                 | SMALLINT                 |
 // | `i32`                | INT                      | INT                      | INTEGER                  |
 // | `i64`                | BIGINT                   | BIGINT                   | BIGINT                   |
@@ -16,27 +16,47 @@
 // | `f32`                | REAL                     | FLOAT                    | REAL                     |
 // | `f64`                | DOUBLE                   | DOUBLE                   | REAL                     |
 // | `String`             | TEXT                     | TEXT                     | TEXT                     |
-// | `Vec<u8>`            | BYTEA                   | VARBINARY, BINARY, BLOB  | VARBINARY, BINARY, BLOB  |
+// | `Vec<u8>`            | BYTEA                    | VARBINARY, BINARY, BLOB  | BLOB                     |
 //
 // ### [`chrono`](https://crates.io/crates/chrono)
 //
 // Requires the `chrono` Cargo feature flag.
 //
-// | Rust type                             | MySQL type(s)                                        |
-// |---------------------------------------|------------------------------------------------------|
-// | `chrono::DateTime<Utc>`               | TIMESTAMP                                            |
-// | `chrono::DateTime<Local>`             | TIMESTAMP                                            |
-// | `chrono::NaiveDateTime`               | DATETIME                                             |
-// | `chrono::NaiveDate`                   | DATE                                                 |
-// | `chrono::NaiveTime`                   | TIME                                                 |
+// | Rust type                     | MySQL                   | Postgres           | SQLite             |
+// |-------------------------------|-------------------------|--------------------|--------------------|
+// | `chrono::DateTime<Utc>`       | TIMESTAMP               | TIMESTAMPTZ        | DATETIME           |
+// | `chrono::DateTime<Local>`     | TIMESTAMP               | TIMESTAMPTZ        | DATETIME           |
+// | `chrono::NaiveDateTime`       | DATETIME                | TIMESTAMP          | DATETIME           |
+// | `chrono::NaiveDate`           | DATE                    | DATE               | DATETIME           |
+// | `chrono::NaiveTime`           | TIME                    | TIME               | DATETIME           |
 //
-// TODO:
-// Fix DataType in models-parser so it preserves the original type name.
-// e.g. INTEGER is parsed to INT which is not recognized by SQLite.
 
+//! ### [`chrono`](https://crates.io/crates/chrono)
+//!
+//! Requires the `chrono` Cargo feature flag.
+//!
+//! | Rust type                             | Postgres type(s)                                     |
+//! |---------------------------------------
+//! | `chrono::DateTime<Utc>`               
+//! | `chrono::DateTime<Local>`             
+//! | `chrono::NaiveDateTime`               
+//! | `chrono::NaiveDate`                   
+//! | `chrono::NaiveTime`                   
+//! | [`PgTimeTz`]                          | TIMETZ                                               |
+//!
+
+#[cfg(feature = "json")]
+mod json;
+mod var_binary;
+mod var_char;
+// mod serial; 
+// pub serial::Serial; 
 use models_parser::ast::DataType;
-// pub struct VarChar<const SIZE: usize>(pub String);
-// pub struct VarBinary<const SIZE: usize>(pub Vec<u8>);
+pub use var_binary::VarBinary;
+pub use var_char::VarChar;
+
+use crate::prelude::*;
+
 // #[cfg(feature = "binary")]
 // pub struct Bytes<T>(pub T);
 // #[cfg(feature = "json")]
@@ -44,6 +64,9 @@ use models_parser::ast::DataType;
 // #[cfg(feature = "chrono")]
 // pub use chrono::DateTime;
 
+/// Do not use this trait in your production code.
+/// Its intended use is for migration management only.
+/// It will panic if used outside its intended API.
 pub trait IntoSQL {
     fn into_sql() -> DataType;
     const IS_NULLABLE: bool = false;
@@ -109,12 +132,18 @@ impl IntoSQL for String {
 }
 impl<const N: usize> IntoSQL for [u8; N] {
     fn into_sql() -> DataType {
-        DataType::Blob(Some(N as u64))
+        match *DIALECT {
+            PostgreSQL => DataType::Bytea,
+            _ => DataType::Blob(Some(N as u64)),
+        }
     }
 }
 impl IntoSQL for Vec<u8> {
     fn into_sql() -> DataType {
-        DataType::Blob(None)
+        match *DIALECT {
+            PostgreSQL => DataType::Bytea,
+            _ => DataType::Blob(None),
+        }
     }
 }
 
@@ -128,10 +157,3 @@ impl IntoSQL for bool {
         DataType::Boolean
     }
 }
-
-// #[cfg(feature = "json")]
-// impl<T> IntoSQL for Json<T> {
-//     fn into_sql() -> DataType {
-//         DataType::Custom(ObjectName(vec![Ident::new("JSON")]))
-//     }
-// }

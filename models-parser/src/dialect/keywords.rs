@@ -255,6 +255,7 @@ define_keywords!(
     IS,
     ISOLATION,
     JOIN,
+    JSON,
     JSONFILE,
     KEY,
     LAG,

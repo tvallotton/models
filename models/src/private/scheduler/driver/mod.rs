@@ -46,7 +46,7 @@ impl Driver {
     }
 
     pub fn migrate(&mut self) {
-        self.queue.remove_unregistered(); 
+        self.queue.remove_unregistered();
         loop {
             match self.queue.pop() {
                 Some(target) => self.migrate_table(target),

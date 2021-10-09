@@ -10,8 +10,7 @@ macro_rules! error {
         Error::Message(format!($($args),*))
     };
 }
-       
-       
+
 #[derive(Error, Debug, Clone)]
 pub enum Error {
     #[error("syntax error: {0}")]
@@ -33,7 +32,7 @@ impl Error {
             Self::Message(_) => "error",
             Self::IO(_) => "IOError",
             Self::Syntax(_) => "SyntaxError",
-            Self::SyntaxAtFile(_, _) => "SyntaxAtFile"
+            Self::SyntaxAtFile(_, _) => "SyntaxAtFile",
         }
     }
 

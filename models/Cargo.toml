@@ -9,7 +9,8 @@ readme = "../README.md"
 authors = ["Tomas Vallotton <tvallotton@uc.cl>"]
 
 [features]
-default = ["sqlformat"]
+default = ["sqlformat", "json", "sqlx"]
+json = ["serde", "serde_json"]
 # postgres = []
 # sqlx = []
 # rusqlite = []
@@ -26,4 +27,10 @@ models-proc-macro ={version = "0.1.0", path = "../models-proc-macro"}
 once_cell = "1.8.0"
 url = "2.2.2"
 sqlformat = { version = "0.1.8", optional = true }
-# chrono = {version = "0.4.19", optional = true }
+serde = { version = "1.0.130", features = ["derive"], optional = true}
+serde_json = {version = "1.0.68", optional = true}
+sqlx = {version = "0.5.9", optional = true}
+
+
+[dev-dependencies]
+sqlx = {version = "0.5.9", features = ["runtime-tokio-rustls"] }
