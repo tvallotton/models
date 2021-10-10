@@ -14,7 +14,6 @@
 use alloc::boxed::Box;
 use core::fmt;
 
-
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
@@ -35,7 +34,7 @@ pub enum DataType {
     /// Fixed-length binary type e.g. BINARY(10)
     Binary(u64),
     /// Variable-length binary type e.g. VARBINARY(10)
-    Varbinary(u64),
+    Varbinary(Option<u64>),
     /// Large binary object e.g. BLOB(1000)
     Blob(Option<u64>),
     /// Decimal type with optional precision and scale e.g. DECIMAL(10,2)
@@ -76,10 +75,10 @@ pub enum DataType {
     Custom(ObjectName),
     /// Arrays
     Array(Box<DataType>),
-    /// JSON 
+    /// JSON
     Json,
     /// Serial PostgeSQL type
-    Serial
+    Serial,
 }
 
 impl fmt::Display for DataType {
@@ -92,7 +91,7 @@ impl fmt::Display for DataType {
             DataType::Uuid => write!(f, "UUID"),
             DataType::Clob(size) => write!(f, "CLOB({})", size),
             DataType::Binary(size) => write!(f, "BINARY({})", size),
-            DataType::Varbinary(size) => write!(f, "VARBINARY({})", size),
+            DataType::Varbinary(size) => format_type_with_optional_length(f, "VARBINARY", size),
             DataType::Blob(size) => {
                 if let Some(size) = size {
                     write!(f, "BLOB({})", size)

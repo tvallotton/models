@@ -37,7 +37,7 @@ impl<'table> Actions<'table> {
         let constraints = inner.constraints();
 
         if move_required(&columns, &constraints) {
-            self.perform_move(&inner, columns, constraints);
+            self.perform_move(&inner, columns, constraints)?;
         } else {
             let table_name = &inner.target.name;
             for col in columns.delete {
@@ -75,7 +75,14 @@ impl<'table> Actions<'table> {
         inner: &Inner<'table>,
         cols: ColCRUD<'table>,
         cons: ConsCRUD<'table>,
-    ) {
+    ) -> Result<()> {
+        // constraints are dropped so they do not conflict
+        if matches!(*DIALECT, PostgreSQL | MySQL) {
+            for con in &inner.table.unwrap().constraints {
+                let drop_cons = Action::drop_cons(&inner.table.unwrap().name, con)?;
+                self.actions.push(drop_cons);
+            }
+        }
         let move_action = Action::move_to(inner.table.unwrap(), &cols, &cons);
         self.actions.push(move_action);
         let table_name = &inner.target.name;
@@ -96,6 +103,7 @@ impl<'table> Actions<'table> {
                 self.actions.push(action);
             }
         }
+        Ok(())
     }
 
     pub fn as_migrations(self) -> Result<Vec<Migration>> {

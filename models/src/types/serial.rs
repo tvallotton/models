@@ -51,13 +51,4 @@ impl IntoSQL for Serial {
     }
 }
 
-#[cfg(feature = "sqlx/postgres")]
-mod sqlx_impl {
-    use sqlx::{PgTypeInfo, Postgres, Type, postgres::PgTypeInfo};
-    impl Type<Postgres> for Serial {
-        type TypeInfo = PgTypeInfo; 
-        fn type_info() -> PgTypeInfo {
-            PgTypeInfo::INT4
-        }
-    }
-}
+

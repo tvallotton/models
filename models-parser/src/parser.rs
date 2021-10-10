@@ -2037,6 +2037,7 @@ impl<'a> Parser<'a> {
                 }
                 Keyword::BIGINT => Ok(DataType::BigInt(self.parse_optional_precision()?)),
                 Keyword::VARCHAR => Ok(DataType::Varchar(self.parse_optional_precision()?)),
+                Keyword::VARBINARY => Ok(DataType::Varbinary(self.parse_optional_precision()?)),
                 Keyword::BLOB => Ok(DataType::Blob(self.parse_optional_precision()?)),
                 Keyword::CHAR | Keyword::CHARACTER => {
                     if self.parse_keyword(Keyword::VARYING) {

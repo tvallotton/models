@@ -151,6 +151,7 @@ impl<T: IntoSQL> IntoSQL for Option<T> {
     fn into_sql() -> DataType {
         T::into_sql()
     }
+    const IS_NULLABLE: bool = false; 
 }
 impl IntoSQL for bool {
     fn into_sql() -> DataType {

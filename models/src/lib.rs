@@ -192,11 +192,5 @@ pub mod private;
 mod tests;
 pub mod types;
 
-// #[cfg(feature = "tokio_postgres")]
-// mod postgres;
-// #[cfg(feature = "rusqlite")]
-// mod rusqlite;
-// #[cfg(feature = "sqlx")]
-// mod sqlx;
-// #[cfg(feature = "tokio_postgres")]
-// mod tokio_postgres;
+
+pub use types::{Serial, VarChar, VarBinary}; 

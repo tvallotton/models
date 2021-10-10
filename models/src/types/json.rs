@@ -46,38 +46,9 @@ mod sqlx_impl {
         database::{HasArguments, HasValueRef},
         decode::Decode,
         encode::{Encode, IsNull},
-        types::Type,
         Database,
     };
     use std::io::Write;
-
-    // impl<T, DB> Type<DB> for Json<T>
-    // where
-    //     DB: Database,
-    //     sqlx::types::Json<T>: Type<DB>,
-    // {
-    //     fn type_info() -> <DB as Database>::TypeInfo {
-    //         sqlx::types::Json::type_info()
-    //     }
-
-    //     fn compatible(ty: &<DB as Database>::TypeInfo) -> bool {
-    //         sqlx::types::Json::compatible(ty)
-    //     }
-    // }
-
-    // impl<T, DB> Type<DB> for Json<T>
-    // where
-    //     DB: Database,
-    //     sqlx::types::Json<T>: Type<DB>,
-    // {
-    //     fn type_info() -> <DB as Database>::TypeInfo {
-    //         sqlx::types::Json::type_info()
-    //     }
-
-    //     fn compatible(ty: &<DB as Database>::TypeInfo) -> bool {
-    //         sqlx::types::Json::compatible(ty)
-    //     }
-    // }
 
     impl<'q, T, DB> Encode<'q, DB> for Json<T>
     where
