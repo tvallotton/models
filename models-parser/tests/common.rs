@@ -1171,8 +1171,8 @@ fn parse_create_table() {
         sql,
         "CREATE TABLE uk_cities (\
          name VARCHAR(100) NOT NULL, \
-         lat DOUBLE NULL, \
-         lng DOUBLE, \
+         lat DOUBLE PRECISION NULL, \
+         lng DOUBLE PRECISION, \
          constrained INTEGER NULL CONSTRAINT pkey PRIMARY KEY NOT NULL UNIQUE CHECK (constrained > 0), \
          ref INTEGER REFERENCES othertable (a, b), \
          ref2 INTEGER REFERENCES othertable2 ON DELETE CASCADE ON UPDATE NO ACTION, \
@@ -1532,8 +1532,8 @@ fn parse_create_external_table() {
         sql,
         "CREATE EXTERNAL TABLE uk_cities (\
          name VARCHAR(100) NOT NULL, \
-         lat DOUBLE NULL, \
-         lng DOUBLE) \
+         lat DOUBLE PRECISION NULL, \
+         lng DOUBLE PRECISION) \
          STORED AS TEXTFILE LOCATION '/tmp/example.csv'",
     );
     match ast {
@@ -1651,8 +1651,8 @@ fn parse_create_external_table_lowercase() {
         sql,
         "CREATE EXTERNAL TABLE uk_cities (\
          name VARCHAR(100) NOT NULL, \
-         lat DOUBLE NULL, \
-         lng DOUBLE) \
+         lat DOUBLE PRECISION NULL, \
+         lng DOUBLE PRECISION) \
          STORED AS PARQUET LOCATION '/tmp/example.csv'",
     );
     assert_matches!(ast, Statement::CreateTable { .. });

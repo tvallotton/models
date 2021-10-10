@@ -120,7 +120,7 @@ impl fmt::Display for DataType {
             }
             DataType::BigInt(zerofill) => format_type_with_optional_length(f, "BIGINT", zerofill),
             DataType::Real => write!(f, "REAL"),
-            DataType::Double => write!(f, "DOUBLE"),
+            DataType::Double => write!(f, "DOUBLE PRECISION"),
             DataType::Boolean => write!(f, "BOOLEAN"),
             DataType::Date => write!(f, "DATE"),
             DataType::Time => write!(f, "TIME"),
@@ -133,6 +133,11 @@ impl fmt::Display for DataType {
             DataType::Array(ty) => write!(f, "{}[]", ty),
             DataType::Custom(ty) => write!(f, "{}", ty),
         }
+    }
+}
+impl DataType {
+    pub fn custom(custom: &str) -> Self {
+        Self::Custom(ObjectName(vec![super::Ident::new(custom)]))
     }
 }
 

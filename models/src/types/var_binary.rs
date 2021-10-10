@@ -8,6 +8,26 @@ use std::{
 #[cfg(feature = "serde")]
 use serde::*;
 
+
+/// Used for MySQL when to specify that the datatype should be
+/// a `VARBINARY(N)`. The database will make sure the field does not 
+/// go over the specified length. 
+/// ```
+/// use models::{Model, VarChar}; 
+/// #[derive(Model)]
+/// struct Example {
+///     bin_data: VarBinary<255>
+/// }
+/// ```
+/// The previous structure would generate: 
+/// ```sql
+/// CREATE TABLE example (
+///     bin_data VarBinary(255) NOT NULL
+/// ); 
+/// ```
+
+#[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
+#[cfg_attr(feature = "sqlx", sqlx(transparent))]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Debug, Clone, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct VarBinary<const SIZE: u64>(pub Vec<u8>);
@@ -60,59 +80,5 @@ where
 {
     fn from(obj: T) -> Self {
         VarBinary(obj.into())
-    }
-}
-
-#[cfg(feature = "sqlx")]
-mod sqlx_impl {
-    use super::*;
-    use sqlx::{
-        database::{HasArguments, HasValueRef},
-        encode::IsNull,
-        Database, Decode, Encode, Type,
-    };
-
-    impl<DB, const N: u64> Type<DB> for VarBinary<N>
-    where
-        DB: Database,
-        String: Type<DB>,
-    {
-        fn type_info() -> DB::TypeInfo {
-            String::type_info()
-        }
-        fn compatible(ty: &DB::TypeInfo) -> bool {
-            String::compatible(ty)
-        }
-    }
-    impl<'q, DB, const N: u64> Encode<'q, DB> for VarBinary<N>
-    where
-        DB: Database,
-        Vec<u8>: Encode<'q, DB>,
-    {
-        fn encode_by_ref(&self, buf: &mut <DB as HasArguments<'q>>::ArgumentBuffer) -> IsNull {
-            self.0.encode_by_ref(buf)
-        }
-        fn encode(self, buf: &mut <DB as HasArguments<'q>>::ArgumentBuffer) -> IsNull
-        where
-            Self: Sized,
-        {
-            self.0.encode(buf)
-        }
-        fn size_hint(&self) -> usize {
-            self.0.size_hint()
-        }
-    }
-
-    impl<'r, DB, const N: u64> Decode<'r, DB> for VarBinary<N>
-    where
-        DB: Database,
-        Vec<u8>: Decode<'r, DB>,
-    {
-        fn decode(
-            value: <DB as HasValueRef<'r>>::ValueRef,
-        ) -> Result<Self, Box<dyn std::error::Error + 'static + Send + Sync>> {
-            let string_value = <Vec<u8> as Decode<DB>>::decode(value)?;
-            Ok(VarBinary(string_value))
-        }
     }
 }

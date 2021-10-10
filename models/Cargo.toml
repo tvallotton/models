@@ -30,9 +30,10 @@ sqlformat = { version = "0.1.8", optional = true }
 serde = { version = "1.0.130", features = ["derive"], optional = true}
 serde_json = {version = "1.0.68", optional = true}
 sqlx = {version = "0.5.9", optional = true}
+chrono = {version = "0.4.19", optional = true}
 
 
 [dev-dependencies]
-    
+
 sqlx = {version = "0.5.9", features = ["runtime-async-std-native-tls", "postgres"] }
-models = {path = "../models", features = ["sqlformat", "json", "sqlx"]}
+models = {path = "../models", features = ["sqlformat", "json", "sqlx", "chrono"]}

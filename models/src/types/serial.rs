@@ -5,6 +5,21 @@ use std::ops::{Deref, DerefMut};
 
 use super::IntoSQL;
 
+
+/// PostgreSQL `SERIAL` type. It enables autoincrementing functionality. 
+/// Example: 
+/// ```
+/// struct Profile {
+///     id: Serial,
+/// }
+/// ```
+/// The previus structure would generate: 
+/// ```sql
+/// CREATE TABLE profile (
+///     id SERIAL NOT NULL
+/// );
+/// ```
+/// 
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 #[cfg_attr(feature = "sqlx", sqlx(transparent))]

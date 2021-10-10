@@ -1,5 +1,5 @@
 //! # Models
-//! Models is an implementation for a SQL migration management tool. It supports PostgreSQL, MySQL, and SQLite.
+//! Models is a SQL migration management tool. It supports PostgreSQL, MySQL, and SQLite.
 //!
 //!
 //! # Quick Start
@@ -9,7 +9,7 @@
 //! $ cargo install models-cli
 //! ```
 //!
-//! Now run the following command to cºate an environment file with the `DATABASE_URL` variable set:
+//! Now run the following command to create an environment file with the `DATABASE_URL` variable set:
 //! ```ignore
 //! $ echo "DATABASE_URL=sqlite://database.db" > .env
 //! ```
@@ -193,4 +193,4 @@ mod tests;
 pub mod types;
 
 
-pub use types::{Serial, VarChar, VarBinary}; 
+pub use types::{Serial, VarChar, VarBinary, Json, Timestamp, Date, DateTime}; 

@@ -6,7 +6,26 @@ use std::{
     convert::AsMut,
     ops::{Deref, DerefMut},
 };
+
+/// Used for MySQL when to specify that the datatype should be
+/// a `VARCHAR(N)`. The database will make sure the field does not 
+/// go over the specified length. 
+/// ```
+/// use models::{Model, VarChar}; 
+/// #[derive(Model)]
+/// struct Profile {
+///     email: VarChar<255>
+/// }
+/// ```
+/// The previous structure would generate: 
+/// ```sql
+/// CREATE TABLE profile (
+///     email VARCHAR(255) NOT NULL
+/// ); 
+/// ```
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
+#[cfg_attr(feature = "sqlx", sqlx(transparent))]
 #[derive(Clone, Default, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct VarChar<const SIZE: u64>(pub String);
 
@@ -57,59 +76,6 @@ impl<const N: u64> IntoSQL for VarChar<N> {
         match *DIALECT {
             SQLite => DataType::Text,
             _ => DataType::Varchar(Some(N)),
-        }
-    }
-}
-#[cfg(feature = "sqlx")]
-mod sqlx_impl {
-    use super::*;
-    use sqlx::{
-        database::{HasArguments, HasValueRef},
-        encode::IsNull,
-        Database, Decode, Encode, Type,
-    };
-
-    impl<DB, const N: u64> Type<DB> for VarChar<N>
-    where
-        DB: Database,
-        String: Type<DB>,
-    {
-        fn type_info() -> DB::TypeInfo {
-            String::type_info()
-        }
-        fn compatible(ty: &DB::TypeInfo) -> bool {
-            String::compatible(ty)
-        }
-    }
-    impl<'q, DB, const N: u64> Encode<'q, DB> for VarChar<N>
-    where
-        DB: Database,
-        String: Encode<'q, DB>,
-    {
-        fn encode_by_ref(&self, buf: &mut <DB as HasArguments<'q>>::ArgumentBuffer) -> IsNull {
-            self.0.encode_by_ref(buf)
-        }
-        fn encode(self, buf: &mut <DB as HasArguments<'q>>::ArgumentBuffer) -> IsNull
-        where
-            Self: Sized,
-        {
-            self.0.encode(buf)
-        }
-        fn size_hint(&self) -> usize {
-            self.0.size_hint()
-        }
-    }
-
-    impl<'r, DB, const N: u64> Decode<'r, DB> for VarChar<N>
-    where
-        DB: Database,
-        String: Decode<'r, DB>,
-    {
-        fn decode(
-            value: <DB as HasValueRef<'r>>::ValueRef,
-        ) -> Result<Self, Box<dyn std::error::Error + 'static + Send + Sync>> {
-            let string_value = <String as Decode<DB>>::decode(value)?;
-            Ok(VarChar(string_value))
         }
     }
 }

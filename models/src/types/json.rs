@@ -3,7 +3,22 @@ use models_parser::ast::DataType;
 use serde::*;
 use std::ops::{Deref, DerefMut};
 
-#[derive(Serialize, Deserialize, Clone, Default, Hash)]
+/// Used to hold serilizable data. The type generated is `JSON`. 
+/// ```rust
+/// struct Author {
+///     books: Json<Vec<String>>
+/// }
+/// ```
+/// The previous structure would generate: 
+/// ```sql
+/// CREATE TABLE author (
+///     books JSON NOT NULL,
+/// );
+/// ```
+
+
+
+#[derive(Serialize, Deserialize, Clone, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Json<T>(pub T);
 
 impl<T> Deref for Json<T> {
