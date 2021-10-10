@@ -1,41 +1,37 @@
+
+//!
+//! # Types
+//!
+//! | Rust             | PostgreSQL    | MySQL                    | SQLite              |
+//! |------------      |---------------|--------------------------|---------------------|
+//! | `bool`           | BOOLEAN       | BOOLEAN                  | BOOLEAN             |
+//! | `i8`             | SMALLINT      | TINYINT                  | INTEGER             |
+//! | `i16`            | SMALLINT      | SMALLINT                 | INTEGER             |
+//! | `i32`            | INT           | INT                      | INTEGER             |
+//! | `i64`            | BIGINT        | BIGINT                   | INTEGER             |
+//! | `f32`            | REAL          | FLOAT                    | REAL                |
+//! | `f64`            | REAL          | REAL                     | REAL                |
+//! | `String`         | TEXT          | TEXT                     | TEXT                |
+//! | `VarChar<SIZE>`  | VARCHAR(SIZE) | VARCHAR(SIZE)            | TEXT                |
+//! | `VarBinary<SIZE>`| BYTEA         | VARBINARY(SIZE)          | BLOB                |
+//! | `Vec<u8>`        | BYTEA         | BLOB                     | BLOB                |
+//! | `[u8; SIZE]`     | BYTEA         | BLOB(SIZE)               | BLOB                |
+//! |
+//!
+//! ### [`chrono`](https://crates.io/crates/chrono)
+//!
+//! Requires the `chrono` Cargo feature flag.
+//!
+//! | Rust type                    | Postgres         | MySQL            | SQLite             |
+//! |------------------------------|------------------|------------------|--------------------|
+//! | `chrono::DateTime<Utc>`      | TIMESTAMPTZ      | TIMESTAMP        | DATETIME           |
+//! | `chrono::DateTime<Local>`    | TIMESTAMPTZ      | TIMESTAMP        | DATETIME           |
+//! | `chrono::NaiveDateTime`      | TIMESTAMP        | DATETIME         | DATETIME           |
+//! | `chrono::NaiveDate`          | DATE             | DATE             | DATETIME           |
+//! | `chrono::NaiveTime`          | TIME             | TIME             | DATETIME           |
+//!
 #[cfg(feature = "chrono")]
 mod chrono_impl;
-///
-/// # Types
-///
-/// | Rust             | PostgreSQL    | MySQL                    | SQLite              |
-/// |------------      |---------------|--------------------------|---------------------|
-/// | `bool`           | BOOLEAN       | BOOLEAN                  | BOOLEAN             |
-/// | `i8`             | SMALLINT      | TINYINT                  | INTEGER             |
-/// | `i16`            | SMALLINT      | SMALLINT                 | INTEGER             |
-/// | `i32`            | INT           | INT                      | INTEGER             |
-/// | `i64`            | BIGINT        | BIGINT                   | INTEGER             |
-/// | `u8`             | INT           | TINYINT UNSIGNED         | INTEGER             |
-/// | `u16`            | INT           | SMALLINT UNSIGNED        | INTEGER             |
-/// | `u32`            | BIGINT        | INT UNSIGNED             | INTEGER             |
-/// | `u64`            | BIGINT        | BIGINT UNSIGNED          | INTEGER             |
-/// | `f32`            | REAL          | FLOAT                    | REAL                |
-/// | `f64`            | REAL          | REAL                     | REAL                |
-/// | `String`         | TEXT          | TEXT                     | TEXT                |
-/// | `VarChar<SIZE>`  | VARCHAR(SIZE) | VARCHAR(SIZE)            | TEXT                |
-/// | `VarBinary<SIZE>`| BYTEA         | VARBINARY(SIZE)          | BLOB                |
-/// | `Vec<u8>`        | BYTEA         | BLOB                     | BLOB                |
-/// | `[u8; SIZE]`     | BYTEA         | BLOB(SIZE)               | BLOB                |
-/// |
-///
-/// ### [`chrono`](https://crates.io/crates/chrono)
-///
-/// Requires the `chrono` Cargo feature flag.
-///
-/// | Rust type                    | Postgres         | MySQL            | SQLite             |
-/// |------------------------------|------------------|------------------|--------------------|
-/// | `chrono::DateTime<Utc>`      | TIMESTAMPTZ      | TIMESTAMP        | DATETIME           |
-/// | `chrono::DateTime<Local>`    | TIMESTAMPTZ      | TIMESTAMP        | DATETIME           |
-/// | `chrono::NaiveDateTime`      | TIMESTAMP        | DATETIME         | DATETIME           |
-/// | `chrono::NaiveDate`          | DATE             | DATE             | DATETIME           |
-/// | `chrono::NaiveTime`          | TIME             | TIME             | DATETIME           |
-///
-
 #[cfg(feature = "json")]
 mod json;
 mod serial;
@@ -87,35 +83,35 @@ impl IntoSQL for i8 {
 impl IntoSQL for u32 {
     fn into_sql() -> DataType {
         match *DIALECT {
-            MySQL => DataType::custom("INT UNSIGNED"),
+            MySQL => DataType::BigInt(None),
             PostgreSQL => DataType::BigInt(None),
             _ => DataType::Int(None),
         }
     }
 }
-impl IntoSQL for u16 {
-    fn into_sql() -> DataType {
-        match *DIALECT {
-            MySQL => DataType::custom("SMALLINT UNSIGNED "),
-            _ => DataType::Int(None),
-        }
-    }
-}
-impl IntoSQL for u8 {
-    fn into_sql() -> DataType {
-        match *DIALECT {
-            MySQL => DataType::custom("TINYINT UNSIGNED"),
-            PostgreSQL => DataType::custom("SMALLINT"),
-            _ => DataType::Int(None),
-        }
-    }
-}
+// impl IntoSQL for u16 {
+//     fn into_sql() -> DataType {
+//         match *DIALECT {
+//             MySQL => DataType::Int(None),
+//             _ => DataType::Int(None),
+//         }
+//     }
+// }
+// impl IntoSQL for u8 {
+//     fn into_sql() -> DataType {
+//         match *DIALECT {
+//             MySQL => DataType::Int(None),
+//             PostgreSQL => DataType::custom("SMALLINT"),
+//             _ => DataType::Int(None),
+//         }
+//     }
+// }
 
-impl IntoSQL for u64 {
-    fn into_sql() -> DataType {
-        DataType::BigInt(None)
-    }
-}
+// impl IntoSQL for u64 {
+//     fn into_sql() -> DataType {
+//         DataType::BigInt(None)
+//     }
+// }
 impl IntoSQL for i64 {
     fn into_sql() -> DataType {
         match *DIALECT {
@@ -182,7 +178,7 @@ fn func() {
         &models_parser::dialect::GenericDialect {},
         "
     
-    create table foo (bar DOUBLE PRECISION); 
+    create table foo (bar INT); 
     ",
     )
     .unwrap()[0];

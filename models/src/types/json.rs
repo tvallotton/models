@@ -3,7 +3,7 @@ use models_parser::ast::DataType;
 use serde::*;
 use std::ops::{Deref, DerefMut};
 
-/// Used to hold serilizable data. The type generated is `JSON`. 
+/// Wrapper type used to hold serilizable data. The type generated is `JSON`. 
 /// ```rust
 /// struct Author {
 ///     books: Json<Vec<String>>
