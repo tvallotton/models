@@ -2,21 +2,21 @@
 // I took some of these correspondances from sqlx. It would be good to review it.
 // # Types
 //
-// | Rust                 | PostgreSQL               | MySQL                    | SQLite                   |
-// |----------------------|--------------------------|--------------------------|--------------------------|
-// | `bool`               | BOOLEAN                  | BOOLEAN                  | BOOLEAN                  |
-// | `i8`                 | SMALLINT                 | TINYINT                  | INTEGER                  |
-// | `i16`                | SMALLINT                 | SMALLINT                 | SMALLINT                 |
-// | `i32`                | INT                      | INT                      | INTEGER                  |
-// | `i64`                | BIGINT                   | BIGINT                   | BIGINT                   |
-// | `u8`                 | SMALLINT                 | TINYINT UNSIGNED         | TINYINT UNSIGNED         |
-// | `u16`                | INT                      | SMALLINT UNSIGNED        | SMALLINT UNSIGNED        |
-// | `u32`                | INT                      | INT UNSIGNED             | INT UNSIGNED             |
-// | `u64`                | BIGINT                   | BIGINT UNSIGNED          | BIGINT UNSIGNED          |
-// | `f32`                | REAL                     | FLOAT                    | REAL                     |
-// | `f64`                | DOUBLE                   | DOUBLE                   | REAL                     |
-// | `String`             | TEXT                     | TEXT                     | TEXT                     |
-// | `Vec<u8>`            | BYTEA                    | VARBINARY, BINARY, BLOB  | BLOB                     |
+// | Rust         | PostgreSQL    | MySQL                    | SQLite              |
+// |--------------|---------------|--------------------------|---------------------|
+// | `bool`       | BOOLEAN       | BOOLEAN                  | BOOLEAN             |
+// | `i8`         | SMALLINT      | TINYINT                  | INTEGER             |
+// | `i16`        | SMALLINT      | SMALLINT                 | SMALLINT            |
+// | `i32`        | INT           | INT                      | INTEGER             |
+// | `i64`        | BIGINT        | BIGINT                   | BIGINT              |
+// | `u8`         | SMALLINT      | TINYINT UNSIGNED         | TINYINT UNSIGNED    |
+// | `u16`        | INT           | SMALLINT UNSIGNED        | SMALLINT UNSIGNED   |
+// | `u32`        | INT           | INT UNSIGNED             | INT UNSIGNED        |
+// | `u64`        | BIGINT        | BIGINT UNSIGNED          | BIGINT UNSIGNED     |
+// | `f32`        | REAL          | FLOAT                    | REAL                |
+// | `f64`        | DOUBLE        | DOUBLE                   | REAL                |
+// | `String`     | TEXT          | TEXT                     | TEXT                |
+// | `Vec<u8>`    | BYTEA         | VARBINARY, BINARY, BLOB  | BLOB                |
 //
 // ### [`chrono`](https://crates.io/crates/chrono)
 //
@@ -47,11 +47,11 @@
 
 #[cfg(feature = "json")]
 mod json;
+mod serial;
 mod var_binary;
 mod var_char;
-// mod serial; 
-// pub serial::Serial; 
 use models_parser::ast::DataType;
+pub use serial::Serial;
 pub use var_binary::VarBinary;
 pub use var_char::VarChar;
 

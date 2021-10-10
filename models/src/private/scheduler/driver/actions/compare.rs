@@ -1,13 +1,12 @@
 pub use crate::prelude::*;
 pub use collections::HashSet;
-use models_parser::dialect::keywords::DATABASE;
 
 pub(crate) trait Compare: std::fmt::Debug {
     fn bodies_are_equal(&self, other: &Self) -> bool;
     fn name(&self) -> Result<String>;
     fn are_modified(&self, other: &Self) -> bool {
         let names = self.names_are_equal(other);
-        
+
         names && !self.bodies_are_equal(other)
     }
     fn names_are_equal(&self, other: &Self) -> bool {

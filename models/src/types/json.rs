@@ -42,13 +42,15 @@ impl<T> IntoSQL for Json<T> {
 mod sqlx_impl {
     use super::*;
     use serde::{Deserialize, Serialize};
-    use sqlx::database::HasArguments;
-    use sqlx::decode::Decode;
-    use sqlx::encode::{Encode, IsNull};
-    use sqlx::error::BoxDynError;
-    use sqlx::types::Type;
-    use sqlx::Database;
+    use sqlx::{
+        database::{HasArguments, HasValueRef},
+        decode::Decode,
+        encode::{Encode, IsNull},
+        types::Type,
+        Database,
+    };
     use std::io::Write;
+
     // impl<T, DB> Type<DB> for Json<T>
     // where
     //     DB: Database,
@@ -84,20 +86,20 @@ mod sqlx_impl {
         <DB as HasArguments<'q>>::ArgumentBuffer: Write,
     {
         fn encode_by_ref(&self, buf: &mut <DB as HasArguments<'q>>::ArgumentBuffer) -> IsNull {
-            use std::io::Write;
             serde_json::to_writer(buf, self).ok();
             IsNull::No
         }
     }
 
- 
-    impl<'r, DB: Database> Decode<'r, DB> for MyType
+    impl<'r, DB, T> Decode<'r, DB> for Json<T>
     where
         &'r str: Decode<'r, DB>,
+        DB: Database,
+        T: Deserialize<'r>,
     {
         fn decode(
             value: <DB as HasValueRef<'r>>::ValueRef,
-        ) -> Result<MyType, Box<dyn std::error::Error + 'static + Send + Sync>> {
+        ) -> Result<Json<T>, Box<dyn std::error::Error + 'static + Send + Sync>> {
             let string_value = <&str as Decode<DB>>::decode(value)?;
             serde_json::from_str(string_value)
                 .map(Json)

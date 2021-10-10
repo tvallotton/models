@@ -33,8 +33,7 @@ impl<'table, T: Compare + PartialEq> CRUD<'table, T> {
             for c0 in current {
                 if c1.are_modified(c0) {
                     update.push(c1);
-                    
-                } 
+                }
             }
 
             if !current

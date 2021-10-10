@@ -399,6 +399,7 @@ define_keywords!(
     SENSITIVE,
     SEQUENCEFILE,
     SERDE,
+    SERIAL,
     SERIALIZABLE,
     SESSION,
     SESSION_USER,

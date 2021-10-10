@@ -3517,10 +3517,10 @@ fn parse_drop_index() {
 #[test]
 fn parse_create_table_with_json_type() {
     one_statement_parses_to(
-        "CREATE TABLE foo (data JSON NOT NULL)", "CREATE TABLE foo (data JSON NOT NULL)"
+        "CREATE TABLE foo (data JSON NOT NULL)",
+        "CREATE TABLE foo (data JSON NOT NULL)",
     );
 }
-
 
 #[test]
 fn all_keywords_sorted() {

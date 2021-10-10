@@ -1,5 +1,4 @@
-use super::Compare;
-use super::*;
+use super::{Compare, *};
 use crate::prelude::*;
 #[derive(Debug)]
 pub(crate) struct Move<'table> {

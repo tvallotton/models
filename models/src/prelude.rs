@@ -1,6 +1,5 @@
-pub(crate) use crate::dialect::Dialect;
 pub use crate::error::Error;
-pub(crate) use crate::private::*;
+pub(crate) use crate::{dialect::Dialect, private::*};
 pub(crate) use convert::{TryFrom, TryInto};
 pub(crate) use models_parser::{ast::*, *};
 pub(crate) use once_cell::sync::Lazy;

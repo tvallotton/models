@@ -185,7 +185,6 @@ pub use models_proc_macro::Model;
 
 #[macro_use]
 pub mod error;
-
 mod dialect;
 mod prelude;
 pub mod private;

@@ -1,9 +1,13 @@
-use std::ops::{Deref, DerefMut};
-
+use models_parser::ast::DataType;
 #[cfg(feature = "serde")]
 use serde::*;
+use std::ops::{Deref, DerefMut};
+
+use super::IntoSQL;
 
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
+#[cfg_attr(feature = "sqlx", sqlx(transparent))]
 #[derive(Debug, Clone, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct Serial(pub i32);
 
@@ -25,7 +29,7 @@ impl Deref for Serial {
 
 impl DerefMut for Serial {
     fn deref_mut(&mut self) -> &mut Self::Target {
-        &self.0
+        &mut self.0
     }
 }
 
@@ -41,32 +45,19 @@ impl AsRef<i32> for Serial {
     }
 }
 
-
-impl<DB> Type<DB> for JsonValue
-where
-    Json<Self>: Type<DB>,
-    DB: Database,
-{
-    fn type_info() -> DB::TypeInfo {
-        <Json<Self> as Type<DB>>::type_info()
-    }
-
-    fn compatible(ty: &DB::TypeInfo) -> bool {
-        <Json<Self> as Type<DB>>::compatible(ty)
+impl IntoSQL for Serial {
+    fn into_sql() -> DataType {
+        DataType::Serial
     }
 }
 
-
-impl<DB> Type<DB> for Vec<JsonValue>
-where
-    Vec<Json<JsonValue>>: Type<DB>,
-    DB: Database,
-{
-    fn type_info() -> DB::TypeInfo {
-        <Vec<Json<JsonValue>> as Type<DB>>::type_info()
-    }
-
-    fn compatible(ty: &DB::TypeInfo) -> bool {
-        <Vec<Json<JsonValue>> as Type<DB>>::compatible(ty)
+#[cfg(feature = "sqlx/postgres")]
+mod sqlx_impl {
+    use sqlx::{PgTypeInfo, Postgres, Type, postgres::PgTypeInfo};
+    impl Type<Postgres> for Serial {
+        type TypeInfo = PgTypeInfo; 
+        fn type_info() -> PgTypeInfo {
+            PgTypeInfo::INT4
+        }
     }
 }

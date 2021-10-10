@@ -1,6 +1,8 @@
-use super::actions::{action::Action, Actions};
-use super::schema::Schema;
-use super::Report;
+use super::{
+    actions::{action::Action, Actions},
+    schema::Schema,
+    Report,
+};
 use crate::prelude::*;
 use fs::File;
 use std::io::Write;

@@ -1,6 +1,6 @@
 [package]
 name = "models"
-version = "0.1.0"
+version = "0.1.2"
 edition = "2018"
 license = "Apache-2.0"
 description = "A migration management library for applications using PostgresSQL, MySQL or SQLite."
@@ -9,7 +9,7 @@ readme = "../README.md"
 authors = ["Tomas Vallotton <tvallotton@uc.cl>"]
 
 [features]
-default = ["sqlformat", "json", "sqlx"]
+default = ["sqlformat"]
 json = ["serde", "serde_json"]
 # postgres = []
 # sqlx = []
@@ -33,4 +33,6 @@ sqlx = {version = "0.5.9", optional = true}
 
 
 [dev-dependencies]
-sqlx = {version = "0.5.9", features = ["runtime-tokio-rustls"] }
+    
+sqlx = {version = "0.5.9", features = ["runtime-async-std-native-tls", "postgres"] }
+models = {path = "../models", features = ["sqlformat", "json", "sqlx"]}

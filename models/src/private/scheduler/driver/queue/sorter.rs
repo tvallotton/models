@@ -35,9 +35,7 @@ impl Sorter {
     }
 
     fn remove_dep(&mut self, dep: &str) {
-        for (k, v) in &mut self.dependencies {
-            
-
+        for (_k, v) in &mut self.dependencies {
             v.remove(dep);
         }
     }
