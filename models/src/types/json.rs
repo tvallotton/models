@@ -3,22 +3,20 @@ use models_parser::ast::DataType;
 use serde::*;
 use std::ops::{Deref, DerefMut};
 
-/// Wrapper type used to hold serilizable data. The type generated is `JSON`. 
+/// Wrapper type used to hold serilizable data. The type generated is `JSON`.
 /// ```rust
 /// struct Author {
 ///     books: Json<Vec<String>>
 /// }
 /// ```
-/// The previous structure would generate: 
+/// The previous structure would generate:
 /// ```sql
 /// CREATE TABLE author (
 ///     books JSON NOT NULL,
 /// );
 /// ```
 
-
-
-#[derive(Serialize, Deserialize, Clone, Default, Hash, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Serialize, Deserialize, Clone, Default, Hash, PartialEq, Eq, PartialOrd, Ord, Debug)]
 pub struct Json<T>(pub T);
 
 impl<T> Deref for Json<T> {
@@ -52,19 +50,38 @@ impl<T> IntoSQL for Json<T> {
         DataType::Json
     }
 }
-
+#[allow(unused_imports)]
 #[cfg(feature = "sqlx")]
 mod sqlx_impl {
     use super::*;
     use serde::{Deserialize, Serialize};
+    #[cfg(feature = "sqlx-mysql")]
+    use sqllx::sqlite::{Sqlite, SqliteTypeInfo};
+    #[cfg(feature = "sqlx-mysql")]
+    use sqlx::mysql::{MySql, MySqlTypeInfo};
+    #[cfg(feature = "sqlx-postgres")]
+    use sqlx::postgres::{PgTypeInfo, Postgres};
     use sqlx::{
         database::{HasArguments, HasValueRef},
         decode::Decode,
         encode::{Encode, IsNull},
-        Database,
+        Database, Type,
     };
     use std::io::Write;
+    #[cfg(feature = "sqlx-postgres")]
+    impl<T, DB> Type<DB> for Json<T>
+    where
+        DB: Database,
+        sqlx::types::Json<T>: Type<DB>,
+    {
+        fn type_info() -> DB::TypeInfo {
+            sqlx::types::Json::type_info()
+        }
 
+        fn compatible(ty: &DB::TypeInfo) -> bool {
+            sqlx::types::Json::compatible(ty)
+        }
+    }
     impl<'q, T, DB> Encode<'q, DB> for Json<T>
     where
         DB: Database,

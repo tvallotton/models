@@ -20,10 +20,11 @@ impl Output {
     fn print(self, source: &str) -> Result<()> {
         for (num, name) in self.success {
             println!(
-                "{}: {}/{} {}",
+                "{}: {}/{}{}{}",
                 style("Generated").bold().green(),
                 style(source),
                 style(num).cyan(),
+                style("_").dim(),
                 style(name)
             )
         }
