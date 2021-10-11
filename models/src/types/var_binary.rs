@@ -1,4 +1,4 @@
-use crate::{prelude::*, types::IntoSQL};
+use crate::prelude::*;
 use models_parser::ast::DataType;
 use std::{
     convert::AsMut,
@@ -8,22 +8,21 @@ use std::{
 #[cfg(feature = "serde")]
 use serde::*;
 
-
 /// Used for MySQL when to specify that the datatype should be
-/// a `VARBINARY(N)`. The database will make sure the field does not 
-/// go over the specified length. 
+/// a `VARBINARY(N)`. The database will make sure the field does not
+/// go over the specified length.
 /// ```
-/// use models::{Model, VarChar}; 
+/// use models::{Model, VarChar};
 /// #[derive(Model)]
 /// struct Example {
 ///     bin_data: VarBinary<255>
 /// }
 /// ```
-/// The previous structure would generate: 
+/// The previous structure would generate:
 /// ```sql
 /// CREATE TABLE example (
 ///     bin_data VarBinary(255) NOT NULL
-/// ); 
+/// );
 /// ```
 
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]

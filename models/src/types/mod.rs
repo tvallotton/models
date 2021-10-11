@@ -38,7 +38,7 @@ mod time;
 mod var_binary;
 mod var_char;
 
-
+#[cfg(feature = "json")]
 pub use json::*;
 use models_parser::ast::DataType;
 pub use serial::Serial;

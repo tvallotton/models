@@ -3,7 +3,7 @@ use models_parser::ast::DataType;
 use serde::*;
 use std::ops::{Deref, DerefMut};
 
-use super::IntoSQL;
+use crate::prelude::*;
 
 
 /// PostgreSQL `SERIAL` type. It enables autoincrementing functionality. 
