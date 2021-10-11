@@ -6,7 +6,7 @@ pub(crate) use once_cell::sync::Lazy;
 pub(crate) use std::{collections::HashMap, sync::Mutex, *};
 pub(crate) use Dialect::*;
 pub(crate) type Result<T = (), E = Error> = std::result::Result<T, E>;
-
+pub(crate) use  crate::types::IntoSQL; 
 use url::Url;
 
 pub(crate) static DATABASE_URL: Lazy<Url> = Lazy::new(|| {
