@@ -125,7 +125,7 @@ pub async fn info(migration_source: &str, uri: &str) -> anyhow::Result<()> {
             continue;
         }
         println!(
-            "{}: {}/{} {}",
+            "{}: {}/{}{}{}",
             if applied_migrations.contains_key(&migration.version) {
                 style("Installed").green().bold()
             } else {
@@ -133,6 +133,7 @@ pub async fn info(migration_source: &str, uri: &str) -> anyhow::Result<()> {
             },
             migration_source,
             style(migration.version).cyan(),
+            style("_").dim(),
             migration.description,
         );
     }
@@ -204,10 +205,11 @@ pub async fn run(
                 let text = if dry_run { "Can apply" } else { "Applied" };
 
                 println!(
-                    "{}: {}/{} {} {}",
+                    "{}: {}/{}{}{} {}",
                     style(text).green().bold(),
                     migration_source,
                     style(migration.version).cyan(),
+                    style("_").dim(),
                     style(&migration.description),
                     style(format!("({:?})", elapsed)).dim()
                 );
@@ -258,10 +260,11 @@ pub async fn revert(
             };
             let text = if dry_run { "Can apply" } else { "Applied" };
             println!(
-                "{} {}/{} {} {}",
+                "{} {}/{}{}{} {}",
                 style(text).green().bold(),
                 migration_source,
                 style(migration.version).cyan(),
+                style("_").dim(),
                 migration.description,
                 style(format!("({:?})", elapsed)).dim()
             );

@@ -34,7 +34,7 @@ pub enum DataType {
     /// Fixed-length binary type e.g. BINARY(10)
     Binary(u64),
     /// Variable-length binary type e.g. VARBINARY(10)
-    Varbinary(u64),
+    Varbinary(Option<u64>),
     /// Large binary object e.g. BLOB(1000)
     Blob(Option<u64>),
     /// Decimal type with optional precision and scale e.g. DECIMAL(10,2)
@@ -45,7 +45,7 @@ pub enum DataType {
     TinyInt(Option<u64>),
     /// Small integer with optional display width e.g. SMALLINT or SMALLINT(5)
     SmallInt(Option<u64>),
-    /// Integer with optional display width e.g. INT or INT(11)
+    /// INT with optional display width e.g. INT or INT(11)
     Int(Option<u64>),
     /// Big integer with optional display width e.g. BIGINT or BIGINT(20)
     BigInt(Option<u64>),
@@ -75,19 +75,23 @@ pub enum DataType {
     Custom(ObjectName),
     /// Arrays
     Array(Box<DataType>),
+    /// JSON
+    Json,
+    /// Serial PostgeSQL type
+    Serial,
 }
 
 impl fmt::Display for DataType {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
+            DataType::Serial => write!(f, "SERIAL"),
+            DataType::Json => write!(f, "JSON"),
             DataType::Char(size) => format_type_with_optional_length(f, "CHAR", size),
-            DataType::Varchar(size) => {
-                format_type_with_optional_length(f, "CHARACTER VARYING", size)
-            }
+            DataType::Varchar(size) => format_type_with_optional_length(f, "VARCHAR", size),
             DataType::Uuid => write!(f, "UUID"),
             DataType::Clob(size) => write!(f, "CLOB({})", size),
             DataType::Binary(size) => write!(f, "BINARY({})", size),
-            DataType::Varbinary(size) => write!(f, "VARBINARY({})", size),
+            DataType::Varbinary(size) => format_type_with_optional_length(f, "VARBINARY", size),
             DataType::Blob(size) => {
                 if let Some(size) = size {
                     write!(f, "BLOB({})", size)
@@ -116,7 +120,7 @@ impl fmt::Display for DataType {
             }
             DataType::BigInt(zerofill) => format_type_with_optional_length(f, "BIGINT", zerofill),
             DataType::Real => write!(f, "REAL"),
-            DataType::Double => write!(f, "DOUBLE"),
+            DataType::Double => write!(f, "DOUBLE PRECISION"),
             DataType::Boolean => write!(f, "BOOLEAN"),
             DataType::Date => write!(f, "DATE"),
             DataType::Time => write!(f, "TIME"),
@@ -129,6 +133,11 @@ impl fmt::Display for DataType {
             DataType::Array(ty) => write!(f, "{}[]", ty),
             DataType::Custom(ty) => write!(f, "{}", ty),
         }
+    }
+}
+impl DataType {
+    pub fn custom(custom: &str) -> Self {
+        Self::Custom(ObjectName(vec![super::Ident::new(custom)]))
     }
 }
 

@@ -2029,6 +2029,7 @@ impl<'a> Parser<'a> {
                     let _ = self.parse_keyword(Keyword::PRECISION);
                     Ok(DataType::Double)
                 }
+
                 Keyword::TINYINT => Ok(DataType::TinyInt(self.parse_optional_precision()?)),
                 Keyword::SMALLINT => Ok(DataType::SmallInt(self.parse_optional_precision()?)),
                 Keyword::INT | Keyword::INTEGER => {
@@ -2036,6 +2037,8 @@ impl<'a> Parser<'a> {
                 }
                 Keyword::BIGINT => Ok(DataType::BigInt(self.parse_optional_precision()?)),
                 Keyword::VARCHAR => Ok(DataType::Varchar(self.parse_optional_precision()?)),
+                Keyword::VARBINARY => Ok(DataType::Varbinary(self.parse_optional_precision()?)),
+                Keyword::BLOB => Ok(DataType::Blob(self.parse_optional_precision()?)),
                 Keyword::CHAR | Keyword::CHARACTER => {
                     if self.parse_keyword(Keyword::VARYING) {
                         Ok(DataType::Varchar(self.parse_optional_precision()?))
@@ -2074,6 +2077,8 @@ impl<'a> Parser<'a> {
                         Ok(DataType::Text)
                     }
                 }
+                Keyword::JSON => Ok(DataType::Json),
+                Keyword::SERIAL => Ok(DataType::Serial),
                 Keyword::BYTEA => Ok(DataType::Bytea),
                 Keyword::NUMERIC | Keyword::DECIMAL | Keyword::DEC => {
                     let (precision, scale) = self.parse_optional_precision_scale()?;

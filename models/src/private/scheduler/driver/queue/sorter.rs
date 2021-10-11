@@ -35,9 +35,7 @@ impl Sorter {
     }
 
     fn remove_dep(&mut self, dep: &str) {
-        for (k, v) in &mut self.dependencies {
-            dbg!(&dep, k, &v);
-
+        for (_k, v) in &mut self.dependencies {
             v.remove(dep);
         }
     }
@@ -52,7 +50,7 @@ impl Sorter {
         for (k, v) in &self.dependencies {
             if v.is_empty() {
                 let key = &k.clone();
-                out = self.dependencies.remove_entry(key).map(|x|x.0);
+                out = self.dependencies.remove_entry(key).map(|x| x.0);
                 break;
             }
         }

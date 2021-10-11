@@ -1,7 +1,6 @@
 use anyhow::Result;
 use generate::generate;
 
-
 use crate::opt::{Command, DatabaseCommand, MigrateCommand};
 
 mod database;

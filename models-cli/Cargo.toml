@@ -1,6 +1,6 @@
 [package]
 name = "models-cli"
-version = "0.0.1"
+version = "0.1.1"
 description = "Command-line utility for SQLx, the Rust SQL toolkit."
 edition = "2018"
 readme = "README.md"
@@ -24,7 +24,7 @@ path = "src/bin/models.rs"
 [dependencies]
 dotenv = "0.15"
 tokio = { version = "1.0.1", features = ["macros", "rt", "rt-multi-thread", "fs", "process", "io-std"] }
-sqlx = { version = "0.5.7", default-features = false, features = [
+sqlx = { version = "0.5.9", default-features = false, features = [
     "runtime-async-std-native-tls",
     "migrate",
     "any",
