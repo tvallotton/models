@@ -1,4 +1,3 @@
-
 //!
 //! # Types
 //!
@@ -39,10 +38,11 @@ mod time;
 mod var_binary;
 mod var_char;
 
+
+pub use json::*;
 use models_parser::ast::DataType;
-pub use time::*; 
-pub use json::*; 
 pub use serial::Serial;
+pub use time::*;
 pub use var_binary::VarBinary;
 pub use var_char::VarChar;
 
@@ -178,7 +178,13 @@ fn func() {
         &models_parser::dialect::GenericDialect {},
         "
     
-    create table foo (bar INT); 
+    CREATE TABLE Persons (
+    Personid int NOT NULL AUTO_INCREMENT,
+    LastName varchar(255) NOT NULL,
+    FirstName varchar(255),
+    Age int,
+    PRIMARY KEY (Personid)
+); 
     ",
     )
     .unwrap()[0];

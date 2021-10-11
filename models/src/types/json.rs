@@ -56,7 +56,7 @@ mod sqlx_impl {
     use super::*;
     use serde::{Deserialize, Serialize};
     #[cfg(feature = "sqlx-mysql")]
-    use sqllx::sqlite::{Sqlite, SqliteTypeInfo};
+    use sqlx::sqlite::{Sqlite, SqliteTypeInfo};
     #[cfg(feature = "sqlx-mysql")]
     use sqlx::mysql::{MySql, MySqlTypeInfo};
     #[cfg(feature = "sqlx-postgres")]
