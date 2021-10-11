@@ -180,7 +180,7 @@
 //! ```sql
 //!     UNIQUE (profile_id, post_id),
 //! ```
-
+#![allow(unused_imports)]
 pub use models_proc_macro::Model;
 
 #[macro_use]
@@ -192,5 +192,4 @@ pub mod private;
 mod tests;
 pub mod types;
 
-
-pub use types::{Serial, VarChar, VarBinary, Json, Timestamp, Date, DateTime}; 
+pub use types::*;
