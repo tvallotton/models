@@ -181,3 +181,8 @@ This is equivalent to:
 ```sql
     UNIQUE (profile_id, post_id),
 ```
+## CLI Short cuts
+The CLI includes the following shortcuts: 
+* `models database` -> `models db`
+* `models generate` -> `models gen`
+* `models migrate` -> `models mig`
