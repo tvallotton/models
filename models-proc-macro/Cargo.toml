@@ -1,6 +1,6 @@
 [package]
 name = "models-proc-macro"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2018"
 license = "Apache-2.0"
 description = "A helper crate for `models`"
@@ -14,5 +14,5 @@ helpers = []
 [dependencies]
 proc-macro2 = "1.0.28"
 quote = "1.0.9"
-models-parser ={version = "0.1.0", path = "../models-parser"}
+models-parser ={version = "0.2.0", path = "../models-parser"}
 syn = "1.0.74"
