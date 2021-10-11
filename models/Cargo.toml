@@ -26,7 +26,7 @@ sqlx-sqlite = ["sqlx", "sqlx/sqlite"]
 [dependencies]
 thiserror = "1.0.29"
 models-parser = { version = "0.2.0", path = "../models-parser"}
-models-proc-macro ={version = "0.1.0", path = "../models-proc-macro"}
+models-proc-macro ={version = "0.1.1", path = "../models-proc-macro"}
 once_cell = "1.8.0"
 url = "2.2.2"
 sqlformat = { version = "0.1.8", optional = true }
