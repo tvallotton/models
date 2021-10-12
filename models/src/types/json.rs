@@ -51,16 +51,16 @@ impl<T> IntoSQL for Json<T> {
     }
 }
 #[allow(unused_imports)]
-#[cfg(feature = "sqlx")]
+#[cfg(all(feature = "sqlx", feature="sqlx"))]
 mod sqlx_impl {
     use super::*;
     use serde::{Deserialize, Serialize};
     #[cfg(feature = "sqlx-mysql")]
-    use sqlx::sqlite::{Sqlite, SqliteTypeInfo};
-    #[cfg(feature = "sqlx-mysql")]
     use sqlx::mysql::{MySql, MySqlTypeInfo};
     #[cfg(feature = "sqlx-postgres")]
     use sqlx::postgres::{PgTypeInfo, Postgres};
+    #[cfg(feature = "sqlx-mysql")]
+    use sqlx::sqlite::{Sqlite, SqliteTypeInfo};
     use sqlx::{
         database::{HasArguments, HasValueRef},
         decode::Decode,
@@ -68,7 +68,7 @@ mod sqlx_impl {
         Database, Type,
     };
     use std::io::Write;
-    #[cfg(feature = "sqlx-postgres")]
+
     impl<T, DB> Type<DB> for Json<T>
     where
         DB: Database,

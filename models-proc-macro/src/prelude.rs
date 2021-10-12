@@ -5,3 +5,4 @@ pub use quote::{quote, *};
 pub use std::*;
 pub use syn::parse::Parse;
 pub use syn::{Ident, *};
+pub use crate::model::Model; 

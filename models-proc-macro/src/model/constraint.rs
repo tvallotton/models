@@ -136,7 +136,10 @@ pub struct ForeignKey {
     column: Ident,
     on_delete: Option<LitStr>,
     on_update: Option<LitStr>,
+
 }
+
+
 
 impl std::fmt::Debug for ForeignKey {
     fn fmt(&self, _f: &mut fmt::Formatter<'_>) -> fmt::Result {

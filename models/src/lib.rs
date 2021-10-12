@@ -185,9 +185,12 @@ pub use models_proc_macro::Model;
 
 #[macro_use]
 pub mod error;
+#[cfg(feature = "database")]
+pub mod database;
 mod dialect;
 mod prelude;
 pub mod private;
+
 #[cfg(tests)]
 mod tests;
 pub mod types;

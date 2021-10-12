@@ -13,7 +13,7 @@ use crate::prelude::*;
 ///     id: Serial,
 /// }
 /// ```
-/// The previus structure would generate: 
+/// The previous structure would generate: 
 /// ```sql
 /// CREATE TABLE profile (
 ///     id SERIAL NOT NULL

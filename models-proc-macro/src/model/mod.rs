@@ -9,8 +9,8 @@ pub struct Model {
     pub name: Ident,
     name_lowercase: Ident,
     data: DataStruct,
-    columns: Vec<Column>,
-    constraints: Vec<NamedConstraint>,
+    pub columns: Vec<Column>,
+    pub constraints: Vec<NamedConstraint>,
 }
 
 struct ForeignKey {

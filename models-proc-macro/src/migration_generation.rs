@@ -22,9 +22,11 @@ fn generate_migration_unchecked(name: &Ident) -> TokenStream2 {
     quote! {
         #[test]
         fn #test_name() {
-            ::models::private::SCHEDULER.register(
-                <#name as ::models::private::Model>::target()
-            );
+            if let Ok(value) = std::env::var("MODELS_GENERATE_MIGRATIONS") {
+                ::models::private::SCHEDULER.register(
+                    <#name as ::models::private::Model>::target()
+                );
+            }
         }
     }
 }
