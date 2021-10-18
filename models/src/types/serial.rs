@@ -5,21 +5,20 @@ use std::ops::{Deref, DerefMut};
 
 use crate::prelude::*;
 
-
-/// PostgreSQL `SERIAL` type. It enables autoincrementing functionality. 
-/// Example: 
+/// PostgreSQL `SERIAL` type. It enables autoincrementing functionality.
+/// Example:
 /// ```
 /// struct Profile {
 ///     id: Serial,
 /// }
 /// ```
-/// The previous structure would generate: 
+/// The previous structure would generate:
 /// ```sql
 /// CREATE TABLE profile (
 ///     id SERIAL NOT NULL
 /// );
 /// ```
-/// 
+///
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 #[cfg_attr(feature = "sqlx", sqlx(transparent))]
@@ -65,5 +64,3 @@ impl IntoSQL for Serial {
         DataType::Serial
     }
 }
-
-

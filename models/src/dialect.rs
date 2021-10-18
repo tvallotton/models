@@ -2,11 +2,10 @@ use self::Dialect::*;
 use dialect::*;
 use models_parser::dialect;
 #[derive(Clone, Copy, Debug)]
-pub(crate) enum Dialect {
+pub enum Dialect {
     SQLite,
     PostgreSQL,
     MySQL,
-    MsSQL,
     Any,
 }
 
@@ -30,7 +29,7 @@ impl dialect::Dialect for Dialect {
             SQLite => SQLiteDialect {}.is_delimited_identifier_start(ch),
             PostgreSQL => PostgreSqlDialect {}.is_delimited_identifier_start(ch),
             MySQL => MySqlDialect {}.is_delimited_identifier_start(ch),
-            MsSQL => MsSqlDialect {}.is_delimited_identifier_start(ch),
+
             Any => GenericDialect {}.is_delimited_identifier_start(ch),
         }
     }
@@ -39,7 +38,6 @@ impl dialect::Dialect for Dialect {
             SQLite => SQLiteDialect {}.is_identifier_start(ch),
             PostgreSQL => PostgreSqlDialect {}.is_identifier_start(ch),
             MySQL => MySqlDialect {}.is_identifier_start(ch),
-            MsSQL => MsSqlDialect {}.is_identifier_start(ch),
             Any => GenericDialect {}.is_identifier_start(ch),
         }
     }

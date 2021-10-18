@@ -9,19 +9,13 @@ readme = "../README.md"
 authors = ["Tomas Vallotton <tvallotton@uc.cl>"]
 
 [features]
-default = ["sqlformat", "sqlx/json"]
+default = ["sqlformat"]
 json = ["serde", "serde_json"]
 sqlx-postgres = ["sqlx", "sqlx/postgres"]
 sqlx-mysql = ["sqlx", "sqlx/mysql"]
 sqlx-sqlite = ["sqlx", "sqlx/sqlite"]
-database = ["sqlx"]
-# postgres = []
-# sqlx = []
-# rusqlite = []
-# tokio_postgres = []
-# serde features
-# json = []
-# binary = []
+orm = ["sqlx/any", "dotenv", "futures"]
+
 
 
 [dependencies]
@@ -35,9 +29,11 @@ serde = { version = "1.0.130", features = ["derive"], optional = true}
 serde_json = {version = "1.0.68", optional = true}
 sqlx = {version = "0.5.9", optional = true}
 chrono = {version = "0.4.19", optional = true}
+dotenv = {version = "0.15.0", optional = true}
+futures = { version = "0.3.17", optional = true}
 
 
 [dev-dependencies]
 
 sqlx = {version = "0.5.9", features = ["runtime-async-std-native-tls", "postgres"] }
-models = {path = "../models", features = ["sqlformat", "json", "sqlx", "chrono", "database"]}
+models = {path = "../models", features = ["sqlformat", "json", "sqlx", "chrono", "orm"]}

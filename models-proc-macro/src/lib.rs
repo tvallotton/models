@@ -1,7 +1,7 @@
 mod migration_generation;
 // mod getters;
 mod model;
-#[cfg(feature = "helpers")]
+#[cfg(feature = "orm")]
 mod orm;
 mod prelude;
 use migration_generation::*;
@@ -23,12 +23,3 @@ pub fn model(input: TokenStream) -> TokenStream {
     };
     template.into()
 }
-
-
-
-
-
-
-
-
-

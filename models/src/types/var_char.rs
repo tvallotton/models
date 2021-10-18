@@ -8,20 +8,20 @@ use std::{
 };
 
 /// Used for MySQL when to specify that the datatype should be
-/// a `VARCHAR(N)`. The database will make sure the field does not 
-/// go over the specified length. 
+/// a `VARCHAR(N)`. The database will make sure the field does not
+/// go over the specified length.
 /// ```
-/// use models::{Model, VarChar}; 
+/// use models::{Model, VarChar};
 /// #[derive(Model)]
 /// struct Profile {
 ///     email: VarChar<255>
 /// }
 /// ```
-/// The previous structure would generate: 
+/// The previous structure would generate:
 /// ```sql
 /// CREATE TABLE profile (
 ///     email VARCHAR(255) NOT NULL
-/// ); 
+/// );
 /// ```
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]

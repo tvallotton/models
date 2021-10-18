@@ -5,7 +5,6 @@ use crate::model::Model;
 use constructor::Constructor;
 use getters::Getters;
 
-
 pub struct ORM {
     getters: Getters,
     constructor: Constructor,
@@ -13,10 +12,7 @@ pub struct ORM {
 
 impl ORM {
     fn new(model: Model) {
-
         let getters = Getters::new(&model);
-        
-
     }
 }
 

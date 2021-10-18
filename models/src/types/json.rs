@@ -51,7 +51,7 @@ impl<T> IntoSQL for Json<T> {
     }
 }
 #[allow(unused_imports)]
-#[cfg(all(feature = "sqlx", feature="sqlx"))]
+#[cfg(all(feature = "sqlx", feature = "sqlx"))]
 mod sqlx_impl {
     use super::*;
     use serde::{Deserialize, Serialize};

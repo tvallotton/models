@@ -9,7 +9,7 @@ description = "A helper crate for `models`"
 proc-macro = true
 
 [features]
-helpers = []
+orm = []
 
 [dependencies]
 proc-macro2 = "1.0.28"

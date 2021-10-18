@@ -1,8 +1,14 @@
 use crate::prelude::*;
 
 pub struct Getter {
+    getter_kind: GetterKind, 
     table_name: Ident,
     getter_name: Ident,
+}
+
+enum GetterKind {
+    ForeignKey, 
+    Unique, 
 }
 
 impl ToTokens for Getter {
@@ -14,7 +20,7 @@ impl ToTokens for Getter {
 
         tokens.extend(quote! {
             impl #table_name {
-                async fn #getter_name () {
+                async fn #getter_name() -> std::result::Result<, ::models::sqlx::Error> {
                 }
             }
         })

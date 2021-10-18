@@ -77,7 +77,7 @@ impl Driver {
         Ok(())
     }
 
-    fn get_migrations(&mut self, target: Table) -> Result<Vec<Migration>> {
+    fn get_migrations(&mut self, target: Table) -> Result<Vec<Migration>, Error> {
         println!("get_migrations");
         let schema = self.result.as_mut().map_err(|x| x.clone())?;
         let actions = Actions::new(&schema, &target)?;

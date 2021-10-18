@@ -3,8 +3,7 @@ use super::*;
 use serde::*;
 use std::ops::{Deref, DerefMut};
 
-
-/// Wrapper type that defaults to `DATE`. 
+/// Wrapper type that defaults to `DATE`.
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 #[cfg_attr(feature = "sqlx", sqlx(transparent))]
@@ -37,7 +36,7 @@ impl<T> IntoSQL for Date<T> {
         DataType::Date
     }
 }
-/// Wrapper type that defaults to `DATETIME`. 
+/// Wrapper type that defaults to `DATETIME`.
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 #[cfg_attr(feature = "sqlx", sqlx(transparent))]
@@ -70,7 +69,7 @@ impl<T> IntoSQL for DateTime<T> {
         DataType::custom("DATETIME")
     }
 }
-/// Wrapper type that defaults to `TIMESTAMP`. 
+/// Wrapper type that defaults to `TIMESTAMP`.
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 #[cfg_attr(feature = "sqlx", sqlx(transparent))]
