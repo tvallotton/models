@@ -2,9 +2,8 @@ use crate::prelude::*;
 pub mod driver;
 pub mod table;
 
-use table::*;
-
 use driver::*;
+use table::*;
 pub struct Scheduler(Mutex<Driver>);
 
 impl Scheduler {
@@ -26,6 +25,7 @@ impl Scheduler {
             self.commit()
         }
     }
+
     fn commit(&self) {
         let mut driver = self.0.lock().unwrap();
         driver.migrate();

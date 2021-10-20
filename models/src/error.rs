@@ -1,9 +1,9 @@
-use crate::prelude::*;
+use std::sync::Arc;
 
 use models_parser::parser::ParserError;
-
-use std::sync::Arc;
 use thiserror::Error;
+
+use crate::prelude::*;
 
 macro_rules! error {
     ($($args:expr),+) => {
@@ -30,21 +30,20 @@ pub enum Error {
     Dotenv(Arc<dotenv::Error>),
     #[error("SQLxError: {0}")]
     SQLx(Arc<sqlx::Error>),
-    
 
     #[error("DatabaseUrlError: clould not read or parse DATABASE_URL.")]
-    DatabaseUrl, 
+    DatabaseUrl,
 }
 
 impl Error {
     pub(crate) fn kind(&self) -> &'static str {
         match self {
-            Self::Cycle(_) => "CycleError",
-            Self::IO(_) => "IOError",
-            Self::Syntax(_) => "SyntaxError",
-            Self::SyntaxAtFile(_, _) => "SyntaxAtFile",
-            Self::UnsupportedScheme(_) => "UnsupportedSchemeError",
-            _ => "error",
+            | Self::Cycle(_) => "CycleError",
+            | Self::IO(_) => "IOError",
+            | Self::Syntax(_) => "SyntaxError",
+            | Self::SyntaxAtFile(_, _) => "SyntaxAtFile",
+            | Self::UnsupportedScheme(_) => "UnsupportedSchemeError",
+            | _ => "error",
         }
     }
 

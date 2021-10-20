@@ -1,8 +1,12 @@
-use super::opt::GenerateOpt;
-use anyhow::{Error, Result};
+use anyhow::{
+    Error,
+    Result,
+};
 use console::style;
 use serde::*;
 use serde_json::from_str;
+
+use super::opt::GenerateOpt;
 
 #[derive(Serialize, Deserialize)]
 

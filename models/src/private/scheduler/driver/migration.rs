@@ -1,11 +1,16 @@
+use std::io::Write;
+
+use fs::File;
+
 use super::{
-    actions::{action::Action, Actions},
+    actions::{
+        action::Action,
+        Actions,
+    },
     schema::Schema,
     Report,
 };
 use crate::prelude::*;
-use fs::File;
-use std::io::Write;
 #[derive(Debug)]
 pub(crate) struct Migration {
     up: Vec<Statement>,
@@ -61,6 +66,7 @@ impl Migration {
     pub fn is_empty(&self) -> bool {
         self.up.is_empty()
     }
+
     pub fn push_up(&mut self, action: Action) -> Result {
         let stmts = action.to_statements()?;
         self.up.extend(stmts);

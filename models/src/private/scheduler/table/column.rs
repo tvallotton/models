@@ -1,5 +1,9 @@
+use models_parser::{
+    dialect::*,
+    parser::*,
+};
+
 use crate::prelude::*;
-use models_parser::{dialect::*, parser::*};
 #[derive(Clone, Debug, PartialEq)]
 pub struct Column {
     pub name: Ident,

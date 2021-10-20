@@ -1,4 +1,7 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::{
+    HashMap,
+    HashSet,
+};
 
 pub struct Sorter {
     dependencies: HashMap<String, HashSet<String>>,
@@ -10,9 +13,11 @@ impl Sorter {
             dependencies: HashMap::new(),
         }
     }
+
     pub fn insert(&mut self, dep: String) {
         self.dependencies.insert(dep, HashSet::new());
     }
+
     pub fn add_dependency(&mut self, dep: String, name: String) {
         if let Some(deps) = self.dependencies.get_mut(&name) {
             deps.insert(dep);
@@ -39,6 +44,7 @@ impl Sorter {
             v.remove(dep);
         }
     }
+
     pub fn pop(&mut self) -> Option<String> {
         let indep = self.find_independent()?;
         self.remove_dep(&indep);

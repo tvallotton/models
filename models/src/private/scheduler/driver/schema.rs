@@ -1,7 +1,7 @@
-use crate::prelude::*;
 use fs::*;
-
 use path::PathBuf;
+
+use crate::prelude::*;
 #[derive(Clone)]
 pub struct Schema {
     tables: HashMap<ObjectName, Table>,
@@ -15,6 +15,7 @@ impl Schema {
         out.init()?;
         Ok(out)
     }
+
     #[cfg(test)]
     fn _from_sql(sql: &str) -> Result<Self> {
         let stmts = parse_sql(sql)?;
@@ -47,13 +48,14 @@ impl Schema {
             }
             let sql = read_to_string(&path)?;
             let stmts = match parse_sql(&sql) {
-                Ok(stmts) => stmts,
-                Err(err) => return Err(Error::SyntaxAtFile(err, path)),
+                | Ok(stmts) => stmts,
+                | Err(err) => return Err(Error::SyntaxAtFile(err, path)),
             };
             out.extend(stmts);
         }
         Ok(out)
     }
+
     fn read_dir(&self) -> Result<Vec<PathBuf>> {
         let directory = &*MIGRATIONS_DIR;
         let mut dir: Vec<_> = read_dir(directory)
@@ -67,14 +69,14 @@ impl Schema {
     pub fn update(&mut self, stmt: &Statement) -> Result {
         use Statement::*;
         match stmt {
-            CreateTable(_) => self.create_table(stmt.clone().try_into().unwrap()),
-            AlterTable(ast::AlterTable {
+            | CreateTable(_) => self.create_table(stmt.clone().try_into().unwrap()),
+            | AlterTable(ast::AlterTable {
                 name,
                 operation: AlterTableOperation::RenameTable { table_name },
             }) => self.rename_table(name, table_name),
-            AlterTable(alter) => self.alter_table(&alter.name, &alter.operation),
-            Drop(drop) => self.drop_tables(drop),
-            _ => Ok(()),
+            | AlterTable(alter) => self.alter_table(&alter.name, &alter.operation),
+            | Drop(drop) => self.drop_tables(drop),
+            | _ => Ok(()),
         }
     }
 
@@ -102,8 +104,10 @@ impl Schema {
                     .constraints
                     .drain(..)
                     .filter(|constr| match constr {
-                        ForeignKey(ast::ForeignKey { foreign_table, .. }) => foreign_table == name,
-                        _ => true,
+                        | ForeignKey(ast::ForeignKey { foreign_table, .. }) => {
+                            foreign_table == name
+                        }
+                        | _ => true,
                     })
                     .collect()
             });
@@ -132,6 +136,7 @@ impl Schema {
         }
         Ok(())
     }
+
     fn alter_table(&mut self, name: &ObjectName, op: &AlterTableOperation) -> Result {
         self.tables
             .get_mut(&name) //
@@ -144,6 +149,7 @@ impl Schema {
             })??;
         Ok(())
     }
+
     fn create_table(&mut self, table: Table) -> Result {
         let table = table;
         let tables = &mut self.tables;

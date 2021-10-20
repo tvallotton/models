@@ -1,6 +1,10 @@
-use anyhow::Result;
-use sqlx::migrate::{MigrateError, Migrator};
 use std::path::Path;
+
+use anyhow::Result;
+use sqlx::migrate::{
+    MigrateError,
+    Migrator,
+};
 use structopt::StructOpt;
 #[derive(StructOpt, Debug)]
 pub struct Opt {
@@ -31,27 +35,30 @@ pub struct DatabaseOpt {
 pub enum DatabaseCommand {
     /// Creates the database specified in your DATABASE_URL.
     Create {
-        /// Location of the DB, by default will be read from the DATABASE_URL env var
+        /// Location of the DB, by default will be read from the DATABASE_URL
+        /// env var
         #[structopt(long, short = "D", env)]
         database_url: String,
     },
 
     /// Drops the database specified in your DATABASE_URL.
     Drop {
-        /// Automatic confirmation. Without this option, you will be prompted before dropping
-        /// your database.
+        /// Automatic confirmation. Without this option, you will be prompted
+        /// before dropping your database.
         #[structopt(short)]
         yes: bool,
 
-        /// Location of the DB, by default will be read from the DATABASE_URL env var
+        /// Location of the DB, by default will be read from the DATABASE_URL
+        /// env var
         #[structopt(long, short = "D", env)]
         database_url: String,
     },
 
-    /// Drops the database specified in your DATABASE_URL, re-creates it, and runs any pending migrations.
+    /// Drops the database specified in your DATABASE_URL, re-creates it, and
+    /// runs any pending migrations.
     Reset {
-        /// Automatic confirmation. Without this option, you will be prompted before dropping
-        /// your database.
+        /// Automatic confirmation. Without this option, you will be prompted
+        /// before dropping your database.
         #[structopt(short)]
         yes: bool,
 
@@ -59,18 +66,21 @@ pub enum DatabaseCommand {
         #[structopt(long, default_value = "migrations")]
         source: String,
 
-        /// Location of the DB, by default will be read from the DATABASE_URL env var
+        /// Location of the DB, by default will be read from the DATABASE_URL
+        /// env var
         #[structopt(long, short = "D", env)]
         database_url: String,
     },
 
-    /// Creates the database specified in your DATABASE_URL and runs any pending migrations.
+    /// Creates the database specified in your DATABASE_URL and runs any pending
+    /// migrations.
     Setup {
         /// Path to folder containing migrations.
         #[structopt(long, default_value = "migrations")]
         source: String,
 
-        /// Location of the DB, by default will be read from the DATABASE_URL env var
+        /// Location of the DB, by default will be read from the DATABASE_URL
+        /// env var
         #[structopt(long, short = "D", env)]
         database_url: String,
     },
@@ -89,7 +99,8 @@ pub struct MigrateOpt {
 /// Commands related to automatic migration generation.
 #[derive(StructOpt, Debug)]
 pub struct GenerateOpt {
-    /// Location of the DB, by default will be read from the DATABASE_URL env var
+    /// Location of the DB, by default will be read from the DATABASE_URL env
+    /// var
     #[structopt(long, short = "D", env)]
     pub database_url: String,
     /// Path to folder containing migrations.
@@ -124,8 +135,8 @@ pub enum MigrateCommand {
     Add {
         description: String,
 
-        /// If true, creates a pair of up and down migration files with same version
-        /// else creates a single sql file
+        /// If true, creates a pair of up and down migration files with same
+        /// version else creates a single sql file
         #[structopt(short)]
         reversible: bool,
     },
@@ -140,7 +151,8 @@ pub enum MigrateCommand {
         #[structopt(long)]
         ignore_missing: bool,
 
-        /// Location of the DB, by default will be read from the DATABASE_URL env var
+        /// Location of the DB, by default will be read from the DATABASE_URL
+        /// env var
         #[structopt(long, short = "D", env)]
         database_url: String,
     },
@@ -155,19 +167,22 @@ pub enum MigrateCommand {
         #[structopt(long)]
         ignore_missing: bool,
 
-        /// Location of the DB, by default will be read from the DATABASE_URL env var
+        /// Location of the DB, by default will be read from the DATABASE_URL
+        /// env var
         #[structopt(long, short = "D", env)]
         database_url: String,
     },
 
     /// List all available migrations.
     Info {
-        /// Location of the DB, by default will be read from the DATABASE_URL env var
+        /// Location of the DB, by default will be read from the DATABASE_URL
+        /// env var
         #[structopt(long, env)]
         database_url: String,
     },
 
-    /// Generate a `build.rs` to trigger recompilation when a new migration is added.
+    /// Generate a `build.rs` to trigger recompilation when a new migration is
+    /// added.
     ///
     /// Must be run in a Cargo project root.
     BuildScript {

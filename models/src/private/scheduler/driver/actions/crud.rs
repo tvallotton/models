@@ -15,9 +15,11 @@ impl<'table, T: Compare> CRUD<'table, T> {
     pub fn to_delete(&self, obj: &T) -> bool {
         self.delete.iter().any(|&del| del.names_are_equal(&obj))
     }
+
     pub fn to_update(&self, obj: &T) -> bool {
         self.update.iter().any(|&up| up.names_are_equal(&obj))
     }
+
     pub fn _to_create(&self, obj: &T) -> bool {
         self.create.iter().any(|&cr| cr.names_are_equal(&obj))
     }

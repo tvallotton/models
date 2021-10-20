@@ -24,7 +24,10 @@
 /// 3) a `RESERVED_FOR_TABLE_ALIAS` array with keywords reserved in a
 /// "table alias" context.
 #[cfg(feature = "serde")]
-use serde::{Deserialize, Serialize};
+use serde::{
+    Deserialize,
+    Serialize,
+};
 
 /// Defines a string constant for a single keyword: `kw_def!(SELECT);`
 /// expands to `pub const SELECT = "SELECT";`
@@ -64,7 +67,8 @@ macro_rules! define_keywords {
 
 }
 
-// The following keywords should be sorted to be able to match using binary search
+// The following keywords should be sorted to be able to match using binary
+// search
 define_keywords!(
     ABORT,
     ABS,
@@ -500,8 +504,8 @@ define_keywords!(
     ZONE
 );
 
-/// These keywords can't be used as a table alias, so that `FROM table_name alias`
-/// can be parsed unambiguously without looking ahead.
+/// These keywords can't be used as a table alias, so that `FROM table_name
+/// alias` can be parsed unambiguously without looking ahead.
 pub const RESERVED_FOR_TABLE_ALIAS: &[Keyword] = &[
     // Reserved as both a table and a column alias:
     Keyword::WITH,

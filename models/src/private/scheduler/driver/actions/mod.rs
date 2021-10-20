@@ -3,13 +3,16 @@ mod compare;
 mod crud;
 mod inner;
 
-use super::schema::Schema;
-use crate::prelude::*;
-use action::{depends, Action};
+use action::{
+    depends,
+    Action,
+};
 pub use compare::*;
 use crud::*;
-
 use inner::*;
+
+use super::schema::Schema;
+use crate::prelude::*;
 #[derive(Debug)]
 pub(crate) struct Actions<'table> {
     name: &'table ObjectName,

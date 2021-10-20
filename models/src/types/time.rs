@@ -1,7 +1,12 @@
-use super::*;
+use std::ops::{
+    Deref,
+    DerefMut,
+};
+
 #[cfg(feature = "serde")]
 use serde::*;
-use std::ops::{Deref, DerefMut};
+
+use super::*;
 
 /// Wrapper type that defaults to `DATE`.
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -11,6 +16,7 @@ use std::ops::{Deref, DerefMut};
 pub struct Date<T>(pub T);
 impl<T> Deref for Date<T> {
     type Target = T;
+
     fn deref(&self) -> &Self::Target {
         &self.0
     }
@@ -32,6 +38,7 @@ impl<T> AsMut<T> for Date<T> {
 }
 impl<T> IntoSQL for Date<T> {
     const IS_NULLABLE: bool = false;
+
     fn into_sql() -> DataType {
         DataType::Date
     }
@@ -44,6 +51,7 @@ impl<T> IntoSQL for Date<T> {
 pub struct DateTime<T>(pub T);
 impl<T> Deref for DateTime<T> {
     type Target = T;
+
     fn deref(&self) -> &Self::Target {
         &self.0
     }
@@ -65,6 +73,7 @@ impl<T> AsMut<T> for DateTime<T> {
 }
 impl<T> IntoSQL for DateTime<T> {
     const IS_NULLABLE: bool = false;
+
     fn into_sql() -> DataType {
         DataType::custom("DATETIME")
     }
@@ -77,6 +86,7 @@ impl<T> IntoSQL for DateTime<T> {
 pub struct Timestamp<T>(pub T);
 impl<T> Deref for Timestamp<T> {
     type Target = T;
+
     fn deref(&self) -> &Self::Target {
         &self.0
     }
@@ -98,6 +108,7 @@ impl<T> AsMut<T> for Timestamp<T> {
 }
 impl<T> IntoSQL for Timestamp<T> {
     const IS_NULLABLE: bool = false;
+
     fn into_sql() -> DataType {
         DataType::Timestamp
     }

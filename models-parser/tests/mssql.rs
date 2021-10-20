@@ -16,10 +16,14 @@
 
 #[macro_use]
 mod test_utils;
+use models_parser::{
+    ast::*,
+    dialect::{
+        GenericDialect,
+        MsSqlDialect,
+    },
+};
 use test_utils::*;
-
-use models_parser::ast::*;
-use models_parser::dialect::{GenericDialect, MsSqlDialect};
 
 #[test]
 fn parse_mssql_identifiers() {
@@ -35,10 +39,10 @@ fn parse_mssql_identifiers() {
     );
     assert_eq!(2, select.projection.len());
     match &only(&select.from).relation {
-        TableFactor::Table { name, .. } => {
+        | TableFactor::Table { name, .. } => {
             assert_eq!("##temp".to_string(), name.to_string());
         }
-        _ => unreachable!(),
+        | _ => unreachable!(),
     };
 }
 

@@ -1,7 +1,9 @@
 mod sorter;
-use super::*;
-pub use sorter::Sorter;
 pub use std::collections::HashSet;
+
+pub use sorter::Sorter;
+
+use super::*;
 pub(crate) struct Queue {
     tables: HashMap<String, Table>,
     sorter: Sorter,
@@ -14,6 +16,7 @@ impl Queue {
             sorter: Sorter::new(),
         }
     }
+
     pub fn len(&self) -> usize {
         self.tables.len()
     }
@@ -32,6 +35,7 @@ impl Queue {
             .pop()
             .and_then(|value| self.tables.remove(&value))
     }
+
     pub fn remove_unregistered(&mut self) {
         self.sorter.remove_unregistered_depedencies()
     }

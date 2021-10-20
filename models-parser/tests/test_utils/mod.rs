@@ -21,7 +21,8 @@ pub use models_parser::test_utils::*;
 // but also because Rust doesn't scope macros to a particular module
 // (and while we export internal helpers as models_parser::test_utils::<...>,
 // expecting our users to abstain from relying on them, exporting internal
-// macros at the top level, like `models_parser::nest` was deemed too confusing).
+// macros at the top level, like `models_parser::nest` was deemed too
+// confusing).
 
 #[macro_export]
 macro_rules! nest {

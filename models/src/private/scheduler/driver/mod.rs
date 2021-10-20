@@ -6,7 +6,6 @@ mod report;
 mod schema;
 use actions::Actions;
 use queue::*;
-
 pub(crate) use report::*;
 use schema::*;
 
@@ -25,6 +24,7 @@ impl Driver {
             success: vec![],
         }
     }
+
     pub fn is_first(&self) -> bool {
         self.queue.len() == 0
     }
@@ -32,6 +32,7 @@ impl Driver {
     pub fn register(&mut self, table: Table) {
         self.queue.insert(table)
     }
+
     pub fn as_json(&self) -> String {
         let error = if let Err(err) = &self.result {
             err.as_json()
@@ -49,9 +50,9 @@ impl Driver {
         self.queue.remove_unregistered();
         loop {
             match self.queue.pop() {
-                Some(target) => self.migrate_table(target),
+                | Some(target) => self.migrate_table(target),
 
-                None => {
+                | None => {
                     if self.queue.len() != 0 && self.result.is_ok() {
                         self.result = Err(Error::Cycle(self.queue.remaining_tables()));
                     }

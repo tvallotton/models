@@ -11,8 +11,10 @@ use super::*;
 pub enum Expr {
     /// Identifier e.g. table name or column name
     Identifier(Ident),
-    /// Unqualified wildcard (`*`). SQL allows this in limited contexts, such as:
-    /// - right after `SELECT` (which is represented as a [SelectItem::Wildcard] instead)
+    /// Unqualified wildcard (`*`). SQL allows this in limited contexts, such
+    /// as:
+    /// - right after `SELECT` (which is represented as a [SelectItem::Wildcard]
+    ///   instead)
     /// - or as part of an aggregate function, e.g. `COUNT(*)`,
     ///
     /// ...but we currently also accept it in contexts where it doesn't make
@@ -37,9 +39,11 @@ pub enum Expr {
     BinaryOp(BinaryOp),
     /// Unary operation e.g. `NOT foo`
     UnaryOp(UnaryOp),
-    /// CAST an expression to a different data type e.g. `CAST(foo AS VARCHAR(123))`
+    /// CAST an expression to a different data type e.g. `CAST(foo AS
+    /// VARCHAR(123))`
     Cast(Cast),
-    /// TRY_CAST an expression to a different data type e.g. `TRY_CAST(foo AS VARCHAR(123))`
+    /// TRY_CAST an expression to a different data type e.g. `TRY_CAST(foo AS
+    /// VARCHAR(123))`
     //  this differs from CAST in the choice of how to implement invalid conversions
     TryCast(TryCast),
     /// EXTRACT(DateTimeField FROM <expr>)
@@ -57,13 +61,15 @@ pub enum Expr {
     /// A literal value, such as string, number, date or NULL
     Value(Value),
     /// A constant of form `<data_type> 'value'`.
-    /// This can represent ANSI SQL `DATE`, `TIME`, and `TIMESTAMP` literals (such as `DATE '2020-01-01'`),
-    /// as well as constants of other types (a non-standard PostgreSQL extension).
+    /// This can represent ANSI SQL `DATE`, `TIME`, and `TIMESTAMP` literals
+    /// (such as `DATE '2020-01-01'`), as well as constants of other types
+    /// (a non-standard PostgreSQL extension).
     TypedString(TypedString),
     MapAccess(MapAccess),
     /// Scalar function call e.g. `LEFT(foo, 5)`
     Function(Function),
-    /// `CASE [<operand>] WHEN <condition> THEN <result> ... [ELSE <result>] END`
+    /// `CASE [<operand>] WHEN <condition> THEN <result> ... [ELSE <result>]
+    /// END`
     ///
     /// Note we only recognize a complete single expression as `<condition>`,
     /// not `< 0` nor `1, 2, 3` as allowed in a `<simple when clause>` per
@@ -133,7 +139,8 @@ pub struct Cast {
     pub expr: Box<Expr>,
     pub data_type: DataType,
 }
-/// TRY_CAST an expression to a different data type e.g. `TRY_CAST(foo AS VARCHAR(123))`
+/// TRY_CAST an expression to a different data type e.g. `TRY_CAST(foo AS
+/// VARCHAR(123))`
 //  this differs from CAST in the choice of how to implement invalid conversions
 #[derive(Debug, Clone, Hash, Eq, PartialEq)]
 pub struct TryCast {
@@ -170,8 +177,9 @@ pub struct Collate {
 }
 
 /// A constant of form `<data_type> 'value'`.
-/// This can represent ANSI SQL `DATE`, `TIME`, and `TIMESTAMP` literals (such as `DATE '2020-01-01'`),
-/// as well as constants of other types (a non-standard PostgreSQL extension).
+/// This can represent ANSI SQL `DATE`, `TIME`, and `TIMESTAMP` literals (such
+/// as `DATE '2020-01-01'`), as well as constants of other types (a non-standard
+/// PostgreSQL extension).
 #[derive(Debug, Clone, Hash, Eq, PartialEq)]
 pub struct TypedString {
     pub data_type: DataType,

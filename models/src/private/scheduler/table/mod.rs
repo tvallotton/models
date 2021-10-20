@@ -1,8 +1,9 @@
 use crate::prelude::*;
 mod column;
 pub mod constraint;
-use crate::private::scheduler::driver::actions::Compare;
 pub use column::*;
+
+use crate::private::scheduler::driver::actions::Compare;
 
 #[derive(Clone, Debug)]
 pub struct Table {
@@ -27,15 +28,16 @@ impl Table {
     pub(crate) fn name(&self) -> String {
         self.name.to_string().to_lowercase()
     }
+
     /// returns depenedencies of the table
     pub(crate) fn deps(&self) -> Vec<String> {
         self.constraints
             .iter()
             .filter_map(|constr| match constr {
-                TableConstraint::ForeignKey(ForeignKey { foreign_table, .. }) => {
+                | TableConstraint::ForeignKey(ForeignKey { foreign_table, .. }) => {
                     Some(foreign_table.to_string().to_lowercase())
                 }
-                _ => None,
+                | _ => None,
             })
             .collect()
     }
@@ -43,20 +45,20 @@ impl Table {
     pub(super) fn alter_table(&mut self, op: &AlterTableOperation) -> Result {
         use AlterTableOperation::*;
         match op {
-            AddColumn { column_def } => self.columns.push(column_def.clone().into()),
-            AddConstraint(constr) => self.constraints.push(constr.clone()),
-            DropConstraint { name, .. } => self.drop_constraint(name.to_string()),
+            | AddColumn { column_def } => self.columns.push(column_def.clone().into()),
+            | AddConstraint(constr) => self.constraints.push(constr.clone()),
+            | DropConstraint { name, .. } => self.drop_constraint(name.to_string()),
 
-            DropColumn {
+            | DropColumn {
                 column_name,
                 if_exists,
                 ..
             } => self.drop_col(column_name, *if_exists),
-            RenameColumn {
+            | RenameColumn {
                 old_column_name,
                 new_column_name,
             } => self.rename_col(old_column_name, new_column_name),
-            op => return Err(error!("unsupported operation: \"{}\"", op)),
+            | op => return Err(error!("unsupported operation: \"{}\"", op)),
         }
         Ok(())
     }
@@ -82,6 +84,7 @@ impl Table {
             .filter(|constr| constr.name().ok().as_ref() != Some(&rm_name))
             .collect();
     }
+
     pub(super) fn rename_col(&mut self, old: &Ident, new: &Ident) {
         self.columns = self
             .columns
@@ -99,6 +102,7 @@ impl Table {
 
 impl TryFrom<Statement> for Table {
     type Error = Error;
+
     fn try_from(value: Statement) -> Result<Self, Self::Error> {
         if let Statement::CreateTable(table) = value {
             let name = table

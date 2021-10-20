@@ -11,21 +11,38 @@
 // limitations under the License.
 
 #![warn(clippy::all)]
-//! Test SQL syntax, which all models_parser dialects must parse in the same way.
+//! Test SQL syntax, which all models_parser dialects must parse in the same
+//! way.
 //!
 //! Note that it does not mean all SQL here is valid in all the dialects, only
 //! that 1) it's either standard or widely supported and 2) it can be parsed by
-//! models_parser regardless of the chosen dialect (i.e. it doesn't conflict with
-//! dialect-specific parsing rules).
+//! models_parser regardless of the chosen dialect (i.e. it doesn't conflict
+//! with dialect-specific parsing rules).
 
 #[macro_use]
 mod test_utils;
-use test_utils::{all_dialects, expr_from_projection, join, number, only, table, table_alias};
-
 use matches::assert_matches;
-use models_parser::ast::*;
-use models_parser::dialect::{keywords::ALL_KEYWORDS, GenericDialect, SQLiteDialect};
-use models_parser::parser::{Parser, ParserError};
+use models_parser::{
+    ast::*,
+    dialect::{
+        keywords::ALL_KEYWORDS,
+        GenericDialect,
+        SQLiteDialect,
+    },
+    parser::{
+        Parser,
+        ParserError,
+    },
+};
+use test_utils::{
+    all_dialects,
+    expr_from_projection,
+    join,
+    number,
+    only,
+    table,
+    table_alias,
+};
 
 #[test]
 fn parse_insert_values() {
@@ -64,7 +81,7 @@ fn parse_insert_values() {
         expected_rows: &[Vec<Expr>],
     ) {
         match verified_stmt(sql) {
-            Statement::Insert(Insert {
+            | Statement::Insert(Insert {
                 table_name,
                 columns,
                 source,
@@ -76,11 +93,13 @@ fn parse_insert_values() {
                     assert_eq!(column, &Ident::new(expected_columns[index].clone()));
                 }
                 match &source.body {
-                    SetExpr::Values(Values(values)) => assert_eq!(values.as_slice(), expected_rows),
-                    _ => unreachable!(),
+                    | SetExpr::Values(Values(values)) => {
+                        assert_eq!(values.as_slice(), expected_rows)
+                    }
+                    | _ => unreachable!(),
                 }
             }
-            _ => unreachable!(),
+            | _ => unreachable!(),
         }
     }
 
@@ -108,8 +127,8 @@ fn parse_insert_sqlite() {
     .pop()
     .unwrap()
     {
-        Statement::Insert(Insert { or, .. }) => assert_eq!(or, expected_action),
-        _ => panic!("{}", sql),
+        | Statement::Insert(Insert { or, .. }) => assert_eq!(or, expected_action),
+        | _ => panic!("{}", sql),
     };
 
     let sql = "INSERT INTO test_table(id) VALUES(1)";
@@ -138,7 +157,7 @@ fn parse_insert_sqlite() {
 fn parse_update() {
     let sql = "UPDATE t SET a = 1, b = 2, c = 3 WHERE d";
     match verified_stmt(sql) {
-        Statement::Update(Update {
+        | Statement::Update(Update {
             table_name,
             assignments,
             selection,
@@ -164,7 +183,7 @@ fn parse_update() {
             );
             assert_eq!(selection.unwrap(), Expr::Identifier("d".into()));
         }
-        _ => unreachable!(),
+        | _ => unreachable!(),
     }
 
     verified_stmt("UPDATE t SET a = 1, a = 2, a = 3");
@@ -201,13 +220,13 @@ fn parse_no_table_name() {
 fn parse_delete_statement() {
     let sql = "DELETE FROM \"table\"";
     match verified_stmt(sql) {
-        Statement::Delete(Delete { table_name, .. }) => {
+        | Statement::Delete(Delete { table_name, .. }) => {
             assert_eq!(
                 ObjectName(vec![Ident::with_quote('"', "table")]),
                 table_name
             );
         }
-        _ => unreachable!(),
+        | _ => unreachable!(),
     }
 }
 
@@ -217,7 +236,7 @@ fn parse_where_delete_statement() {
 
     let sql = "DELETE FROM foo WHERE name = 5";
     match verified_stmt(sql) {
-        Statement::Delete(Delete {
+        | Statement::Delete(Delete {
             table_name,
             selection,
             ..
@@ -233,7 +252,7 @@ fn parse_where_delete_statement() {
                 selection.unwrap(),
             );
         }
-        _ => unreachable!(),
+        | _ => unreachable!(),
     }
 }
 
@@ -509,8 +528,10 @@ fn parse_number() {
 
 #[test]
 fn parse_compound_expr_1() {
-    use self::BinaryOperator::*;
-    use self::Expr::Identifier;
+    use self::{
+        BinaryOperator::*,
+        Expr::Identifier,
+    };
     let sql = "a + b * c";
     assert_eq!(
         Expr::BinaryOp(BinaryOp {
@@ -586,7 +607,8 @@ fn parse_is_not_null() {
 
 #[test]
 fn parse_not_precedence() {
-    // NOT has higher precedence than OR/AND, so the following must parse as (NOT true) OR true
+    // NOT has higher precedence than OR/AND, so the following must parse as (NOT
+    // true) OR true
     let sql = "NOT true OR true";
     assert_matches!(
         verified_expr(sql),
@@ -596,7 +618,8 @@ fn parse_not_precedence() {
         })
     );
 
-    // But NOT has lower precedence than comparison operators, so the following parses as NOT (a IS NULL)
+    // But NOT has lower precedence than comparison operators, so the following
+    // parses as NOT (a IS NULL)
     let sql = "NOT a IS NULL";
     assert_matches!(
         verified_expr(sql),
@@ -606,7 +629,8 @@ fn parse_not_precedence() {
         })
     );
 
-    // NOT has lower precedence than BETWEEN, so the following parses as NOT (1 NOT BETWEEN 1 AND 2)
+    // NOT has lower precedence than BETWEEN, so the following parses as NOT (1 NOT
+    // BETWEEN 1 AND 2)
     let sql = "NOT 1 NOT BETWEEN 1 AND 2";
     assert_eq!(
         verified_expr(sql),
@@ -621,7 +645,8 @@ fn parse_not_precedence() {
         }),
     );
 
-    // NOT has lower precedence than LIKE, so the following parses as NOT ('a' NOT LIKE 'b')
+    // NOT has lower precedence than LIKE, so the following parses as NOT ('a' NOT
+    // LIKE 'b')
     let sql = "NOT 'a' NOT LIKE 'b'";
     assert_eq!(
         verified_expr(sql),
@@ -635,7 +660,8 @@ fn parse_not_precedence() {
         }),
     );
 
-    // NOT has lower precedence than IN, so the following parses as NOT (a NOT IN 'a')
+    // NOT has lower precedence than IN, so the following parses as NOT (a NOT IN
+    // 'a')
     let sql = "NOT a NOT IN ('a')";
     assert_eq!(
         verified_expr(sql),
@@ -1182,7 +1208,7 @@ fn parse_create_table() {
          FOREIGN KEY (lng) REFERENCES othertable4(longitude) ON UPDATE SET NULL)",
     );
     match ast {
-        Statement::CreateTable(table) => {
+        | Statement::CreateTable(table) => {
             let name = table.name;
             let columns = table.columns;
             let constraints = table.constraints;
@@ -1315,7 +1341,7 @@ fn parse_create_table() {
             );
             assert_eq!(with_options, vec![]);
         }
-        _ => unreachable!(),
+        | _ => unreachable!(),
     }
 
     let res = parse_sql_statements("CREATE TABLE t (a integer NOT NULL GARBAGE)");
@@ -1360,13 +1386,13 @@ fn parse_assert() {
     let sql = "ASSERT (SELECT COUNT(*) FROM my_table) > 0";
     let ast = one_statement_parses_to(sql, "ASSERT (SELECT COUNT(*) FROM my_table) > 0");
     match ast {
-        Statement::Assert(Assert {
+        | Statement::Assert(Assert {
             condition: _condition,
             message,
         }) => {
             assert_eq!(message, None);
         }
-        _ => unreachable!(),
+        | _ => unreachable!(),
     }
 }
 
@@ -1379,16 +1405,16 @@ fn parse_assert_message() {
         "ASSERT (SELECT COUNT(*) FROM my_table) > 0 AS 'No rows in my_table'",
     );
     match ast {
-        Statement::Assert(Assert {
+        | Statement::Assert(Assert {
             condition: _condition,
             message: Some(message),
         }) => {
             match message {
-                Expr::Value(Value::SingleQuotedString(s)) => assert_eq!(s, "No rows in my_table"),
-                _ => unreachable!(),
+                | Expr::Value(Value::SingleQuotedString(s)) => assert_eq!(s, "No rows in my_table"),
+                | _ => unreachable!(),
             };
         }
-        _ => unreachable!(),
+        | _ => unreachable!(),
     }
 }
 
@@ -1397,10 +1423,10 @@ fn parse_create_schema() {
     let sql = "CREATE SCHEMA X";
 
     match verified_stmt(sql) {
-        Statement::CreateSchema(CreateSchema { schema_name, .. }) => {
+        | Statement::CreateSchema(CreateSchema { schema_name, .. }) => {
             assert_eq!(schema_name.to_string(), "X".to_owned())
         }
-        _ => unreachable!(),
+        | _ => unreachable!(),
     }
 }
 
@@ -1409,8 +1435,8 @@ fn parse_drop_schema() {
     let sql = "DROP SCHEMA X";
 
     match verified_stmt(sql) {
-        Statement::Drop(Drop { object_type, .. }) => assert_eq!(object_type, ObjectType::Schema),
-        _ => unreachable!(),
+        | Statement::Drop(Drop { object_type, .. }) => assert_eq!(object_type, ObjectType::Schema),
+        | _ => unreachable!(),
     }
 }
 
@@ -1419,14 +1445,14 @@ fn parse_create_table_as() {
     let sql = "CREATE TABLE t AS SELECT * FROM a";
 
     match verified_stmt(sql) {
-        Statement::CreateTable(table) => {
+        | Statement::CreateTable(table) => {
             assert_eq!(table.name.to_string(), "t".to_string());
             assert_eq!(
                 table.query,
                 Some(Box::new(verified_query("SELECT * FROM a")))
             );
         }
-        _ => unreachable!(),
+        | _ => unreachable!(),
     }
 
     // BigQuery allows specifying table schema in CTAS
@@ -1434,7 +1460,7 @@ fn parse_create_table_as() {
     // (without data types) in a CTAS, but we have yet to support that.
     let sql = "CREATE TABLE t (a INTEGER, b INTEGER) AS SELECT 1 AS b, 2 AS a";
     match verified_stmt(sql) {
-        Statement::CreateTable(table) => {
+        | Statement::CreateTable(table) => {
             let columns = table.columns;
             let query = table.query;
             assert_eq!(columns.len(), 2);
@@ -1445,7 +1471,7 @@ fn parse_create_table_as() {
                 Some(Box::new(verified_query("SELECT 1 AS b, 2 AS a")))
             );
         }
-        _ => unreachable!(),
+        | _ => unreachable!(),
     }
 }
 
@@ -1454,16 +1480,16 @@ fn parse_create_or_replace_table() {
     let sql = "CREATE OR REPLACE TABLE t (a INTEGER)";
 
     match verified_stmt(sql) {
-        Statement::CreateTable(table) => {
+        | Statement::CreateTable(table) => {
             assert_eq!(table.name.to_string(), "t".to_string());
             assert!(table.or_replace);
         }
-        _ => unreachable!(),
+        | _ => unreachable!(),
     }
 
     let sql = "CREATE TABLE t (a INTEGER, b INTEGER) AS SELECT 1 AS b, 2 AS a";
     match verified_stmt(sql) {
-        Statement::CreateTable(table) => {
+        | Statement::CreateTable(table) => {
             let columns = table.columns;
             assert_eq!(columns.len(), 2);
             assert_eq!(columns[0].to_string(), "a INTEGER".to_string());
@@ -1473,7 +1499,7 @@ fn parse_create_or_replace_table() {
                 Some(Box::new(verified_query("SELECT 1 AS b, 2 AS a")))
             );
         }
-        _ => unreachable!(),
+        | _ => unreachable!(),
     }
 }
 
@@ -1495,7 +1521,7 @@ fn parse_create_table_with_on_delete_on_update_2in_any_order() -> Result<(), Par
 fn parse_create_table_with_options() {
     let sql = "CREATE TABLE t (c INTEGER) WITH (foo = 'bar', a = 123)";
     match verified_stmt(sql) {
-        Statement::CreateTable(table) => {
+        | Statement::CreateTable(table) => {
             let with_options = table.with_options;
             assert_eq!(
                 vec![
@@ -1511,7 +1537,7 @@ fn parse_create_table_with_options() {
                 with_options
             );
         }
-        _ => unreachable!(),
+        | _ => unreachable!(),
     }
 }
 
@@ -1537,7 +1563,7 @@ fn parse_create_external_table() {
          STORED AS TEXTFILE LOCATION '/tmp/example.csv'",
     );
     match ast {
-        Statement::CreateTable(table) => {
+        | Statement::CreateTable(table) => {
             let name = table.name;
             let columns = table.columns;
             let constraints = table.constraints;
@@ -1585,7 +1611,7 @@ fn parse_create_external_table() {
             assert_eq!(with_options, vec![]);
             assert!(!if_not_exists);
         }
-        _ => unreachable!(),
+        | _ => unreachable!(),
     }
 }
 
@@ -1603,7 +1629,7 @@ fn parse_create_or_replace_external_table() {
          STORED AS TEXTFILE LOCATION '/tmp/example.csv'",
     );
     match ast {
-        Statement::CreateTable(table) => {
+        | Statement::CreateTable(table) => {
             let name = table.name;
             let columns = table.columns;
             let constraints = table.constraints;
@@ -1636,7 +1662,7 @@ fn parse_create_or_replace_external_table() {
             assert!(!if_not_exists);
             assert!(or_replace);
         }
-        _ => unreachable!(),
+        | _ => unreachable!(),
     }
 }
 
@@ -1662,7 +1688,7 @@ fn parse_create_external_table_lowercase() {
 fn parse_alter_table() {
     let add_column = "ALTER TABLE tab ADD COLUMN foo TEXT;";
     match one_statement_parses_to(add_column, "ALTER TABLE tab ADD COLUMN foo TEXT") {
-        Statement::AlterTable(AlterTable {
+        | Statement::AlterTable(AlterTable {
             name,
             operation: AlterTableOperation::AddColumn { column_def },
         }) => {
@@ -1670,24 +1696,24 @@ fn parse_alter_table() {
             assert_eq!("foo", column_def.name.to_string());
             assert_eq!("TEXT", column_def.data_type.to_string());
         }
-        _ => unreachable!(),
+        | _ => unreachable!(),
     };
 
     let rename_table = "ALTER TABLE tab RENAME TO new_tab";
     match verified_stmt(rename_table) {
-        Statement::AlterTable(AlterTable {
+        | Statement::AlterTable(AlterTable {
             name,
             operation: AlterTableOperation::RenameTable { table_name },
         }) => {
             assert_eq!("tab", name.to_string());
             assert_eq!("new_tab", table_name.to_string())
         }
-        _ => unreachable!(),
+        | _ => unreachable!(),
     };
 
     let rename_column = "ALTER TABLE tab RENAME COLUMN foo TO new_foo";
     match verified_stmt(rename_column) {
-        Statement::AlterTable(AlterTable {
+        | Statement::AlterTable(AlterTable {
             name,
             operation:
                 AlterTableOperation::RenameColumn {
@@ -1699,7 +1725,7 @@ fn parse_alter_table() {
             assert_eq!(old_column_name.to_string(), "foo");
             assert_eq!(new_column_name.to_string(), "new_foo");
         }
-        _ => unreachable!(),
+        | _ => unreachable!(),
     }
 }
 
@@ -1720,14 +1746,14 @@ fn parse_alter_table_constraints() {
 
     fn check_one(constraint_text: &str) {
         match verified_stmt(&format!("ALTER TABLE tab ADD {}", constraint_text)) {
-            Statement::AlterTable(AlterTable {
+            | Statement::AlterTable(AlterTable {
                 name,
                 operation: AlterTableOperation::AddConstraint(constraint),
             }) => {
                 assert_eq!("tab", name.to_string());
                 assert_eq!(constraint_text, constraint.to_string());
             }
-            _ => unreachable!(),
+            | _ => unreachable!(),
         }
         verified_stmt(&format!(
             "CREATE TABLE foo (id INTEGER, {})",
@@ -1750,7 +1776,7 @@ fn parse_alter_table_drop_column() {
 
     fn check_one(constraint_text: &str) {
         match verified_stmt(&format!("ALTER TABLE tab {}", constraint_text)) {
-            Statement::AlterTable(AlterTable {
+            | Statement::AlterTable(AlterTable {
                 name,
                 operation:
                     AlterTableOperation::DropColumn {
@@ -1764,7 +1790,7 @@ fn parse_alter_table_drop_column() {
                 assert!(if_exists);
                 assert!(cascade);
             }
-            _ => unreachable!(),
+            | _ => unreachable!(),
         }
     }
 }
@@ -1813,7 +1839,7 @@ fn parse_scalar_function_in_projection() {
 
 fn run_explain_analyze(query: &str, expected_verbose: bool, expected_analyze: bool) {
     match verified_stmt(query) {
-        Statement::Explain(Explain {
+        | Statement::Explain(Explain {
             analyze,
             verbose,
             statement,
@@ -1822,7 +1848,7 @@ fn run_explain_analyze(query: &str, expected_verbose: bool, expected_analyze: bo
             assert_eq!(analyze, expected_analyze);
             assert_eq!("SELECT sqrt(id) FROM foo", statement.to_string());
         }
-        _ => panic!("Unexpected Statement, must be Explain"),
+        | _ => panic!("Unexpected Statement, must be Explain"),
     }
 }
 
@@ -2110,7 +2136,7 @@ fn parse_table_function() {
     let select = verified_only_select("SELECT * FROM TABLE(FUN('1')) AS a");
 
     match only(select.from).relation {
-        TableFactor::TableFunction { expr, alias } => {
+        | TableFactor::TableFunction { expr, alias } => {
             let expected_expr = Expr::Function(Function {
                 name: ObjectName(vec![Ident::new("FUN")]),
                 args: vec![FunctionArg::Unnamed(Expr::Value(
@@ -2122,7 +2148,7 @@ fn parse_table_function() {
             assert_eq!(expr, expected_expr);
             assert_eq!(alias, table_alias("a"))
         }
-        _ => panic!("Expecting TableFactor::TableFunction"),
+        | _ => panic!("Expecting TableFactor::TableFunction"),
     }
 
     let res = parse_sql_statements("SELECT * FROM TABLE '1' AS a");
@@ -2140,13 +2166,14 @@ fn parse_table_function() {
 
 #[test]
 fn parse_delimited_identifiers() {
-    // check that quoted identifiers in any position remain quoted after serialization
+    // check that quoted identifiers in any position remain quoted after
+    // serialization
     let select = verified_only_select(
         r#"SELECT "alias"."bar baz", "myfun"(), "simple id" AS "column alias" FROM "a table" AS "alias""#,
     );
     // check FROM
     match only(select.from).relation {
-        TableFactor::Table {
+        | TableFactor::Table {
             name,
             alias,
             args,
@@ -2157,7 +2184,7 @@ fn parse_delimited_identifiers() {
             assert!(args.is_empty());
             assert!(with_hints.is_empty());
         }
-        _ => panic!("Expecting TableFactor::Table"),
+        | _ => panic!("Expecting TableFactor::Table"),
     }
     // check SELECT
     assert_eq!(3, select.projection.len());
@@ -2178,11 +2205,11 @@ fn parse_delimited_identifiers() {
         expr_from_projection(&select.projection[1]),
     );
     match &select.projection[2] {
-        SelectItem::ExprWithAlias { expr, alias } => {
+        | SelectItem::ExprWithAlias { expr, alias } => {
             assert_eq!(&Expr::Identifier(Ident::with_quote('"', "simple id")), expr);
             assert_eq!(&Ident::with_quote('"', "column alias"), alias);
         }
-        _ => panic!("Expected ExprWithAlias"),
+        | _ => panic!("Expected ExprWithAlias"),
     }
 
     verified_stmt(r#"CREATE TABLE "foo" ("bar" "int")"#);
@@ -2192,8 +2219,12 @@ fn parse_delimited_identifiers() {
 
 #[test]
 fn parse_parens() {
+    use Expr::{
+        Identifier,
+        Nested,
+    };
+
     use self::BinaryOperator::*;
-    use Expr::{Identifier, Nested};
     let sql = "(a + b) - (c + d)";
     assert_eq!(
         Expr::BinaryOp(BinaryOp {
@@ -2216,8 +2247,13 @@ fn parse_parens() {
 #[test]
 fn parse_searched_case_expr() {
     let sql = "SELECT CASE WHEN bar IS NULL THEN 'null' WHEN bar = 0 THEN '=0' WHEN bar >= 0 THEN '>=0' ELSE '<0' END FROM foo";
-    use self::BinaryOperator::*;
-    use self::Expr::{Identifier, IsNull};
+    use self::{
+        BinaryOperator::*,
+        Expr::{
+            Identifier,
+            IsNull,
+        },
+    };
     let select = verified_only_select(sql);
     assert_eq!(
         &Expr::Case(Case {
@@ -2597,25 +2633,27 @@ fn parse_ctes() {
     let sql = &format!("SELECT ({})", with);
     let select = verified_only_select(sql);
     match expr_from_projection(only(&select.projection)) {
-        Expr::Subquery(ref subquery) => {
+        | Expr::Subquery(ref subquery) => {
             assert_ctes_in_select(&cte_sqls, subquery.as_ref());
         }
-        _ => panic!("Expected subquery"),
+        | _ => panic!("Expected subquery"),
     }
     // CTE in a derived table
     let sql = &format!("SELECT * FROM ({})", with);
     let select = verified_only_select(sql);
     match only(select.from).relation {
-        TableFactor::Derived { subquery, .. } => {
+        | TableFactor::Derived { subquery, .. } => {
             assert_ctes_in_select(&cte_sqls, subquery.as_ref())
         }
-        _ => panic!("Expected derived table"),
+        | _ => panic!("Expected derived table"),
     }
     // CTE in a view
     let sql = &format!("CREATE VIEW v AS {}", with);
     match verified_stmt(sql) {
-        Statement::CreateView(CreateView { query, .. }) => assert_ctes_in_select(&cte_sqls, &query),
-        _ => panic!("Expected CREATE VIEW"),
+        | Statement::CreateView(CreateView { query, .. }) => {
+            assert_ctes_in_select(&cte_sqls, &query)
+        }
+        | _ => panic!("Expected CREATE VIEW"),
     }
     // CTE in a CTE...
     let sql = &format!("WITH outer_cte AS ({}) SELECT * FROM outer_cte", with);
@@ -2883,7 +2921,7 @@ fn parse_exists_subquery() {
 fn parse_create_view() {
     let sql = "CREATE VIEW myschema.myview AS SELECT foo FROM bar";
     match verified_stmt(sql) {
-        Statement::CreateView(CreateView {
+        | Statement::CreateView(CreateView {
             name,
             columns,
             query,
@@ -2898,7 +2936,7 @@ fn parse_create_view() {
             assert!(!or_replace);
             assert_eq!(with_options, vec![]);
         }
-        _ => unreachable!(),
+        | _ => unreachable!(),
     }
 }
 
@@ -2906,7 +2944,7 @@ fn parse_create_view() {
 fn parse_create_view_with_options() {
     let sql = "CREATE VIEW v WITH (foo = 'bar', a = 123) AS SELECT 1";
     match verified_stmt(sql) {
-        Statement::CreateView(CreateView { with_options, .. }) => {
+        | Statement::CreateView(CreateView { with_options, .. }) => {
             assert_eq!(
                 vec![
                     SqlOption {
@@ -2921,7 +2959,7 @@ fn parse_create_view_with_options() {
                 with_options
             );
         }
-        _ => unreachable!(),
+        | _ => unreachable!(),
     }
 }
 
@@ -2929,7 +2967,7 @@ fn parse_create_view_with_options() {
 fn parse_create_view_with_columns() {
     let sql = "CREATE VIEW v (has, cols) AS SELECT 1, 2";
     match verified_stmt(sql) {
-        Statement::CreateView(CreateView {
+        | Statement::CreateView(CreateView {
             name,
             columns,
             or_replace,
@@ -2944,14 +2982,14 @@ fn parse_create_view_with_columns() {
             assert!(!materialized);
             assert!(!or_replace)
         }
-        _ => unreachable!(),
+        | _ => unreachable!(),
     }
 }
 #[test]
 fn parse_create_or_replace_view() {
     let sql = "CREATE OR REPLACE VIEW v AS SELECT 1";
     match verified_stmt(sql) {
-        Statement::CreateView(CreateView {
+        | Statement::CreateView(CreateView {
             name,
             columns,
             or_replace,
@@ -2966,7 +3004,7 @@ fn parse_create_or_replace_view() {
             assert!(!materialized);
             assert!(or_replace)
         }
-        _ => unreachable!(),
+        | _ => unreachable!(),
     }
 }
 
@@ -2978,7 +3016,7 @@ fn parse_create_or_replace_materialized_view() {
     // https://docs.snowflake.com/en/sql-reference/sql/create-materialized-view.html
     let sql = "CREATE OR REPLACE MATERIALIZED VIEW v AS SELECT 1";
     match verified_stmt(sql) {
-        Statement::CreateView(CreateView {
+        | Statement::CreateView(CreateView {
             name,
             columns,
             or_replace,
@@ -2993,7 +3031,7 @@ fn parse_create_or_replace_materialized_view() {
             assert!(materialized);
             assert!(or_replace)
         }
-        _ => unreachable!(),
+        | _ => unreachable!(),
     }
 }
 
@@ -3001,7 +3039,7 @@ fn parse_create_or_replace_materialized_view() {
 fn parse_create_materialized_view() {
     let sql = "CREATE MATERIALIZED VIEW myschema.myview AS SELECT foo FROM bar";
     match verified_stmt(sql) {
-        Statement::CreateView(CreateView {
+        | Statement::CreateView(CreateView {
             name,
             or_replace,
             columns,
@@ -3016,7 +3054,7 @@ fn parse_create_materialized_view() {
             assert_eq!(with_options, vec![]);
             assert!(!or_replace);
         }
-        _ => unreachable!(),
+        | _ => unreachable!(),
     }
 }
 
@@ -3024,7 +3062,7 @@ fn parse_create_materialized_view() {
 fn parse_drop_table() {
     let sql = "DROP TABLE foo";
     match verified_stmt(sql) {
-        Statement::Drop(Drop {
+        | Statement::Drop(Drop {
             object_type,
             if_exists,
             names,
@@ -3039,12 +3077,12 @@ fn parse_drop_table() {
             );
             assert!(!cascade);
         }
-        _ => unreachable!(),
+        | _ => unreachable!(),
     }
 
     let sql = "DROP TABLE IF EXISTS foo, bar CASCADE";
     match verified_stmt(sql) {
-        Statement::Drop(Drop {
+        | Statement::Drop(Drop {
             object_type,
             if_exists,
             names,
@@ -3059,7 +3097,7 @@ fn parse_drop_table() {
             );
             assert!(cascade);
         }
-        _ => unreachable!(),
+        | _ => unreachable!(),
     }
 
     let sql = "DROP TABLE";
@@ -3079,7 +3117,7 @@ fn parse_drop_table() {
 fn parse_drop_view() {
     let sql = "DROP VIEW myschema.myview";
     match verified_stmt(sql) {
-        Statement::Drop(Drop {
+        | Statement::Drop(Drop {
             names, object_type, ..
         }) => {
             assert_eq!(
@@ -3088,7 +3126,7 @@ fn parse_drop_view() {
             );
             assert_eq!(ObjectType::View, object_type);
         }
-        _ => unreachable!(),
+        | _ => unreachable!(),
     }
 }
 
@@ -3118,13 +3156,13 @@ fn parse_offset() {
     let ast = verified_query("SELECT foo FROM (SELECT * FROM bar OFFSET 2 ROWS) OFFSET 2 ROWS");
     assert_eq!(ast.offset, expect);
     match ast.body {
-        SetExpr::Select(s) => match only(s.from).relation {
-            TableFactor::Derived { subquery, .. } => {
+        | SetExpr::Select(s) => match only(s.from).relation {
+            | TableFactor::Derived { subquery, .. } => {
                 assert_eq!(subquery.offset, expect);
             }
-            _ => panic!("Test broke"),
+            | _ => panic!("Test broke"),
         },
-        _ => panic!("Test broke"),
+        | _ => panic!("Test broke"),
     }
     let ast = verified_query("SELECT 'foo' OFFSET 0 ROWS");
     assert_eq!(
@@ -3212,13 +3250,13 @@ fn parse_fetch() {
     );
     assert_eq!(ast.fetch, fetch_first_two_rows_only);
     match ast.body {
-        SetExpr::Select(s) => match only(s.from).relation {
-            TableFactor::Derived { subquery, .. } => {
+        | SetExpr::Select(s) => match only(s.from).relation {
+            | TableFactor::Derived { subquery, .. } => {
                 assert_eq!(subquery.fetch, fetch_first_two_rows_only);
             }
-            _ => panic!("Test broke"),
+            | _ => panic!("Test broke"),
         },
-        _ => panic!("Test broke"),
+        | _ => panic!("Test broke"),
     }
     let ast = verified_query("SELECT foo FROM (SELECT * FROM bar OFFSET 2 ROWS FETCH FIRST 2 ROWS ONLY) OFFSET 2 ROWS FETCH FIRST 2 ROWS ONLY");
     assert_eq!(
@@ -3230,8 +3268,8 @@ fn parse_fetch() {
     );
     assert_eq!(ast.fetch, fetch_first_two_rows_only);
     match ast.body {
-        SetExpr::Select(s) => match only(s.from).relation {
-            TableFactor::Derived { subquery, .. } => {
+        | SetExpr::Select(s) => match only(s.from).relation {
+            | TableFactor::Derived { subquery, .. } => {
                 assert_eq!(
                     subquery.offset,
                     Some(Offset {
@@ -3241,9 +3279,9 @@ fn parse_fetch() {
                 );
                 assert_eq!(subquery.fetch, fetch_first_two_rows_only);
             }
-            _ => panic!("Test broke"),
+            | _ => panic!("Test broke"),
         },
-        _ => panic!("Test broke"),
+        | _ => panic!("Test broke"),
     }
 }
 
@@ -3329,7 +3367,7 @@ fn lateral_derived() {
 #[test]
 fn parse_start_transaction() {
     match verified_stmt("START TRANSACTION READ ONLY, READ WRITE, ISOLATION LEVEL SERIALIZABLE") {
-        Statement::StartTransaction(StartTransaction { modes }) => assert_eq!(
+        | Statement::StartTransaction(StartTransaction { modes }) => assert_eq!(
             modes,
             vec![
                 TransactionMode::AccessMode(TransactionAccessMode::ReadOnly),
@@ -3337,7 +3375,7 @@ fn parse_start_transaction() {
                 TransactionMode::IsolationLevel(TransactionIsolationLevel::Serializable),
             ]
         ),
-        _ => unreachable!(),
+        | _ => unreachable!(),
     }
 
     // For historical reasons, PostgreSQL allows the commas between the modes to
@@ -3346,7 +3384,7 @@ fn parse_start_transaction() {
         "START TRANSACTION READ ONLY READ WRITE ISOLATION LEVEL SERIALIZABLE",
         "START TRANSACTION READ ONLY, READ WRITE, ISOLATION LEVEL SERIALIZABLE",
     ) {
-        Statement::StartTransaction(StartTransaction { modes }) => assert_eq!(
+        | Statement::StartTransaction(StartTransaction { modes }) => assert_eq!(
             modes,
             vec![
                 TransactionMode::AccessMode(TransactionAccessMode::ReadOnly),
@@ -3354,7 +3392,7 @@ fn parse_start_transaction() {
                 TransactionMode::IsolationLevel(TransactionIsolationLevel::Serializable),
             ]
         ),
-        _ => unreachable!(),
+        | _ => unreachable!(),
     }
 
     verified_stmt("START TRANSACTION");
@@ -3403,7 +3441,7 @@ fn parse_set_transaction() {
     // TRANSACTION, so no need to duplicate the tests here. We just do a quick
     // sanity check.
     match verified_stmt("SET TRANSACTION READ ONLY, READ WRITE, ISOLATION LEVEL SERIALIZABLE") {
-        Statement::SetTransaction(SetTransaction { modes }) => assert_eq!(
+        | Statement::SetTransaction(SetTransaction { modes }) => assert_eq!(
             modes,
             vec![
                 TransactionMode::AccessMode(TransactionAccessMode::ReadOnly),
@@ -3411,20 +3449,20 @@ fn parse_set_transaction() {
                 TransactionMode::IsolationLevel(TransactionIsolationLevel::Serializable),
             ]
         ),
-        _ => unreachable!(),
+        | _ => unreachable!(),
     }
 }
 
 #[test]
 fn parse_commit() {
     match verified_stmt("COMMIT") {
-        Statement::Commit(Commit { chain: false }) => (),
-        _ => unreachable!(),
+        | Statement::Commit(Commit { chain: false }) => (),
+        | _ => unreachable!(),
     }
 
     match verified_stmt("COMMIT AND CHAIN") {
-        Statement::Commit(Commit { chain: true }) => (),
-        _ => unreachable!(),
+        | Statement::Commit(Commit { chain: true }) => (),
+        | _ => unreachable!(),
     }
 
     one_statement_parses_to("COMMIT AND NO CHAIN", "COMMIT");
@@ -3439,13 +3477,13 @@ fn parse_commit() {
 #[test]
 fn parse_rollback() {
     match verified_stmt("ROLLBACK") {
-        Statement::Rollback(Rollback { chain: false }) => (),
-        _ => unreachable!(),
+        | Statement::Rollback(Rollback { chain: false }) => (),
+        | _ => unreachable!(),
     }
 
     match verified_stmt("ROLLBACK AND CHAIN") {
-        Statement::Rollback(Rollback { chain: true }) => (),
-        _ => unreachable!(),
+        | Statement::Rollback(Rollback { chain: true }) => (),
+        | _ => unreachable!(),
     }
 
     one_statement_parses_to("ROLLBACK AND NO CHAIN", "ROLLBACK");
@@ -3482,7 +3520,7 @@ fn parse_create_index() {
         },
     ];
     match verified_stmt(sql) {
-        Statement::CreateIndex(CreateIndex {
+        | Statement::CreateIndex(CreateIndex {
             name,
             table_name,
             columns,
@@ -3495,14 +3533,14 @@ fn parse_create_index() {
             assert!(unique);
             assert!(if_not_exists)
         }
-        _ => unreachable!(),
+        | _ => unreachable!(),
     }
 }
 #[test]
 fn parse_drop_index() {
     let sql = "DROP INDEX idx_a";
     match verified_stmt(sql) {
-        Statement::Drop(Drop {
+        | Statement::Drop(Drop {
             names, object_type, ..
         }) => {
             assert_eq!(
@@ -3511,7 +3549,7 @@ fn parse_drop_index() {
             );
             assert_eq!(ObjectType::Index, object_type);
         }
-        _ => unreachable!(),
+        | _ => unreachable!(),
     }
 }
 #[test]

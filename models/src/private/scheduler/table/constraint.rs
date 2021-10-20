@@ -1,11 +1,12 @@
-use crate::prelude::*;
 use TableConstraint::*;
+
+use crate::prelude::*;
 
 pub fn name(constr: &TableConstraint) -> &Option<Ident> {
     match constr {
-        Unique(ast::Unique { name, .. }) => name,
-        ForeignKey(ast::ForeignKey { name, .. }) => name,
-        Check(ast::Check { name, .. }) => name,
+        | Unique(ast::Unique { name, .. }) => name,
+        | ForeignKey(ast::ForeignKey { name, .. }) => name,
+        | Check(ast::Check { name, .. }) => name,
     }
 }
 
@@ -49,20 +50,20 @@ pub fn foreign_key(
         referred_columns: vec![Ident::new(foreign_col)],
         columns: vec![Ident::new(local_col)],
         on_delete: match &*on_delete.to_lowercase() {
-            "cascade" => Some(ast::ReferentialAction::Cascade),
-            "no action" => Some(ast::ReferentialAction::NoAction),
-            "restrict" => Some(ast::ReferentialAction::Restrict),
-            "set default" => Some(ast::ReferentialAction::SetDefault),
-            "set null" => Some(ast::ReferentialAction::SetNull),
-            _ => None,
+            | "cascade" => Some(ast::ReferentialAction::Cascade),
+            | "no action" => Some(ast::ReferentialAction::NoAction),
+            | "restrict" => Some(ast::ReferentialAction::Restrict),
+            | "set default" => Some(ast::ReferentialAction::SetDefault),
+            | "set null" => Some(ast::ReferentialAction::SetNull),
+            | _ => None,
         },
         on_update: match &*on_update.to_lowercase() {
-            "cascade" => Some(ast::ReferentialAction::Cascade),
-            "no action" => Some(ast::ReferentialAction::NoAction),
-            "restrict" => Some(ast::ReferentialAction::Restrict),
-            "set default" => Some(ast::ReferentialAction::SetDefault),
-            "set null" => Some(ast::ReferentialAction::SetNull),
-            _ => None,
+            | "cascade" => Some(ast::ReferentialAction::Cascade),
+            | "no action" => Some(ast::ReferentialAction::NoAction),
+            | "restrict" => Some(ast::ReferentialAction::Restrict),
+            | "set default" => Some(ast::ReferentialAction::SetDefault),
+            | "set null" => Some(ast::ReferentialAction::SetNull),
+            | _ => None,
         },
     })
 }

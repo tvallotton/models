@@ -14,26 +14,41 @@
 //!
 //! The tokenizer (a.k.a. lexer) converts a string into a sequence of tokens.
 //!
-//! The tokens then form the input for the parser, which outputs an Abstract Syntax Tree (AST).
+//! The tokens then form the input for the parser, which outputs an Abstract
+//! Syntax Tree (AST).
 
 #[cfg(not(feature = "std"))]
 use alloc::{
     borrow::ToOwned,
     format,
-    string::{String, ToString},
+    string::{
+        String,
+        ToString,
+    },
     vec,
     vec::Vec,
 };
-use core::fmt;
-use core::iter::Peekable;
-use core::str::Chars;
+use core::{
+    fmt,
+    iter::Peekable,
+    str::Chars,
+};
 
 #[cfg(feature = "serde")]
-use serde::{Deserialize, Serialize};
+use serde::{
+    Deserialize,
+    Serialize,
+};
 
-use crate::dialect::keywords::{Keyword, ALL_KEYWORDS, ALL_KEYWORDS_INDEX};
-use crate::dialect::Dialect;
-use crate::dialect::SnowflakeDialect;
+use crate::dialect::{
+    keywords::{
+        Keyword,
+        ALL_KEYWORDS,
+        ALL_KEYWORDS_INDEX,
+    },
+    Dialect,
+    SnowflakeDialect,
+};
 
 /// SQL Token enumeration
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -117,13 +132,17 @@ pub enum Token {
     RArrow,
     /// Sharp `#` used for PostgreSQL Bitwise XOR operator
     Sharp,
-    /// Tilde `~` used for PostgreSQL Bitwise NOT operator or case sensitive match regular expression operator
+    /// Tilde `~` used for PostgreSQL Bitwise NOT operator or case sensitive
+    /// match regular expression operator
     Tilde,
-    /// `~*` , a case insensitive match regular expression operator in PostgreSQL
+    /// `~*` , a case insensitive match regular expression operator in
+    /// PostgreSQL
     TildeAsterisk,
-    /// `!~` , a case sensitive not match regular expression operator in PostgreSQL
+    /// `!~` , a case sensitive not match regular expression operator in
+    /// PostgreSQL
     ExclamationMarkTilde,
-    /// `!~*` , a case insensitive not match regular expression operator in PostgreSQL
+    /// `!~*` , a case insensitive not match regular expression operator in
+    /// PostgreSQL
     ExclamationMarkTildeAsterisk,
     /// `<<`, a bitwise shift left operator in PostgreSQL
     ShiftLeft,
@@ -131,7 +150,8 @@ pub enum Token {
     ShiftRight,
     /// Exclamation Mark `!` used for PostgreSQL factorial operator
     ExclamationMark,
-    /// Double Exclamation Mark `!!` used for PostgreSQL prefix factorial operator
+    /// Double Exclamation Mark `!!` used for PostgreSQL prefix factorial
+    /// operator
     DoubleExclamationMark,
     /// AtSign `@` used for PostgreSQL abs operator
     AtSign,
@@ -144,56 +164,56 @@ pub enum Token {
 impl fmt::Display for Token {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Token::EOF => f.write_str("EOF"),
-            Token::Word(ref w) => write!(f, "{}", w),
-            Token::Number(ref n, l) => write!(f, "{}{long}", n, long = if *l { "L" } else { "" }),
-            Token::Char(ref c) => write!(f, "{}", c),
-            Token::SingleQuotedString(ref s) => write!(f, "'{}'", s),
-            Token::NationalStringLiteral(ref s) => write!(f, "N'{}'", s),
-            Token::HexStringLiteral(ref s) => write!(f, "X'{}'", s),
-            Token::Comma => f.write_str(","),
-            Token::Whitespace(ws) => write!(f, "{}", ws),
-            Token::DoubleEq => f.write_str("=="),
-            Token::Spaceship => f.write_str("<=>"),
-            Token::Eq => f.write_str("="),
-            Token::Neq => f.write_str("<>"),
-            Token::Lt => f.write_str("<"),
-            Token::Gt => f.write_str(">"),
-            Token::LtEq => f.write_str("<="),
-            Token::GtEq => f.write_str(">="),
-            Token::Plus => f.write_str("+"),
-            Token::Minus => f.write_str("-"),
-            Token::Mult => f.write_str("*"),
-            Token::Div => f.write_str("/"),
-            Token::StringConcat => f.write_str("||"),
-            Token::Mod => f.write_str("%"),
-            Token::LParen => f.write_str("("),
-            Token::RParen => f.write_str(")"),
-            Token::Period => f.write_str("."),
-            Token::Colon => f.write_str(":"),
-            Token::DoubleColon => f.write_str("::"),
-            Token::SemiColon => f.write_str(";"),
-            Token::Backslash => f.write_str("\\"),
-            Token::LBracket => f.write_str("["),
-            Token::RBracket => f.write_str("]"),
-            Token::Ampersand => f.write_str("&"),
-            Token::Caret => f.write_str("^"),
-            Token::Pipe => f.write_str("|"),
-            Token::LBrace => f.write_str("{"),
-            Token::RBrace => f.write_str("}"),
-            Token::RArrow => f.write_str("=>"),
-            Token::Sharp => f.write_str("#"),
-            Token::ExclamationMark => f.write_str("!"),
-            Token::DoubleExclamationMark => f.write_str("!!"),
-            Token::Tilde => f.write_str("~"),
-            Token::TildeAsterisk => f.write_str("~*"),
-            Token::ExclamationMarkTilde => f.write_str("!~"),
-            Token::ExclamationMarkTildeAsterisk => f.write_str("!~*"),
-            Token::AtSign => f.write_str("@"),
-            Token::ShiftLeft => f.write_str("<<"),
-            Token::ShiftRight => f.write_str(">>"),
-            Token::PGSquareRoot => f.write_str("|/"),
-            Token::PGCubeRoot => f.write_str("||/"),
+            | Token::EOF => f.write_str("EOF"),
+            | Token::Word(ref w) => write!(f, "{}", w),
+            | Token::Number(ref n, l) => write!(f, "{}{long}", n, long = if *l { "L" } else { "" }),
+            | Token::Char(ref c) => write!(f, "{}", c),
+            | Token::SingleQuotedString(ref s) => write!(f, "'{}'", s),
+            | Token::NationalStringLiteral(ref s) => write!(f, "N'{}'", s),
+            | Token::HexStringLiteral(ref s) => write!(f, "X'{}'", s),
+            | Token::Comma => f.write_str(","),
+            | Token::Whitespace(ws) => write!(f, "{}", ws),
+            | Token::DoubleEq => f.write_str("=="),
+            | Token::Spaceship => f.write_str("<=>"),
+            | Token::Eq => f.write_str("="),
+            | Token::Neq => f.write_str("<>"),
+            | Token::Lt => f.write_str("<"),
+            | Token::Gt => f.write_str(">"),
+            | Token::LtEq => f.write_str("<="),
+            | Token::GtEq => f.write_str(">="),
+            | Token::Plus => f.write_str("+"),
+            | Token::Minus => f.write_str("-"),
+            | Token::Mult => f.write_str("*"),
+            | Token::Div => f.write_str("/"),
+            | Token::StringConcat => f.write_str("||"),
+            | Token::Mod => f.write_str("%"),
+            | Token::LParen => f.write_str("("),
+            | Token::RParen => f.write_str(")"),
+            | Token::Period => f.write_str("."),
+            | Token::Colon => f.write_str(":"),
+            | Token::DoubleColon => f.write_str("::"),
+            | Token::SemiColon => f.write_str(";"),
+            | Token::Backslash => f.write_str("\\"),
+            | Token::LBracket => f.write_str("["),
+            | Token::RBracket => f.write_str("]"),
+            | Token::Ampersand => f.write_str("&"),
+            | Token::Caret => f.write_str("^"),
+            | Token::Pipe => f.write_str("|"),
+            | Token::LBrace => f.write_str("{"),
+            | Token::RBrace => f.write_str("}"),
+            | Token::RArrow => f.write_str("=>"),
+            | Token::Sharp => f.write_str("#"),
+            | Token::ExclamationMark => f.write_str("!"),
+            | Token::DoubleExclamationMark => f.write_str("!!"),
+            | Token::Tilde => f.write_str("~"),
+            | Token::TildeAsterisk => f.write_str("~*"),
+            | Token::ExclamationMarkTilde => f.write_str("!~"),
+            | Token::ExclamationMarkTildeAsterisk => f.write_str("!~*"),
+            | Token::AtSign => f.write_str("@"),
+            | Token::ShiftLeft => f.write_str("<<"),
+            | Token::ShiftRight => f.write_str(">>"),
+            | Token::PGSquareRoot => f.write_str("|/"),
+            | Token::PGCubeRoot => f.write_str("||/"),
         }
     }
 }
@@ -225,9 +245,10 @@ pub struct Word {
     /// The value of the token, without the enclosing quotes, and with the
     /// escape sequences (if any) processed (TODO: escapes are not handled)
     pub value: String,
-    /// An identifier can be "quoted" (&lt;delimited identifier> in ANSI parlance).
-    /// The standard and most implementations allow using double quotes for this,
-    /// but some implementations support other quoting styles as well (e.g. \[MS SQL])
+    /// An identifier can be "quoted" (&lt;delimited identifier> in ANSI
+    /// parlance). The standard and most implementations allow using double
+    /// quotes for this, but some implementations support other quoting
+    /// styles as well (e.g. \[MS SQL])
     pub quote_style: Option<char>,
     /// If the word was not quoted and it matched one of the known keywords,
     /// this will have one of the values from dialect::keywords, otherwise empty
@@ -237,11 +258,11 @@ pub struct Word {
 impl fmt::Display for Word {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self.quote_style {
-            Some(s) if s == '"' || s == '[' || s == '`' => {
+            | Some(s) if s == '"' || s == '[' || s == '`' => {
                 write!(f, "{}{}{}", s, self.value, Word::matching_end_quote(s))
             }
-            None => f.write_str(&self.value),
-            _ => panic!("Unexpected quote_style!"),
+            | None => f.write_str(&self.value),
+            | _ => panic!("Unexpected quote_style!"),
         }
     }
 }
@@ -249,10 +270,10 @@ impl fmt::Display for Word {
 impl Word {
     fn matching_end_quote(ch: char) -> char {
         match ch {
-            '"' => '"', // ANSI and most dialects
-            '[' => ']', // MS SQL
-            '`' => '`', // MySQL
-            _ => panic!("unexpected quoting style!"),
+            | '"' => '"', // ANSI and most dialects
+            | '[' => ']', // MS SQL
+            | '`' => '`', // MySQL
+            | _ => panic!("unexpected quoting style!"),
         }
     }
 }
@@ -270,11 +291,13 @@ pub enum Whitespace {
 impl fmt::Display for Whitespace {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Whitespace::Space => f.write_str(" "),
-            Whitespace::Newline => f.write_str("\n"),
-            Whitespace::Tab => f.write_str("\t"),
-            Whitespace::SingleLineComment { prefix, comment } => write!(f, "{}{}", prefix, comment),
-            Whitespace::MultiLineComment(s) => write!(f, "/*{}*/", s),
+            | Whitespace::Space => f.write_str(" "),
+            | Whitespace::Newline => f.write_str("\n"),
+            | Whitespace::Tab => f.write_str("\t"),
+            | Whitespace::SingleLineComment { prefix, comment } => {
+                write!(f, "{}{}", prefix, comment)
+            }
+            | Whitespace::MultiLineComment(s) => write!(f, "/*{}*/", s),
         }
     }
 }
@@ -314,17 +337,17 @@ impl<'a> Tokenizer<'a> {
 
         while let Some(token) = self.next_token(&mut peekable)? {
             match &token {
-                Token::Whitespace(Whitespace::Newline) => {
+                | Token::Whitespace(Whitespace::Newline) => {
                     self.line += 1;
                     self.col = 1;
                 }
 
-                Token::Whitespace(Whitespace::Tab) => self.col += 4,
-                Token::Word(w) if w.quote_style == None => self.col += w.value.len() as u64,
-                Token::Word(w) if w.quote_style != None => self.col += w.value.len() as u64 + 2,
-                Token::Number(s, _) => self.col += s.len() as u64,
-                Token::SingleQuotedString(s) => self.col += s.len() as u64,
-                _ => self.col += 1,
+                | Token::Whitespace(Whitespace::Tab) => self.col += 4,
+                | Token::Word(w) if w.quote_style == None => self.col += w.value.len() as u64,
+                | Token::Word(w) if w.quote_style != None => self.col += w.value.len() as u64 + 2,
+                | Token::Number(s, _) => self.col += s.len() as u64,
+                | Token::SingleQuotedString(s) => self.col += s.len() as u64,
+                | _ => self.col += 1,
             }
 
             tokens.push(token);
@@ -336,11 +359,11 @@ impl<'a> Tokenizer<'a> {
     fn next_token(&self, chars: &mut Peekable<Chars<'_>>) -> Result<Option<Token>, TokenizerError> {
         //println!("next_token: {:?}", chars.peek());
         match chars.peek() {
-            Some(&ch) => match ch {
-                ' ' => self.consume_and_return(chars, Token::Whitespace(Whitespace::Space)),
-                '\t' => self.consume_and_return(chars, Token::Whitespace(Whitespace::Tab)),
-                '\n' => self.consume_and_return(chars, Token::Whitespace(Whitespace::Newline)),
-                '\r' => {
+            | Some(&ch) => match ch {
+                | ' ' => self.consume_and_return(chars, Token::Whitespace(Whitespace::Space)),
+                | '\t' => self.consume_and_return(chars, Token::Whitespace(Whitespace::Tab)),
+                | '\n' => self.consume_and_return(chars, Token::Whitespace(Whitespace::Newline)),
+                | '\r' => {
                     // Emit a single Whitespace::Newline token for \r and \r\n
                     chars.next();
                     if let Some('\n') = chars.peek() {
@@ -348,15 +371,15 @@ impl<'a> Tokenizer<'a> {
                     }
                     Ok(Some(Token::Whitespace(Whitespace::Newline)))
                 }
-                'N' => {
+                | 'N' => {
                     chars.next(); // consume, to check the next char
                     match chars.peek() {
-                        Some('\'') => {
+                        | Some('\'') => {
                             // N'...' - a <national character string literal>
                             let s = self.tokenize_single_quoted_string(chars)?;
                             Ok(Some(Token::NationalStringLiteral(s)))
                         }
-                        _ => {
+                        | _ => {
                             // regular identifier starting with an "N"
                             let s = self.tokenize_word('N', chars);
                             Ok(Some(Token::make_word(&s, None)))
@@ -365,15 +388,15 @@ impl<'a> Tokenizer<'a> {
                 }
                 // The spec only allows an uppercase 'X' to introduce a hex
                 // string, but PostgreSQL, at least, allows a lowercase 'x' too.
-                x @ 'x' | x @ 'X' => {
+                | x @ 'x' | x @ 'X' => {
                     chars.next(); // consume, to check the next char
                     match chars.peek() {
-                        Some('\'') => {
+                        | Some('\'') => {
                             // X'...' - a <binary string literal>
                             let s = self.tokenize_single_quoted_string(chars)?;
                             Ok(Some(Token::HexStringLiteral(s)))
                         }
-                        _ => {
+                        | _ => {
                             // regular identifier starting with an "X"
                             let s = self.tokenize_word(x, chars);
                             Ok(Some(Token::make_word(&s, None)))
@@ -381,7 +404,7 @@ impl<'a> Tokenizer<'a> {
                     }
                 }
                 // identifier or keyword
-                ch if self.dialect.is_identifier_start(ch) => {
+                | ch if self.dialect.is_identifier_start(ch) => {
                     chars.next(); // consume the first char
                     let s = self.tokenize_word(ch, chars);
 
@@ -396,12 +419,12 @@ impl<'a> Tokenizer<'a> {
                     Ok(Some(Token::make_word(&s, None)))
                 }
                 // string
-                '\'' => {
+                | '\'' => {
                     let s = self.tokenize_single_quoted_string(chars)?;
                     Ok(Some(Token::SingleQuotedString(s)))
                 }
                 // delimited (quoted) identifier
-                quote_start if self.dialect.is_delimited_identifier_start(quote_start) => {
+                | quote_start if self.dialect.is_delimited_identifier_start(quote_start) => {
                     chars.next(); // consume the opening quote
                     let quote_end = Word::matching_end_quote(quote_start);
                     let s = peeking_take_while(chars, |ch| ch != quote_end);
@@ -415,7 +438,7 @@ impl<'a> Tokenizer<'a> {
                     }
                 }
                 // numbers and period
-                '0'..='9' | '.' => {
+                | '0'..='9' | '.' => {
                     let mut s = peeking_take_while(chars, |ch| matches!(ch, '0'..='9'));
 
                     // match binary literal that starts with 0x
@@ -449,14 +472,14 @@ impl<'a> Tokenizer<'a> {
                     Ok(Some(Token::Number(s, long)))
                 }
                 // punctuation
-                '(' => self.consume_and_return(chars, Token::LParen),
-                ')' => self.consume_and_return(chars, Token::RParen),
-                ',' => self.consume_and_return(chars, Token::Comma),
+                | '(' => self.consume_and_return(chars, Token::LParen),
+                | ')' => self.consume_and_return(chars, Token::RParen),
+                | ',' => self.consume_and_return(chars, Token::Comma),
                 // operators
-                '-' => {
+                | '-' => {
                     chars.next(); // consume the '-'
                     match chars.peek() {
-                        Some('-') => {
+                        | Some('-') => {
                             chars.next(); // consume the second '-', starting a single-line comment
                             let comment = self.tokenize_single_line_comment(chars);
                             Ok(Some(Token::Whitespace(Whitespace::SingleLineComment {
@@ -465,17 +488,17 @@ impl<'a> Tokenizer<'a> {
                             })))
                         }
                         // a regular '-' operator
-                        _ => Ok(Some(Token::Minus)),
+                        | _ => Ok(Some(Token::Minus)),
                     }
                 }
-                '/' => {
+                | '/' => {
                     chars.next(); // consume the '/'
                     match chars.peek() {
-                        Some('*') => {
+                        | Some('*') => {
                             chars.next(); // consume the '*', starting a multi-line comment
                             self.tokenize_multiline_comment(chars)
                         }
-                        Some('/') if dialect_of!(self is SnowflakeDialect) => {
+                        | Some('/') if dialect_of!(self is SnowflakeDialect) => {
                             chars.next(); // consume the second '/', starting a snowflake single-line comment
                             let comment = self.tokenize_single_line_comment(chars);
                             Ok(Some(Token::Whitespace(Whitespace::SingleLineComment {
@@ -484,89 +507,89 @@ impl<'a> Tokenizer<'a> {
                             })))
                         }
                         // a regular '/' operator
-                        _ => Ok(Some(Token::Div)),
+                        | _ => Ok(Some(Token::Div)),
                     }
                 }
-                '+' => self.consume_and_return(chars, Token::Plus),
-                '*' => self.consume_and_return(chars, Token::Mult),
-                '%' => self.consume_and_return(chars, Token::Mod),
-                '|' => {
+                | '+' => self.consume_and_return(chars, Token::Plus),
+                | '*' => self.consume_and_return(chars, Token::Mult),
+                | '%' => self.consume_and_return(chars, Token::Mod),
+                | '|' => {
                     chars.next(); // consume the '|'
                     match chars.peek() {
-                        Some('/') => self.consume_and_return(chars, Token::PGSquareRoot),
-                        Some('|') => {
+                        | Some('/') => self.consume_and_return(chars, Token::PGSquareRoot),
+                        | Some('|') => {
                             chars.next(); // consume the second '|'
                             match chars.peek() {
-                                Some('/') => self.consume_and_return(chars, Token::PGCubeRoot),
-                                _ => Ok(Some(Token::StringConcat)),
+                                | Some('/') => self.consume_and_return(chars, Token::PGCubeRoot),
+                                | _ => Ok(Some(Token::StringConcat)),
                             }
                         }
                         // Bitshift '|' operator
-                        _ => Ok(Some(Token::Pipe)),
+                        | _ => Ok(Some(Token::Pipe)),
                     }
                 }
-                '=' => {
+                | '=' => {
                     chars.next(); // consume
                     match chars.peek() {
-                        Some('>') => self.consume_and_return(chars, Token::RArrow),
-                        _ => Ok(Some(Token::Eq)),
+                        | Some('>') => self.consume_and_return(chars, Token::RArrow),
+                        | _ => Ok(Some(Token::Eq)),
                     }
                 }
-                '!' => {
+                | '!' => {
                     chars.next(); // consume
                     match chars.peek() {
-                        Some('=') => self.consume_and_return(chars, Token::Neq),
-                        Some('!') => self.consume_and_return(chars, Token::DoubleExclamationMark),
-                        Some('~') => {
+                        | Some('=') => self.consume_and_return(chars, Token::Neq),
+                        | Some('!') => self.consume_and_return(chars, Token::DoubleExclamationMark),
+                        | Some('~') => {
                             chars.next();
                             match chars.peek() {
-                                Some('*') => self
+                                | Some('*') => self
                                     .consume_and_return(chars, Token::ExclamationMarkTildeAsterisk),
-                                _ => Ok(Some(Token::ExclamationMarkTilde)),
+                                | _ => Ok(Some(Token::ExclamationMarkTilde)),
                             }
                         }
-                        _ => Ok(Some(Token::ExclamationMark)),
+                        | _ => Ok(Some(Token::ExclamationMark)),
                     }
                 }
-                '<' => {
+                | '<' => {
                     chars.next(); // consume
                     match chars.peek() {
-                        Some('=') => {
+                        | Some('=') => {
                             chars.next();
                             match chars.peek() {
-                                Some('>') => self.consume_and_return(chars, Token::Spaceship),
-                                _ => Ok(Some(Token::LtEq)),
+                                | Some('>') => self.consume_and_return(chars, Token::Spaceship),
+                                | _ => Ok(Some(Token::LtEq)),
                             }
                         }
-                        Some('>') => self.consume_and_return(chars, Token::Neq),
-                        Some('<') => self.consume_and_return(chars, Token::ShiftLeft),
-                        _ => Ok(Some(Token::Lt)),
+                        | Some('>') => self.consume_and_return(chars, Token::Neq),
+                        | Some('<') => self.consume_and_return(chars, Token::ShiftLeft),
+                        | _ => Ok(Some(Token::Lt)),
                     }
                 }
-                '>' => {
+                | '>' => {
                     chars.next(); // consume
                     match chars.peek() {
-                        Some('=') => self.consume_and_return(chars, Token::GtEq),
-                        Some('>') => self.consume_and_return(chars, Token::ShiftRight),
-                        _ => Ok(Some(Token::Gt)),
+                        | Some('=') => self.consume_and_return(chars, Token::GtEq),
+                        | Some('>') => self.consume_and_return(chars, Token::ShiftRight),
+                        | _ => Ok(Some(Token::Gt)),
                     }
                 }
-                ':' => {
+                | ':' => {
                     chars.next();
                     match chars.peek() {
-                        Some(':') => self.consume_and_return(chars, Token::DoubleColon),
-                        _ => Ok(Some(Token::Colon)),
+                        | Some(':') => self.consume_and_return(chars, Token::DoubleColon),
+                        | _ => Ok(Some(Token::Colon)),
                     }
                 }
-                ';' => self.consume_and_return(chars, Token::SemiColon),
-                '\\' => self.consume_and_return(chars, Token::Backslash),
-                '[' => self.consume_and_return(chars, Token::LBracket),
-                ']' => self.consume_and_return(chars, Token::RBracket),
-                '&' => self.consume_and_return(chars, Token::Ampersand),
-                '^' => self.consume_and_return(chars, Token::Caret),
-                '{' => self.consume_and_return(chars, Token::LBrace),
-                '}' => self.consume_and_return(chars, Token::RBrace),
-                '#' if dialect_of!(self is SnowflakeDialect) => {
+                | ';' => self.consume_and_return(chars, Token::SemiColon),
+                | '\\' => self.consume_and_return(chars, Token::Backslash),
+                | '[' => self.consume_and_return(chars, Token::LBracket),
+                | ']' => self.consume_and_return(chars, Token::RBracket),
+                | '&' => self.consume_and_return(chars, Token::Ampersand),
+                | '^' => self.consume_and_return(chars, Token::Caret),
+                | '{' => self.consume_and_return(chars, Token::LBrace),
+                | '}' => self.consume_and_return(chars, Token::RBrace),
+                | '#' if dialect_of!(self is SnowflakeDialect) => {
                     chars.next(); // consume the '#', starting a snowflake single-line comment
                     let comment = self.tokenize_single_line_comment(chars);
                     Ok(Some(Token::Whitespace(Whitespace::SingleLineComment {
@@ -574,18 +597,18 @@ impl<'a> Tokenizer<'a> {
                         comment,
                     })))
                 }
-                '~' => {
+                | '~' => {
                     chars.next(); // consume
                     match chars.peek() {
-                        Some('*') => self.consume_and_return(chars, Token::TildeAsterisk),
-                        _ => Ok(Some(Token::Tilde)),
+                        | Some('*') => self.consume_and_return(chars, Token::TildeAsterisk),
+                        | _ => Ok(Some(Token::Tilde)),
                     }
                 }
-                '#' => self.consume_and_return(chars, Token::Sharp),
-                '@' => self.consume_and_return(chars, Token::AtSign),
-                other => self.consume_and_return(chars, Token::Char(other)),
+                | '#' => self.consume_and_return(chars, Token::Sharp),
+                | '@' => self.consume_and_return(chars, Token::AtSign),
+                | other => self.consume_and_return(chars, Token::Char(other)),
             },
-            None => Ok(None),
+            | None => Ok(None),
         }
     }
 
@@ -607,7 +630,8 @@ impl<'a> Tokenizer<'a> {
         comment
     }
 
-    /// Tokenize an identifier or keyword, after the first char is already consumed.
+    /// Tokenize an identifier or keyword, after the first char is already
+    /// consumed.
     fn tokenize_word(&self, first_char: char, chars: &mut Peekable<Chars<'_>>) -> String {
         let mut s = first_char.to_string();
         s.push_str(&peeking_take_while(chars, |ch| {
@@ -625,7 +649,7 @@ impl<'a> Tokenizer<'a> {
         chars.next(); // consume the opening quote
         while let Some(&ch) = chars.peek() {
             match ch {
-                '\'' => {
+                | '\'' => {
                     chars.next(); // consume
                     let escaped_quote = chars.peek().map(|c| *c == '\'').unwrap_or(false);
                     if escaped_quote {
@@ -635,7 +659,7 @@ impl<'a> Tokenizer<'a> {
                         return Ok(s);
                     }
                 }
-                _ => {
+                | _ => {
                     chars.next(); // consume
                     s.push(ch);
                 }
@@ -653,7 +677,7 @@ impl<'a> Tokenizer<'a> {
         // TODO: deal with nested comments
         loop {
             match chars.next() {
-                Some(ch) => {
+                | Some(ch) => {
                     if maybe_closing_comment {
                         if ch == '/' {
                             break Ok(Some(Token::Whitespace(Whitespace::MultiLineComment(s))));
@@ -666,7 +690,9 @@ impl<'a> Tokenizer<'a> {
                         s.push(ch);
                     }
                 }
-                None => break self.tokenizer_error("Unexpected EOF while in a multi-line comment"),
+                | None => {
+                    break self.tokenizer_error("Unexpected EOF while in a multi-line comment")
+                }
             }
         }
     }
@@ -703,9 +729,13 @@ fn peeking_take_while(
 
 #[cfg(test)]
 mod tests {
-    use super::super::dialect::GenericDialect;
-    use super::super::dialect::MsSqlDialect;
-    use super::*;
+    use super::{
+        super::dialect::{
+            GenericDialect,
+            MsSqlDialect,
+        },
+        *,
+    };
 
     #[test]
     fn tokenize_select_1() {

@@ -20,17 +20,24 @@ mod postgresql;
 mod snowflake;
 mod sqlite;
 
-use core::any::{Any, TypeId};
-use core::fmt::Debug;
+use core::{
+    any::{
+        Any,
+        TypeId,
+    },
+    fmt::Debug,
+};
 
-pub use self::ansi::AnsiDialect;
-pub use self::generic::GenericDialect;
-pub use self::hive::HiveDialect;
-pub use self::mssql::MsSqlDialect;
-pub use self::mysql::MySqlDialect;
-pub use self::postgresql::PostgreSqlDialect;
-pub use self::snowflake::SnowflakeDialect;
-pub use self::sqlite::SQLiteDialect;
+pub use self::{
+    ansi::AnsiDialect,
+    generic::GenericDialect,
+    hive::HiveDialect,
+    mssql::MsSqlDialect,
+    mysql::MySqlDialect,
+    postgresql::PostgreSqlDialect,
+    snowflake::SnowflakeDialect,
+    sqlite::SQLiteDialect,
+};
 
 /// `dialect_of!(parser is SQLiteDialect |  GenericDialect)` evaluates
 /// to `true` iff `parser.dialect` is one of the `Dialect`s specified.
@@ -49,7 +56,8 @@ pub trait Dialect: Debug + Any {
     fn is_delimited_identifier_start(&self, ch: char) -> bool {
         ch == '"'
     }
-    /// Determine if a character is a valid start character for an unquoted identifier
+    /// Determine if a character is a valid start character for an unquoted
+    /// identifier
     fn is_identifier_start(&self, ch: char) -> bool;
     /// Determine if a character is a valid unquoted identifier character
     fn is_identifier_part(&self, ch: char) -> bool;
@@ -65,9 +73,11 @@ impl dyn Dialect {
 
 #[cfg(test)]
 mod tests {
-    use super::ansi::AnsiDialect;
-    use super::generic::GenericDialect;
-    use super::*;
+    use super::{
+        ansi::AnsiDialect,
+        generic::GenericDialect,
+        *,
+    };
 
     struct DialectHolder<'a> {
         dialect: &'a dyn Dialect,

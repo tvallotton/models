@@ -1,10 +1,18 @@
+use std::{
+    collections::HashMap,
+    ops::Deref,
+    sync::RwLock,
+};
+
 use sqlx::query_with;
 
-use crate::dialect::{self, Dialect};
-use crate::prelude::*;
-use std::collections::HashMap;
-use std::ops::Deref;
-use std::sync::RwLock;
+use crate::{
+    dialect::{
+        self,
+        Dialect,
+    },
+    prelude::*,
+};
 
 pub struct Queries {
     dialect: Dialect,
@@ -13,7 +21,10 @@ pub struct Queries {
     normal_getters: RwLock<HashMap<StaticStr, &'static str>>,
     insert: RwLock<HashMap<StaticStr, &'static str>>,
 }
-use std::hash::{Hash, Hasher};
+use std::hash::{
+    Hash,
+    Hasher,
+};
 #[derive(Eq)]
 struct StaticStr(&'static str);
 
@@ -50,8 +61,8 @@ impl Queries {
         if query.is_none() {
             if matches!(self.dialect, PostgreSQL) {
                 let sql = match self.dialect {
-                    PostgreSQL => format!("select * from {} where {} = $1;", table, key_name),
-                    _ => format!("select * from {} where {} = ?;", table, key_name),
+                    | PostgreSQL => format!("select * from {} where {} = $1;", table, key_name),
+                    | _ => format!("select * from {} where {} = ?;", table, key_name),
                 };
                 let sql = Box::leak(sql.into_boxed_str());
                 query = Some(sql);

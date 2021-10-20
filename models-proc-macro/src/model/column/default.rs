@@ -1,5 +1,6 @@
-use crate::prelude::*;
 use proc_macro2::Span;
+
+use crate::prelude::*;
 
 pub struct DefaultExpr {
     is_string: bool,
@@ -26,25 +27,29 @@ impl ToTokens for DefaultExpr {
 
 impl Parse for DefaultExpr {
     fn parse(input: parse::ParseStream) -> Result<Self> {
-        use models_parser::{dialect::*, parser::Parser, tokenizer::*};
+        use models_parser::{
+            dialect::*,
+            parser::Parser,
+            tokenizer::*,
+        };
 
         let content;
         let _paren = parenthesized!(content in input);
         let span = Span::call_site();
         let mut is_string = false;
         let expr = match content.parse::<Lit>() {
-            Ok(Lit::Bool(boolean)) => boolean.value().to_string(),
-            Ok(Lit::Int(int)) => int.to_string(),
-            Ok(Lit::Float(float)) => float.to_string(),
-            Ok(Lit::Str(string)) => {
+            | Ok(Lit::Bool(boolean)) => boolean.value().to_string(),
+            | Ok(Lit::Int(int)) => int.to_string(),
+            | Ok(Lit::Float(float)) => float.to_string(),
+            | Ok(Lit::Str(string)) => {
                 is_string = true;
                 string.value()
             }
-            Ok(lit) => Err(Error::new(
+            | Ok(lit) => Err(Error::new(
                 lit.span(),
                 "Expected string, boolean, or numeric literal",
             ))?,
-            Err(err) => Err(Error::new(
+            | Err(err) => Err(Error::new(
                 err.span(),
                 "Expected string, boolean, or numeric literal",
             ))?,

@@ -1,4 +1,7 @@
-use super::{Compare, *};
+use super::{
+    Compare,
+    *,
+};
 use crate::prelude::*;
 #[derive(Debug)]
 pub(crate) struct Move<'table> {
@@ -69,6 +72,7 @@ impl<'table> Move<'table> {
         }
         .into()
     }
+
     fn insert_statement(&self, table_name: ObjectName) -> Result<Statement> {
         let new = self
             .new_cols
@@ -108,9 +112,7 @@ impl<'table> Move<'table> {
     fn rename(self, table_name: ObjectName) -> Statement {
         Statement::AlterTable(AlterTable {
             name: ObjectName(vec![Ident::new("temp")]),
-            operation: AlterTableOperation::RenameTable {
-                table_name: table_name,
-            },
+            operation: AlterTableOperation::RenameTable { table_name },
         })
     }
 }
@@ -128,9 +130,9 @@ fn to_string<T: ToString>(collection: Vec<T>) -> String {
 
 pub fn depends(cons: &TableConstraint, tables: &[&Column]) -> bool {
     let names = match cons {
-        TableConstraint::ForeignKey(fk) => &fk.columns,
-        TableConstraint::Unique(unique) => &unique.columns,
-        _ => return false,
+        | TableConstraint::ForeignKey(fk) => &fk.columns,
+        | TableConstraint::Unique(unique) => &unique.columns,
+        | _ => return false,
     };
     let names = names.iter().map(ToString::to_string);
 

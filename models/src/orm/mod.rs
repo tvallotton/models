@@ -1,14 +1,37 @@
-use crate::prelude::{Error, Result, *};
+use std::{
+    env,
+    sync::RwLock,
+};
+
 use dotenv::*;
-use futures::{executor::block_on, TryFutureExt};
-use models_parser::dialect::keywords::{DATABASE, SQL};
+use futures::{
+    executor::block_on,
+    TryFutureExt,
+};
+use models_parser::dialect::keywords::{
+    DATABASE,
+    SQL,
+};
 use queries::Queries;
 use sqlx::{
-    any::{Any, AnyPool, AnyRow},
-    Database, Encode, Executor, FromRow, Type,
+    any::{
+        Any,
+        AnyPool,
+        AnyRow,
+    },
+    Database,
+    Encode,
+    Executor,
+    FromRow,
+    Type,
 };
-use std::{env, sync::RwLock};
 use url::Url;
+
+use crate::prelude::{
+    Error,
+    Result,
+    *,
+};
 mod queries;
 
 static DATABASE_URL: Lazy<Result<Url>> = Lazy::new(|| {
@@ -19,7 +42,6 @@ static DATABASE_URL: Lazy<Result<Url>> = Lazy::new(|| {
         .map_err(|_| Error::DatabaseUrl)
         .and_then(|result| result.map_err(|_| Error::DatabaseUrl))
         .map_err(|_| Error::DatabaseUrl)
-        
 });
 
 pub static DATABASE_CONNECTION: Lazy<Result<DatabaseConnection>> =
@@ -34,10 +56,10 @@ impl DatabaseConnection {
     async fn new() -> Result<Self> {
         let url = DATABASE_URL.as_ref().map_err(Clone::clone)?;
         let dialect = match url.scheme() {
-            "sqlite" => Ok(SQLite),
-            "postgres" => Ok(PostgreSQL),
-            "mysql" => Ok(MySQL),
-            scheme => Err(Error::UnsupportedScheme(scheme.into())),
+            | "sqlite" => Ok(SQLite),
+            | "postgres" => Ok(PostgreSQL),
+            | "mysql" => Ok(MySQL),
+            | scheme => Err(Error::UnsupportedScheme(scheme.into())),
         }?;
 
         let pool = AnyPool::connect(&url.to_string()).await?;

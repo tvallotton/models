@@ -12,8 +12,10 @@
 
 #![warn(clippy::all)]
 
-use models_parser::dialect::GenericDialect;
-use models_parser::parser::Parser;
+use models_parser::{
+    dialect::GenericDialect,
+    parser::Parser,
+};
 
 macro_rules! tpch_tests {
     ($($name:ident: $value:expr,)*) => {

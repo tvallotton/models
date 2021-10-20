@@ -1,10 +1,10 @@
 mod column;
 mod constraint;
-use crate::prelude::*;
 use constraint::*;
 use Data::*;
 
 use self::column::Column;
+use crate::prelude::*;
 pub struct Model {
     pub name: Ident,
     name_lowercase: Ident,
@@ -40,7 +40,7 @@ impl Parse for Model {
         let name = input.ident;
         let name_lowercase = Ident::new(&name.to_string().to_lowercase(), name.span());
         match input.data {
-            Struct(data) => {
+            | Struct(data) => {
                 let mut model = Self {
                     name,
                     data,
@@ -51,7 +51,7 @@ impl Parse for Model {
                 model.init()?;
                 Ok(model)
             }
-            _ => panic!("Sql models have to be structs, enums and unions are not supported."),
+            | _ => panic!("Sql models have to be structs, enums and unions are not supported."),
         }
     }
 }

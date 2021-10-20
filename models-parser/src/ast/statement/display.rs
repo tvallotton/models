@@ -4,36 +4,36 @@ impl fmt::Display for Statement {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         use Statement::*;
         match self {
-            Analyze(x) => write!(f, "{}", x),
-            Truncate(x) => write!(f, "{}", x),
-            Explain(x) => write!(f, "{}", x),
-            Query(x) => write!(f, "{}", x),
-            Msck(x) => write!(f, "{}", x),
-            Insert(x) => write!(f, "{}", x),
-            Directory(x) => write!(f, "{}", x),
-            Copy(x) => write!(f, "{}", x),
-            Update(x) => write!(f, "{}", x),
-            Delete(x) => write!(f, "{}", x),
-            CreateView(x) => write!(f, "{}", x),
-            CreateTable(x) => write!(f, "{}", x),
-            CreateVirtualTable(x) => write!(f, "{}", x),
-            CreateIndex(x) => write!(f, "{}", x),
-            AlterTable(x) => write!(f, "{}", x),
-            SetVariable(x) => write!(f, "{}", x),
-            ShowVariable(x) => write!(f, "{}", x),
-            ShowCreate(x) => write!(f, "{}", x),
-            ShowColumns(x) => write!(f, "{}", x),
-            StartTransaction(x) => write!(f, "{}", x),
-            SetTransaction(x) => write!(f, "{}", x),
-            Rollback(x) => write!(f, "{}", x),
-            Drop(x) => write!(f, "{}", x),
-            Commit(x) => write!(f, "{}", x),
-            CreateSchema(x) => write!(f, "{}", x),
-            CreateDatabase(x) => write!(f, "{}", x),
-            Assert(x) => write!(f, "{}", x),
-            Deallocate(x) => write!(f, "{}", x),
-            Execute(x) => write!(f, "{}", x),
-            Prepare(x) => write!(f, "{}", x),
+            | Analyze(x) => write!(f, "{}", x),
+            | Truncate(x) => write!(f, "{}", x),
+            | Explain(x) => write!(f, "{}", x),
+            | Query(x) => write!(f, "{}", x),
+            | Msck(x) => write!(f, "{}", x),
+            | Insert(x) => write!(f, "{}", x),
+            | Directory(x) => write!(f, "{}", x),
+            | Copy(x) => write!(f, "{}", x),
+            | Update(x) => write!(f, "{}", x),
+            | Delete(x) => write!(f, "{}", x),
+            | CreateView(x) => write!(f, "{}", x),
+            | CreateTable(x) => write!(f, "{}", x),
+            | CreateVirtualTable(x) => write!(f, "{}", x),
+            | CreateIndex(x) => write!(f, "{}", x),
+            | AlterTable(x) => write!(f, "{}", x),
+            | SetVariable(x) => write!(f, "{}", x),
+            | ShowVariable(x) => write!(f, "{}", x),
+            | ShowCreate(x) => write!(f, "{}", x),
+            | ShowColumns(x) => write!(f, "{}", x),
+            | StartTransaction(x) => write!(f, "{}", x),
+            | SetTransaction(x) => write!(f, "{}", x),
+            | Rollback(x) => write!(f, "{}", x),
+            | Drop(x) => write!(f, "{}", x),
+            | Commit(x) => write!(f, "{}", x),
+            | CreateSchema(x) => write!(f, "{}", x),
+            | CreateDatabase(x) => write!(f, "{}", x),
+            | Assert(x) => write!(f, "{}", x),
+            | Deallocate(x) => write!(f, "{}", x),
+            | Execute(x) => write!(f, "{}", x),
+            | Prepare(x) => write!(f, "{}", x),
         }
     }
 }
@@ -286,10 +286,10 @@ impl fmt::Display for CreateTable {
             write!(f, " LIKE {}", l)?;
         }
         match hive_distribution {
-            HiveDistributionStyle::PARTITIONED { columns } => {
+            | HiveDistributionStyle::PARTITIONED { columns } => {
                 write!(f, " PARTITIONED BY ({})", display_comma_separated(columns))?;
             }
-            HiveDistributionStyle::CLUSTERED {
+            | HiveDistributionStyle::CLUSTERED {
                 columns,
                 sorted_by,
                 num_buckets,
@@ -302,7 +302,7 @@ impl fmt::Display for CreateTable {
                     write!(f, " INTO {} BUCKETS", num_buckets)?;
                 }
             }
-            HiveDistributionStyle::SKEWED {
+            | HiveDistributionStyle::SKEWED {
                 columns,
                 on,
                 stored_as_directories,
@@ -317,7 +317,7 @@ impl fmt::Display for CreateTable {
                     write!(f, " STORED AS DIRECTORIES")?;
                 }
             }
-            _ => (),
+            | _ => (),
         }
 
         if let Some(HiveFormat {
@@ -327,12 +327,14 @@ impl fmt::Display for CreateTable {
         }) = hive_formats
         {
             match row_format {
-                Some(HiveRowFormat::SERDE { class }) => write!(f, " ROW FORMAT SERDE '{}'", class)?,
-                Some(HiveRowFormat::DELIMITED) => write!(f, " ROW FORMAT DELIMITED")?,
-                None => (),
+                | Some(HiveRowFormat::SERDE { class }) => {
+                    write!(f, " ROW FORMAT SERDE '{}'", class)?
+                }
+                | Some(HiveRowFormat::DELIMITED) => write!(f, " ROW FORMAT DELIMITED")?,
+                | None => (),
             }
             match storage {
-                Some(HiveIOFormat::IOF {
+                | Some(HiveIOFormat::IOF {
                     input_format,
                     output_format,
                 }) => write!(
@@ -340,10 +342,10 @@ impl fmt::Display for CreateTable {
                     " STORED AS INPUTFORMAT {} OUTPUTFORMAT {}",
                     input_format, output_format
                 )?,
-                Some(HiveIOFormat::FileFormat { format }) if !*external => {
+                | Some(HiveIOFormat::FileFormat { format }) if !*external => {
                     write!(f, " STORED AS {}", format)?
                 }
-                _ => (),
+                | _ => (),
             }
             if !*external {
                 if let Some(loc) = location {

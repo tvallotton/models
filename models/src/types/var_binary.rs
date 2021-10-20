@@ -1,12 +1,16 @@
-use crate::prelude::*;
-use models_parser::ast::DataType;
 use std::{
     convert::AsMut,
-    ops::{Deref, DerefMut},
+    ops::{
+        Deref,
+        DerefMut,
+    },
 };
 
+use models_parser::ast::DataType;
 #[cfg(feature = "serde")]
 use serde::*;
+
+use crate::prelude::*;
 
 /// Used for MySQL when to specify that the datatype should be
 /// a `VARBINARY(N)`. The database will make sure the field does not
@@ -39,6 +43,7 @@ impl<const SIZE: u64> VarBinary<SIZE> {
 
 impl<const N: u64> Deref for VarBinary<N> {
     type Target = Vec<u8>;
+
     fn deref(&self) -> &Self::Target {
         &self.0
     }
@@ -64,6 +69,7 @@ impl<const N: u64> AsMut<Vec<u8>> for VarBinary<N> {
 
 impl<const N: u64> IntoSQL for VarBinary<N> {
     const IS_NULLABLE: bool = false;
+
     fn into_sql() -> DataType {
         if !matches!(*DIALECT, SQLite) {
             DataType::Varbinary(Some(N))

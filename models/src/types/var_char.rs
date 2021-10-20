@@ -1,10 +1,18 @@
-use crate::{prelude::*, types::IntoSQL};
+use std::{
+    convert::AsMut,
+    ops::{
+        Deref,
+        DerefMut,
+    },
+};
+
 use models_parser::ast::DataType;
 #[cfg(feature = "serde")]
 use serde::*;
-use std::{
-    convert::AsMut,
-    ops::{Deref, DerefMut},
+
+use crate::{
+    prelude::*,
+    types::IntoSQL,
 };
 
 /// Used for MySQL when to specify that the datatype should be
@@ -37,6 +45,7 @@ impl<const SIZE: u64> VarChar<SIZE> {
 
 impl<const N: u64> Deref for VarChar<N> {
     type Target = String;
+
     fn deref(&self) -> &Self::Target {
         &self.0
     }
@@ -72,10 +81,11 @@ where
 
 impl<const N: u64> IntoSQL for VarChar<N> {
     const IS_NULLABLE: bool = false;
+
     fn into_sql() -> DataType {
         match *DIALECT {
-            SQLite => DataType::Text,
-            _ => DataType::Varchar(Some(N)),
+            | SQLite => DataType::Text,
+            | _ => DataType::Varchar(Some(N)),
         }
     }
 }

@@ -16,11 +16,15 @@
 
 #[macro_use]
 mod test_utils;
+use models_parser::{
+    ast::*,
+    dialect::{
+        GenericDialect,
+        PostgreSqlDialect,
+    },
+    parser::ParserError,
+};
 use test_utils::*;
-
-use models_parser::ast::*;
-use models_parser::dialect::{GenericDialect, PostgreSqlDialect};
-use models_parser::parser::ParserError;
 
 #[test]
 fn parse_create_table_with_defaults() {
@@ -37,7 +41,7 @@ fn parse_create_table_with_defaults() {
             active integer NOT NULL
     ) WITH (fillfactor = 20, user_catalog_table = true, autovacuum_vacuum_threshold = 100)";
     match pg_and_generic().one_statement_parses_to(sql, "") {
-        Statement::CreateTable(table) => {
+        | Statement::CreateTable(table) => {
             let name = table.name;
             let columns = table.columns;
             let constraints = table.constraints;
@@ -179,7 +183,7 @@ fn parse_create_table_with_defaults() {
                 ]
             );
         }
-        _ => unreachable!(),
+        | _ => unreachable!(),
     }
 }
 
@@ -240,7 +244,7 @@ fn parse_create_table_constraints_only() {
     let sql = "CREATE TABLE t (CONSTRAINT positive CHECK (2 > 1))";
     let ast = pg_and_generic().verified_stmt(sql);
     match ast {
-        Statement::CreateTable(table) => {
+        | Statement::CreateTable(table) => {
             let name = table.name;
             let columns = table.columns;
             let constraints = table.constraints;
@@ -251,7 +255,7 @@ fn parse_create_table_constraints_only() {
                 "CONSTRAINT positive CHECK (2 > 1)"
             );
         }
-        _ => unreachable!(),
+        | _ => unreachable!(),
     };
 }
 
@@ -260,11 +264,11 @@ fn parse_create_table_if_not_exists() {
     let sql = "CREATE TABLE IF NOT EXISTS uk_cities ()";
     let ast = pg_and_generic().verified_stmt(sql);
     match ast {
-        Statement::CreateTable(table) => {
+        | Statement::CreateTable(table) => {
             assert!(table.if_not_exists);
             assert_eq!("uk_cities", table.name.to_string());
         }
-        _ => unreachable!(),
+        | _ => unreachable!(),
     }
 }
 
@@ -300,11 +304,11 @@ fn parse_create_schema_if_not_exists() {
     let sql = "CREATE SCHEMA IF NOT EXISTS schema_name";
     let ast = pg_and_generic().verified_stmt(sql);
     match ast {
-        Statement::CreateSchema(CreateSchema {
+        | Statement::CreateSchema(CreateSchema {
             if_not_exists: true,
             schema_name,
         }) => assert_eq!("schema_name", schema_name.to_string()),
-        _ => unreachable!(),
+        | _ => unreachable!(),
     }
 }
 
@@ -313,12 +317,12 @@ fn parse_drop_schema_if_exists() {
     let sql = "DROP SCHEMA IF EXISTS schema_name";
     let ast = pg().verified_stmt(sql);
     match ast {
-        Statement::Drop(Drop {
+        | Statement::Drop(Drop {
             object_type,
             if_exists: true,
             ..
         }) => assert_eq!(object_type, ObjectType::Schema),
-        _ => unreachable!(),
+        | _ => unreachable!(),
     }
 }
 
@@ -520,7 +524,7 @@ fn parse_prepare() {
     let stmt =
         pg_and_generic().verified_stmt("PREPARE a AS INSERT INTO customers VALUES (a1, a2, a3)");
     let sub_stmt = match stmt {
-        Statement::Prepare(Prepare {
+        | Statement::Prepare(Prepare {
             name,
             data_types,
             statement,
@@ -531,10 +535,10 @@ fn parse_prepare() {
 
             statement
         }
-        _ => unreachable!(),
+        | _ => unreachable!(),
     };
     match sub_stmt.as_ref() {
-        Statement::Insert(Insert {
+        | Statement::Insert(Insert {
             table_name,
             columns,
             source,
@@ -549,18 +553,20 @@ fn parse_prepare() {
                 Expr::Identifier("a3".into()),
             ]];
             match &source.body {
-                SetExpr::Values(Values(values)) => assert_eq!(values.as_slice(), &expected_values),
-                _ => unreachable!(),
+                | SetExpr::Values(Values(values)) => {
+                    assert_eq!(values.as_slice(), &expected_values)
+                }
+                | _ => unreachable!(),
             }
         }
-        _ => unreachable!(),
+        | _ => unreachable!(),
     };
 
     let stmt = pg_and_generic().verified_stmt(
         "PREPARE a (INTEGER, TEXT) AS SELECT * FROM customers WHERE customers.id = a1",
     );
     let sub_stmt = match stmt {
-        Statement::Prepare(Prepare {
+        | Statement::Prepare(Prepare {
             name,
             data_types,
             statement,
@@ -571,7 +577,7 @@ fn parse_prepare() {
 
             statement
         }
-        _ => unreachable!(),
+        | _ => unreachable!(),
     };
     assert_eq!(
         sub_stmt,

@@ -1,7 +1,11 @@
+use std::ops::{
+    Deref,
+    DerefMut,
+};
+
 use models_parser::ast::DataType;
 #[cfg(feature = "serde")]
 use serde::*;
-use std::ops::{Deref, DerefMut};
 
 use crate::prelude::*;
 
@@ -18,7 +22,6 @@ use crate::prelude::*;
 ///     id SERIAL NOT NULL
 /// );
 /// ```
-///
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 #[cfg_attr(feature = "sqlx", sqlx(transparent))]
@@ -36,6 +39,7 @@ where
 
 impl Deref for Serial {
     type Target = i32;
+
     fn deref(&self) -> &Self::Target {
         &self.0
     }

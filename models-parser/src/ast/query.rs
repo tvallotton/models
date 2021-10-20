@@ -11,10 +11,16 @@
 // limitations under the License.
 
 #[cfg(not(feature = "std"))]
-use alloc::{boxed::Box, vec::Vec};
+use alloc::{
+    boxed::Box,
+    vec::Vec,
+};
 
 #[cfg(feature = "serde")]
-use serde::{Deserialize, Serialize};
+use serde::{
+    Deserialize,
+    Serialize,
+};
 
 use crate::ast::*;
 
@@ -33,7 +39,8 @@ pub struct Query {
     pub limit: Option<Expr>,
     /// `OFFSET <N> [ { ROW | ROWS } ]`
     pub offset: Option<Offset>,
-    /// `FETCH { FIRST | NEXT } <N> [ PERCENT ] { ROW | ROWS } | { ONLY | WITH TIES }`
+    /// `FETCH { FIRST | NEXT } <N> [ PERCENT ] { ROW | ROWS } | { ONLY | WITH
+    /// TIES }`
     pub fetch: Option<Fetch>,
 }
 
@@ -85,11 +92,11 @@ pub enum SetExpr {
 impl fmt::Display for SetExpr {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            SetExpr::Select(s) => write!(f, "{}", s),
-            SetExpr::Query(q) => write!(f, "({})", q),
-            SetExpr::Values(v) => write!(f, "{}", v),
-            SetExpr::Insert(v) => write!(f, "{}", v),
-            SetExpr::SetOperation {
+            | SetExpr::Select(s) => write!(f, "{}", s),
+            | SetExpr::Query(q) => write!(f, "({})", q),
+            | SetExpr::Values(v) => write!(f, "{}", v),
+            | SetExpr::Insert(v) => write!(f, "{}", v),
+            | SetExpr::SetOperation {
                 left,
                 right,
                 op,
@@ -113,9 +120,9 @@ pub enum SetOperator {
 impl fmt::Display for SetOperator {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.write_str(match self {
-            SetOperator::Union => "UNION",
-            SetOperator::Except => "EXCEPT",
-            SetOperator::Intersect => "INTERSECT",
+            | SetOperator::Union => "UNION",
+            | SetOperator::Except => "EXCEPT",
+            | SetOperator::Intersect => "INTERSECT",
         })
     }
 }
@@ -285,10 +292,10 @@ pub enum SelectItem {
 impl fmt::Display for SelectItem {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match &self {
-            SelectItem::UnnamedExpr(expr) => write!(f, "{}", expr),
-            SelectItem::ExprWithAlias { expr, alias } => write!(f, "{} AS {}", expr, alias),
-            SelectItem::QualifiedWildcard(prefix) => write!(f, "{}.*", prefix),
-            SelectItem::Wildcard => write!(f, "*"),
+            | SelectItem::UnnamedExpr(expr) => write!(f, "{}", expr),
+            | SelectItem::ExprWithAlias { expr, alias } => write!(f, "{} AS {}", expr, alias),
+            | SelectItem::QualifiedWildcard(prefix) => write!(f, "{}.*", prefix),
+            | SelectItem::Wildcard => write!(f, "*"),
         }
     }
 }
@@ -346,7 +353,7 @@ pub enum TableFactor {
 impl fmt::Display for TableFactor {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            TableFactor::Table {
+            | TableFactor::Table {
                 name,
                 alias,
                 args,
@@ -364,7 +371,7 @@ impl fmt::Display for TableFactor {
                 }
                 Ok(())
             }
-            TableFactor::Derived {
+            | TableFactor::Derived {
                 lateral,
                 subquery,
                 alias,
@@ -378,14 +385,14 @@ impl fmt::Display for TableFactor {
                 }
                 Ok(())
             }
-            TableFactor::TableFunction { expr, alias } => {
+            | TableFactor::TableFunction { expr, alias } => {
                 write!(f, "TABLE({})", expr)?;
                 if let Some(alias) = alias {
                     write!(f, " AS {}", alias)?;
                 }
                 Ok(())
             }
-            TableFactor::NestedJoin(table_reference) => write!(f, "({})", table_reference),
+            | TableFactor::NestedJoin(table_reference) => write!(f, "({})", table_reference),
         }
     }
 }
@@ -418,8 +425,8 @@ impl fmt::Display for Join {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         fn prefix(constraint: &JoinConstraint) -> &'static str {
             match constraint {
-                JoinConstraint::Natural => "NATURAL ",
-                _ => "",
+                | JoinConstraint::Natural => "NATURAL ",
+                | _ => "",
             }
         }
         fn suffix(constraint: &'_ JoinConstraint) -> impl fmt::Display + '_ {
@@ -427,48 +434,48 @@ impl fmt::Display for Join {
             impl<'a> fmt::Display for Suffix<'a> {
                 fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
                     match self.0 {
-                        JoinConstraint::On(expr) => write!(f, " ON {}", expr),
-                        JoinConstraint::Using(attrs) => {
+                        | JoinConstraint::On(expr) => write!(f, " ON {}", expr),
+                        | JoinConstraint::Using(attrs) => {
                             write!(f, " USING({})", display_comma_separated(attrs))
                         }
-                        _ => Ok(()),
+                        | _ => Ok(()),
                     }
                 }
             }
             Suffix(constraint)
         }
         match &self.join_operator {
-            JoinOperator::Inner(constraint) => write!(
+            | JoinOperator::Inner(constraint) => write!(
                 f,
                 " {}JOIN {}{}",
                 prefix(constraint),
                 self.relation,
                 suffix(constraint)
             ),
-            JoinOperator::LeftOuter(constraint) => write!(
+            | JoinOperator::LeftOuter(constraint) => write!(
                 f,
                 " {}LEFT JOIN {}{}",
                 prefix(constraint),
                 self.relation,
                 suffix(constraint)
             ),
-            JoinOperator::RightOuter(constraint) => write!(
+            | JoinOperator::RightOuter(constraint) => write!(
                 f,
                 " {}RIGHT JOIN {}{}",
                 prefix(constraint),
                 self.relation,
                 suffix(constraint)
             ),
-            JoinOperator::FullOuter(constraint) => write!(
+            | JoinOperator::FullOuter(constraint) => write!(
                 f,
                 " {}FULL JOIN {}{}",
                 prefix(constraint),
                 self.relation,
                 suffix(constraint)
             ),
-            JoinOperator::CrossJoin => write!(f, " CROSS JOIN {}", self.relation),
-            JoinOperator::CrossApply => write!(f, " CROSS APPLY {}", self.relation),
-            JoinOperator::OuterApply => write!(f, " OUTER APPLY {}", self.relation),
+            | JoinOperator::CrossJoin => write!(f, " CROSS JOIN {}", self.relation),
+            | JoinOperator::CrossApply => write!(f, " CROSS APPLY {}", self.relation),
+            | JoinOperator::OuterApply => write!(f, " OUTER APPLY {}", self.relation),
         }
     }
 }
@@ -511,14 +518,14 @@ impl fmt::Display for OrderByExpr {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.expr)?;
         match self.asc {
-            Some(true) => write!(f, " ASC")?,
-            Some(false) => write!(f, " DESC")?,
-            None => (),
+            | Some(true) => write!(f, " ASC")?,
+            | Some(false) => write!(f, " DESC")?,
+            | None => (),
         }
         match self.nulls_first {
-            Some(true) => write!(f, " NULLS FIRST")?,
-            Some(false) => write!(f, " NULLS LAST")?,
-            None => (),
+            | Some(true) => write!(f, " NULLS FIRST")?,
+            | Some(false) => write!(f, " NULLS LAST")?,
+            | None => (),
         }
         Ok(())
     }
@@ -550,9 +557,9 @@ pub enum OffsetRows {
 impl fmt::Display for OffsetRows {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            OffsetRows::None => Ok(()),
-            OffsetRows::Row => write!(f, " ROW"),
-            OffsetRows::Rows => write!(f, " ROWS"),
+            | OffsetRows::None => Ok(()),
+            | OffsetRows::Row => write!(f, " ROW"),
+            | OffsetRows::Rows => write!(f, " ROWS"),
         }
     }
 }

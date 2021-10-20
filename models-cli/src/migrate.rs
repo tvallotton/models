@@ -1,13 +1,34 @@
-use anyhow::{bail, Context};
+use std::{
+    collections::{
+        HashMap,
+        HashSet,
+    },
+    fs::{
+        self,
+        File,
+    },
+    io::Write,
+    path::Path,
+    time::Duration,
+};
+
+use anyhow::{
+    bail,
+    Context,
+};
 use chrono::Utc;
 use console::style;
-use sqlx::migrate::{AppliedMigration, Migrate, MigrateError, MigrationType, Migrator};
-use sqlx::{AnyConnection, Connection};
-use std::collections::{HashMap, HashSet};
-use std::fs::{self, File};
-use std::io::Write;
-use std::path::Path;
-use std::time::Duration;
+use sqlx::{
+    migrate::{
+        AppliedMigration,
+        Migrate,
+        MigrateError,
+        MigrationType,
+        Migrator,
+    },
+    AnyConnection,
+    Connection,
+};
 
 fn create_file(
     migration_source: &str,
@@ -48,7 +69,8 @@ pub async fn add(
         .unwrap_or(false);
 
     let migrator = Migrator::new(Path::new(migration_source)).await?;
-    // This checks if all existing migrations are of the same type as the reverisble flag passed
+    // This checks if all existing migrations are of the same type as the reverisble
+    // flag passed
     for migration in migrator.iter() {
         if migration.migration_type.is_reversible() != reversible {
             bail!(MigrateError::InvalidMixReversibleAndSimple);
@@ -191,12 +213,12 @@ pub async fn run(
         }
 
         match applied_migrations.get(&migration.version) {
-            Some(applied_migration) => {
+            | Some(applied_migration) => {
                 if migration.checksum != applied_migration.checksum {
                     bail!(MigrateError::VersionMismatch(migration.version));
                 }
             }
-            None => {
+            | None => {
                 let elapsed = if dry_run {
                     Duration::new(0, 0)
                 } else {

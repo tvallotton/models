@@ -1,7 +1,12 @@
-use super::*;
+use std::ops::{
+    Deref,
+    DerefMut,
+};
+
 use models_parser::ast::DataType;
 use serde::*;
-use std::ops::{Deref, DerefMut};
+
+use super::*;
 
 /// Wrapper type used to hold serilizable data. The type generated is `JSON`.
 /// ```rust
@@ -21,6 +26,7 @@ pub struct Json<T>(pub T);
 
 impl<T> Deref for Json<T> {
     type Target = T;
+
     fn deref(&self) -> &Self::Target {
         &self.0
     }
@@ -46,6 +52,7 @@ impl<T> AsMut<T> for Json<T> {
 
 impl<T> IntoSQL for Json<T> {
     const IS_NULLABLE: bool = false;
+
     fn into_sql() -> DataType {
         DataType::Json
     }
@@ -53,21 +60,42 @@ impl<T> IntoSQL for Json<T> {
 #[allow(unused_imports)]
 #[cfg(all(feature = "sqlx", feature = "sqlx"))]
 mod sqlx_impl {
-    use super::*;
-    use serde::{Deserialize, Serialize};
-    #[cfg(feature = "sqlx-mysql")]
-    use sqlx::mysql::{MySql, MySqlTypeInfo};
-    #[cfg(feature = "sqlx-postgres")]
-    use sqlx::postgres::{PgTypeInfo, Postgres};
-    #[cfg(feature = "sqlx-mysql")]
-    use sqlx::sqlite::{Sqlite, SqliteTypeInfo};
-    use sqlx::{
-        database::{HasArguments, HasValueRef},
-        decode::Decode,
-        encode::{Encode, IsNull},
-        Database, Type,
-    };
     use std::io::Write;
+
+    use serde::{
+        Deserialize,
+        Serialize,
+    };
+    #[cfg(feature = "sqlx-mysql")]
+    use sqlx::mysql::{
+        MySql,
+        MySqlTypeInfo,
+    };
+    #[cfg(feature = "sqlx-postgres")]
+    use sqlx::postgres::{
+        PgTypeInfo,
+        Postgres,
+    };
+    #[cfg(feature = "sqlx-mysql")]
+    use sqlx::sqlite::{
+        Sqlite,
+        SqliteTypeInfo,
+    };
+    use sqlx::{
+        database::{
+            HasArguments,
+            HasValueRef,
+        },
+        decode::Decode,
+        encode::{
+            Encode,
+            IsNull,
+        },
+        Database,
+        Type,
+    };
+
+    use super::*;
 
     impl<T, DB> Type<DB> for Json<T>
     where

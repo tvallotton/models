@@ -1,7 +1,7 @@
 mod migration_generation;
 // mod getters;
 mod model;
-#[cfg(feature = "orm")]
+// #[cfg(feature = "orm")]
 mod orm;
 mod prelude;
 use migration_generation::*;
