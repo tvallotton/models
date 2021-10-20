@@ -5,7 +5,9 @@ pub struct Constructor {
 
 impl Constructor {
     pub fn new(model: &Model) -> Self {
-        todo!()
+     Self {
+         table_name: model.name.clone(),
+     }
     }
 }
 

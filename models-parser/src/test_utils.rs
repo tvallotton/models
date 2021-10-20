@@ -20,10 +20,7 @@
 #[cfg(not(feature = "std"))]
 use alloc::{
     boxed::Box,
-    string::{
-        String,
-        ToString,
-    },
+    string::{String, ToString},
     vec,
     vec::Vec,
 };
@@ -32,10 +29,7 @@ use core::fmt::Debug;
 use crate::{
     ast::*,
     dialect::*,
-    parser::{
-        Parser,
-        ParserError,
-    },
+    parser::{Parser, ParserError},
     tokenizer::Tokenizer,
 };
 
@@ -115,8 +109,8 @@ impl TestedDialects {
     /// after a serialization round-trip.
     pub fn verified_query(&self, sql: &str) -> Query {
         match self.verified_stmt(sql) {
-            | Statement::Query(query) => *query,
-            | _ => panic!("Expected Query"),
+            Statement::Query(query) => *query,
+            _ => panic!("Expected Query"),
         }
     }
 
@@ -124,8 +118,8 @@ impl TestedDialects {
     /// after a serialization round-trip.
     pub fn verified_only_select(&self, query: &str) -> Select {
         match self.verified_query(query).body {
-            | SetExpr::Select(s) => *s,
-            | _ => panic!("Expected SetExpr::Select"),
+            SetExpr::Select(s) => *s,
+            _ => panic!("Expected SetExpr::Select"),
         }
     }
 
@@ -164,8 +158,8 @@ pub fn only<T>(v: impl IntoIterator<Item = T>) -> T {
 
 pub fn expr_from_projection(item: &SelectItem) -> &Expr {
     match item {
-        | SelectItem::UnnamedExpr(expr) => expr,
-        | _ => panic!("Expected UnnamedExpr"),
+        SelectItem::UnnamedExpr(expr) => expr,
+        _ => panic!("Expected UnnamedExpr"),
     }
 }
 

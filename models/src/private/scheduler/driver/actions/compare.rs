@@ -12,12 +12,12 @@ pub(crate) trait Compare: std::fmt::Debug {
     }
     fn names_are_equal(&self, other: &Self) -> bool {
         let first = match self.name() {
-            | Ok(name) => name,
-            | Err(_) => return false,
+            Ok(name) => name,
+            Err(_) => return false,
         };
         let second = match other.name() {
-            | Ok(name) => name,
-            | Err(_) => return false,
+            Ok(name) => name,
+            Err(_) => return false,
         };
 
         first == second
@@ -65,9 +65,9 @@ impl Compare for TableConstraint {
     fn ident(&self) -> Ident {
         use TableConstraint::*;
         match self {
-            | Unique(ast::Unique { name, .. }) => name,
-            | ForeignKey(ast::ForeignKey { name, .. }) => name,
-            | Check(ast::Check { name, .. }) => name,
+            Unique(ast::Unique { name, .. }) => name,
+            ForeignKey(ast::ForeignKey { name, .. }) => name,
+            Check(ast::Check { name, .. }) => name,
         }
         .clone()
         .unwrap()
@@ -76,9 +76,9 @@ impl Compare for TableConstraint {
     fn name(&self) -> Result<String, Error> {
         use TableConstraint::*;
         match self {
-            | Unique(ast::Unique { name, .. }) => name,
-            | ForeignKey(ast::ForeignKey { name, .. }) => name,
-            | Check(ast::Check { name, .. }) => name,
+            Unique(ast::Unique { name, .. }) => name,
+            ForeignKey(ast::ForeignKey { name, .. }) => name,
+            Check(ast::Check { name, .. }) => name,
         }
         .as_ref()
         .ok_or_else(|| error!("anonymous constraints are not supported."))
@@ -88,7 +88,7 @@ impl Compare for TableConstraint {
     fn bodies_are_equal(&self, other: &Self) -> bool {
         use TableConstraint::*;
         match (self, other) {
-            | (Unique(u0), Unique(u1)) => {
+            (Unique(u0), Unique(u1)) => {
                 u0.is_primary == u1.is_primary && {
                     let cols0 = u0
                         .columns
@@ -105,7 +105,7 @@ impl Compare for TableConstraint {
                     cols0 == cols1
                 }
             }
-            | (ForeignKey(f0), ForeignKey(f1)) => {
+            (ForeignKey(f0), ForeignKey(f1)) => {
                 f1.on_delete == f0.on_delete
                     && f1.on_update == f0.on_update
                     && {
@@ -144,7 +144,7 @@ impl Compare for TableConstraint {
                         cols0 == cols1
                     }
             }
-            | _ => false,
+            _ => false,
         }
     }
 }

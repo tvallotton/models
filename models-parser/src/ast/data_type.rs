@@ -15,10 +15,7 @@ use alloc::boxed::Box;
 use core::fmt;
 
 #[cfg(feature = "serde")]
-use serde::{
-    Deserialize,
-    Serialize,
-};
+use serde::{Deserialize, Serialize};
 
 use crate::ast::ObjectName;
 
@@ -87,56 +84,54 @@ pub enum DataType {
 impl fmt::Display for DataType {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            | DataType::Serial => write!(f, "SERIAL"),
-            | DataType::Json => write!(f, "JSON"),
-            | DataType::Char(size) => format_type_with_optional_length(f, "CHAR", size),
-            | DataType::Varchar(size) => format_type_with_optional_length(f, "VARCHAR", size),
-            | DataType::Uuid => write!(f, "UUID"),
-            | DataType::Clob(size) => write!(f, "CLOB({})", size),
-            | DataType::Binary(size) => write!(f, "BINARY({})", size),
-            | DataType::Varbinary(size) => format_type_with_optional_length(f, "VARBINARY", size),
-            | DataType::Blob(size) => {
+            DataType::Serial => write!(f, "SERIAL"),
+            DataType::Json => write!(f, "JSON"),
+            DataType::Char(size) => format_type_with_optional_length(f, "CHAR", size),
+            DataType::Varchar(size) => format_type_with_optional_length(f, "VARCHAR", size),
+            DataType::Uuid => write!(f, "UUID"),
+            DataType::Clob(size) => write!(f, "CLOB({})", size),
+            DataType::Binary(size) => write!(f, "BINARY({})", size),
+            DataType::Varbinary(size) => format_type_with_optional_length(f, "VARBINARY", size),
+            DataType::Blob(size) => {
                 if let Some(size) = size {
                     write!(f, "BLOB({})", size)
                 } else {
                     write!(f, "BLOB")
                 }
             }
-            | DataType::Decimal(precision, scale) => {
+            DataType::Decimal(precision, scale) => {
                 if let Some(scale) = scale {
                     write!(f, "NUMERIC({},{})", precision.unwrap(), scale)
                 } else {
                     format_type_with_optional_length(f, "NUMERIC", precision)
                 }
             }
-            | DataType::Float(size) => format_type_with_optional_length(f, "FLOAT", size),
-            | DataType::TinyInt(zerofill) => {
-                format_type_with_optional_length(f, "TINYINT", zerofill)
-            }
-            | DataType::SmallInt(zerofill) => {
+            DataType::Float(size) => format_type_with_optional_length(f, "FLOAT", size),
+            DataType::TinyInt(zerofill) => format_type_with_optional_length(f, "TINYINT", zerofill),
+            DataType::SmallInt(zerofill) => {
                 format_type_with_optional_length(f, "SMALLINT", zerofill)
             }
-            | DataType::Int(zerofill) => {
+            DataType::Int(zerofill) => {
                 if let Some(len) = zerofill {
                     write!(f, "INT({})", len)
                 } else {
                     write!(f, "INTEGER")
                 }
             }
-            | DataType::BigInt(zerofill) => format_type_with_optional_length(f, "BIGINT", zerofill),
-            | DataType::Real => write!(f, "REAL"),
-            | DataType::Double => write!(f, "DOUBLE PRECISION"),
-            | DataType::Boolean => write!(f, "BOOLEAN"),
-            | DataType::Date => write!(f, "DATE"),
-            | DataType::Time => write!(f, "TIME"),
-            | DataType::Timestamp => write!(f, "TIMESTAMP"),
-            | DataType::Interval => write!(f, "INTERVAL"),
-            | DataType::Regclass => write!(f, "REGCLASS"),
-            | DataType::Text => write!(f, "TEXT"),
-            | DataType::String => write!(f, "STRING"),
-            | DataType::Bytea => write!(f, "BYTEA"),
-            | DataType::Array(ty) => write!(f, "{}[]", ty),
-            | DataType::Custom(ty) => write!(f, "{}", ty),
+            DataType::BigInt(zerofill) => format_type_with_optional_length(f, "BIGINT", zerofill),
+            DataType::Real => write!(f, "REAL"),
+            DataType::Double => write!(f, "DOUBLE PRECISION"),
+            DataType::Boolean => write!(f, "BOOLEAN"),
+            DataType::Date => write!(f, "DATE"),
+            DataType::Time => write!(f, "TIME"),
+            DataType::Timestamp => write!(f, "TIMESTAMP"),
+            DataType::Interval => write!(f, "INTERVAL"),
+            DataType::Regclass => write!(f, "REGCLASS"),
+            DataType::Text => write!(f, "TEXT"),
+            DataType::String => write!(f, "STRING"),
+            DataType::Bytea => write!(f, "BYTEA"),
+            DataType::Array(ty) => write!(f, "{}[]", ty),
+            DataType::Custom(ty) => write!(f, "{}", ty),
         }
     }
 }

@@ -81,15 +81,15 @@ impl Unique {
 impl NamedConstraint {
     pub fn into_tokens(&self, ty: &Ident) -> TokenStream2 {
         match &self.constr {
-            | Constraint::ForeignKey(fk) => {
+            Constraint::ForeignKey(fk) => {
                 let constr_name = self.constr_name(ty, &[fk.column.clone()], "foreign");
                 fk.into_tokens(&constr_name, &self.field_name)
             }
-            | Constraint::Primary(pk) => {
+            Constraint::Primary(pk) => {
                 let constr_name = self.constr_name(ty, &pk.columns, "primary");
                 pk.into_tokens(&constr_name, ty, &self.field_name, quote!(primary))
             }
-            | Constraint::Unique(u) => {
+            Constraint::Unique(u) => {
                 let constr_name = self.constr_name(ty, &u.columns, "unique");
                 u.into_tokens(&constr_name, ty, &self.field_name, quote!(unique))
             }
@@ -206,21 +206,21 @@ impl Constraints {
 impl Constraint {
     pub fn column_names(&self) -> Vec<Ident> {
         match &self {
-            | Constraint::Primary(primary) => primary.columns.to_vec(),
-            | Constraint::ForeignKey(foreign) => vec![foreign.column.clone()],
-            | Constraint::Unique(unique) => unique.columns.to_vec(),
+            Constraint::Primary(primary) => primary.columns.to_vec(),
+            Constraint::ForeignKey(foreign) => vec![foreign.column.clone()],
+            Constraint::Unique(unique) => unique.columns.to_vec(),
         }
     }
 
     pub fn method(&self) -> TokenStream2 {
         match self {
-            | Constraint::Primary(_) => {
+            Constraint::Primary(_) => {
                 quote!(primary)
             }
-            | Constraint::ForeignKey(_) => {
+            Constraint::ForeignKey(_) => {
                 quote!(foreign_key)
             }
-            | Constraint::Unique(_) => {
+            Constraint::Unique(_) => {
                 quote!(unique)
             }
         }

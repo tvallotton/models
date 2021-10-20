@@ -21,19 +21,21 @@ impl Getter {
     fn key_name(&self) -> &Ident {
         use Getter::*;
         match self {
-            | ForeignKey(fk) => &fk.key_name,
-            | Unique(k) => &k.key_name,
-            | Primary(k) => &k.key_name,
+            ForeignKey(fk) => &fk.key_name,
+            Unique(k) => &k.key_name,
+            Primary(k) => &k.key_name,
         }
     }
 }
+
+
 
 impl Getter {
     fn getter_name(&self) -> Ident {
         let name = self.key_name().to_string();
         let span = self.key_name().span();
         match &self {
-            | Self::ForeignKey(_) => {
+            Self::ForeignKey(_) => {
                 if name.ends_with("_id") {
                     let len = name.chars().count();
                     let name: String = name.chars().take(len - 3).collect();
@@ -42,8 +44,9 @@ impl Getter {
                     self.key_name().clone()
                 }
             }
-            | Self::Primary(_) => Ident::new("find", span),
-            | _ => todo!(),
+            Self::Primary(_) => Ident::new("find", span),
+
+            Self::Unique(_) => Ident::new(&format!("find_by{}", name), span),
         }
     }
 }

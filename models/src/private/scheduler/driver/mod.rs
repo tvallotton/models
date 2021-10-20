@@ -50,9 +50,9 @@ impl Driver {
         self.queue.remove_unregistered();
         loop {
             match self.queue.pop() {
-                | Some(target) => self.migrate_table(target),
+                Some(target) => self.migrate_table(target),
 
-                | None => {
+                None => {
                     if self.queue.len() != 0 && self.result.is_ok() {
                         self.result = Err(Error::Cycle(self.queue.remaining_tables()));
                     }

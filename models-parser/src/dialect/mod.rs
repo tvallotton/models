@@ -21,21 +21,13 @@ mod snowflake;
 mod sqlite;
 
 use core::{
-    any::{
-        Any,
-        TypeId,
-    },
+    any::{Any, TypeId},
     fmt::Debug,
 };
 
 pub use self::{
-    ansi::AnsiDialect,
-    generic::GenericDialect,
-    hive::HiveDialect,
-    mssql::MsSqlDialect,
-    mysql::MySqlDialect,
-    postgresql::PostgreSqlDialect,
-    snowflake::SnowflakeDialect,
+    ansi::AnsiDialect, generic::GenericDialect, hive::HiveDialect, mssql::MsSqlDialect,
+    mysql::MySqlDialect, postgresql::PostgreSqlDialect, snowflake::SnowflakeDialect,
     sqlite::SQLiteDialect,
 };
 
@@ -73,11 +65,7 @@ impl dyn Dialect {
 
 #[cfg(test)]
 mod tests {
-    use super::{
-        ansi::AnsiDialect,
-        generic::GenericDialect,
-        *,
-    };
+    use super::{ansi::AnsiDialect, generic::GenericDialect, *};
 
     struct DialectHolder<'a> {
         dialect: &'a dyn Dialect,

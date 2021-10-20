@@ -1,7 +1,4 @@
-use models_parser::{
-    dialect::*,
-    parser::*,
-};
+use models_parser::{dialect::*, parser::*};
 
 use crate::prelude::*;
 #[derive(Clone, Debug, PartialEq)]

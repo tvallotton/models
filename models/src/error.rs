@@ -23,7 +23,7 @@ pub enum Error {
     IO(#[from] Arc<io::Error>),
     #[error("dependency cycle detected invlonving the tables: {0:?}. help: consider removing redundant foreign key constraints. ")]
     Cycle(Vec<String>),
-    #[error("database error: the database scheme {0:?} is not supported")]
+    #[error("database url error: the database scheme {0:?} is not supported")]
     UnsupportedScheme(String),
     #[cfg(feature = "dotenv")]
     #[error("DontenvError: {0}")]
@@ -31,19 +31,17 @@ pub enum Error {
     #[error("SQLxError: {0}")]
     SQLx(Arc<sqlx::Error>),
 
-    #[error("DatabaseUrlError: clould not read or parse DATABASE_URL.")]
-    DatabaseUrl,
 }
 
 impl Error {
     pub(crate) fn kind(&self) -> &'static str {
         match self {
-            | Self::Cycle(_) => "CycleError",
-            | Self::IO(_) => "IOError",
-            | Self::Syntax(_) => "SyntaxError",
-            | Self::SyntaxAtFile(_, _) => "SyntaxAtFile",
-            | Self::UnsupportedScheme(_) => "UnsupportedSchemeError",
-            | _ => "error",
+            Self::Cycle(_) => "CycleError",
+            Self::IO(_) => "IOError",
+            Self::Syntax(_) => "SyntaxError",
+            Self::SyntaxAtFile(_, _) => "SyntaxAtFile",
+            Self::UnsupportedScheme(_) => "UnsupportedSchemeError",
+            _ => "error",
         }
     }
 

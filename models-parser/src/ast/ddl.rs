@@ -14,28 +14,14 @@
 //! (commonly referred to as Data Definition Language, or DDL)
 
 #[cfg(not(feature = "std"))]
-use alloc::{
-    boxed::Box,
-    string::ToString,
-    vec::Vec,
-};
+use alloc::{boxed::Box, string::ToString, vec::Vec};
 use core::fmt;
 
 #[cfg(feature = "serde")]
-use serde::{
-    Deserialize,
-    Serialize,
-};
+use serde::{Deserialize, Serialize};
 
 use crate::{
-    ast::{
-        display_comma_separated,
-        display_separated,
-        DataType,
-        Expr,
-        Ident,
-        ObjectName,
-    },
+    ast::{display_comma_separated, display_separated, DataType, Expr, Ident, ObjectName},
     tokenizer::Token,
 };
 
@@ -85,7 +71,7 @@ pub enum AlterTableOperation {
 impl fmt::Display for AlterTableOperation {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            | AlterTableOperation::AddPartitions {
+            AlterTableOperation::AddPartitions {
                 if_not_exists,
                 new_partitions,
             } => write!(
@@ -94,11 +80,11 @@ impl fmt::Display for AlterTableOperation {
                 display_comma_separated(new_partitions),
                 ine = if *if_not_exists { " IF NOT EXISTS" } else { "" }
             ),
-            | AlterTableOperation::AddConstraint(c) => write!(f, "ADD {}", c),
-            | AlterTableOperation::AddColumn { column_def } => {
+            AlterTableOperation::AddConstraint(c) => write!(f, "ADD {}", c),
+            AlterTableOperation::AddColumn { column_def } => {
                 write!(f, "ADD COLUMN {}", column_def.to_string())
             }
-            | AlterTableOperation::DropPartitions {
+            AlterTableOperation::DropPartitions {
                 partitions,
                 if_exists,
             } => write!(
@@ -107,7 +93,7 @@ impl fmt::Display for AlterTableOperation {
                 display_comma_separated(partitions),
                 ie = if *if_exists { " IF EXISTS" } else { "" }
             ),
-            | AlterTableOperation::DropConstraint {
+            AlterTableOperation::DropConstraint {
                 name,
                 cascade,
                 restrict,
@@ -120,7 +106,7 @@ impl fmt::Display for AlterTableOperation {
                     write!(f, "DROP CONSTRAINT {}", name)
                 }
             }
-            | AlterTableOperation::DropColumn {
+            AlterTableOperation::DropColumn {
                 column_name,
                 if_exists,
                 cascade,
@@ -131,7 +117,7 @@ impl fmt::Display for AlterTableOperation {
                 column_name,
                 if *cascade { " CASCADE" } else { "" }
             ),
-            | AlterTableOperation::RenamePartitions {
+            AlterTableOperation::RenamePartitions {
                 old_partitions,
                 new_partitions,
             } => write!(
@@ -140,7 +126,7 @@ impl fmt::Display for AlterTableOperation {
                 display_comma_separated(old_partitions),
                 display_comma_separated(new_partitions)
             ),
-            | AlterTableOperation::RenameColumn {
+            AlterTableOperation::RenameColumn {
                 old_column_name,
                 new_column_name,
             } => write!(
@@ -148,7 +134,7 @@ impl fmt::Display for AlterTableOperation {
                 "RENAME COLUMN {} TO {}",
                 old_column_name, new_column_name
             ),
-            | AlterTableOperation::RenameTable { table_name } => {
+            AlterTableOperation::RenameTable { table_name } => {
                 write!(f, "RENAME TO {}", table_name)
             }
         }
@@ -204,7 +190,7 @@ pub struct ForeignKey {
 impl fmt::Display for TableConstraint {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            | TableConstraint::Unique(Unique {
+            TableConstraint::Unique(Unique {
                 name,
                 columns,
                 is_primary,
@@ -215,7 +201,7 @@ impl fmt::Display for TableConstraint {
                 if *is_primary { "PRIMARY KEY" } else { "UNIQUE" },
                 display_comma_separated(columns)
             ),
-            | TableConstraint::ForeignKey(ForeignKey {
+            TableConstraint::ForeignKey(ForeignKey {
                 name,
                 columns,
                 foreign_table,
@@ -239,7 +225,7 @@ impl fmt::Display for TableConstraint {
                 }
                 Ok(())
             }
-            | TableConstraint::Check(Check { name, expr }) => {
+            TableConstraint::Check(Check { name, expr }) => {
                 write!(f, "{}CHECK ({})", display_constraint_name(name), expr)
             }
         }
@@ -331,13 +317,13 @@ impl fmt::Display for ColumnOption {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         use ColumnOption::*;
         match self {
-            | Null => write!(f, "NULL"),
-            | NotNull => write!(f, "NOT NULL"),
-            | Default(expr) => write!(f, "DEFAULT {}", expr),
-            | Unique { is_primary } => {
+            Null => write!(f, "NULL"),
+            NotNull => write!(f, "NOT NULL"),
+            Default(expr) => write!(f, "DEFAULT {}", expr),
+            Unique { is_primary } => {
                 write!(f, "{}", if *is_primary { "PRIMARY KEY" } else { "UNIQUE" })
             }
-            | ForeignKey {
+            ForeignKey {
                 foreign_table,
                 referred_columns,
                 on_delete,
@@ -355,8 +341,8 @@ impl fmt::Display for ColumnOption {
                 }
                 Ok(())
             }
-            | Check(expr) => write!(f, "CHECK ({})", expr),
-            | DialectSpecific(val) => write!(f, "{}", display_separated(val, " ")),
+            Check(expr) => write!(f, "CHECK ({})", expr),
+            DialectSpecific(val) => write!(f, "{}", display_separated(val, " ")),
         }
     }
 }
@@ -391,11 +377,11 @@ pub enum ReferentialAction {
 impl fmt::Display for ReferentialAction {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.write_str(match self {
-            | ReferentialAction::Restrict => "RESTRICT",
-            | ReferentialAction::Cascade => "CASCADE",
-            | ReferentialAction::SetNull => "SET NULL",
-            | ReferentialAction::NoAction => "NO ACTION",
-            | ReferentialAction::SetDefault => "SET DEFAULT",
+            ReferentialAction::Restrict => "RESTRICT",
+            ReferentialAction::Cascade => "CASCADE",
+            ReferentialAction::SetNull => "SET NULL",
+            ReferentialAction::NoAction => "NO ACTION",
+            ReferentialAction::SetDefault => "SET DEFAULT",
         })
     }
 }

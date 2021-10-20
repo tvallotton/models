@@ -10,6 +10,7 @@ pub struct ORM {
     getters: Getters,
     constructor: Constructor,
 }
+    
 
 impl ORM {
     fn new(model: Model) -> Self {

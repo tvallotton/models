@@ -1,10 +1,7 @@
 use std::path::Path;
 
 use anyhow::Result;
-use sqlx::migrate::{
-    MigrateError,
-    Migrator,
-};
+use sqlx::migrate::{MigrateError, Migrator};
 use structopt::StructOpt;
 #[derive(StructOpt, Debug)]
 pub struct Opt {

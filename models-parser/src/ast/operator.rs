@@ -13,10 +13,7 @@
 use core::fmt;
 
 #[cfg(feature = "serde")]
-use serde::{
-    Deserialize,
-    Serialize,
-};
+use serde::{Deserialize, Serialize};
 
 /// Unary operators
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -42,15 +39,15 @@ pub enum UnaryOperator {
 impl fmt::Display for UnaryOperator {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.write_str(match self {
-            | UnaryOperator::Plus => "+",
-            | UnaryOperator::Minus => "-",
-            | UnaryOperator::Not => "NOT",
-            | UnaryOperator::PGBitwiseNot => "~",
-            | UnaryOperator::PGSquareRoot => "|/",
-            | UnaryOperator::PGCubeRoot => "||/",
-            | UnaryOperator::PGPostfixFactorial => "!",
-            | UnaryOperator::PGPrefixFactorial => "!!",
-            | UnaryOperator::PGAbs => "@",
+            UnaryOperator::Plus => "+",
+            UnaryOperator::Minus => "-",
+            UnaryOperator::Not => "NOT",
+            UnaryOperator::PGBitwiseNot => "~",
+            UnaryOperator::PGSquareRoot => "|/",
+            UnaryOperator::PGCubeRoot => "||/",
+            UnaryOperator::PGPostfixFactorial => "!",
+            UnaryOperator::PGPrefixFactorial => "!!",
+            UnaryOperator::PGAbs => "@",
         })
     }
 }
@@ -93,35 +90,35 @@ pub enum BinaryOperator {
 impl fmt::Display for BinaryOperator {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.write_str(match self {
-            | BinaryOperator::Plus => "+",
-            | BinaryOperator::Minus => "-",
-            | BinaryOperator::Multiply => "*",
-            | BinaryOperator::Divide => "/",
-            | BinaryOperator::Modulo => "%",
-            | BinaryOperator::StringConcat => "||",
-            | BinaryOperator::Gt => ">",
-            | BinaryOperator::Lt => "<",
-            | BinaryOperator::GtEq => ">=",
-            | BinaryOperator::LtEq => "<=",
-            | BinaryOperator::Spaceship => "<=>",
-            | BinaryOperator::Eq => "=",
-            | BinaryOperator::NotEq => "<>",
-            | BinaryOperator::And => "AND",
-            | BinaryOperator::Or => "OR",
-            | BinaryOperator::Like => "LIKE",
-            | BinaryOperator::NotLike => "NOT LIKE",
-            | BinaryOperator::ILike => "ILIKE",
-            | BinaryOperator::NotILike => "NOT ILIKE",
-            | BinaryOperator::BitwiseOr => "|",
-            | BinaryOperator::BitwiseAnd => "&",
-            | BinaryOperator::BitwiseXor => "^",
-            | BinaryOperator::PGBitwiseXor => "#",
-            | BinaryOperator::PGBitwiseShiftLeft => "<<",
-            | BinaryOperator::PGBitwiseShiftRight => ">>",
-            | BinaryOperator::PGRegexMatch => "~",
-            | BinaryOperator::PGRegexIMatch => "~*",
-            | BinaryOperator::PGRegexNotMatch => "!~",
-            | BinaryOperator::PGRegexNotIMatch => "!~*",
+            BinaryOperator::Plus => "+",
+            BinaryOperator::Minus => "-",
+            BinaryOperator::Multiply => "*",
+            BinaryOperator::Divide => "/",
+            BinaryOperator::Modulo => "%",
+            BinaryOperator::StringConcat => "||",
+            BinaryOperator::Gt => ">",
+            BinaryOperator::Lt => "<",
+            BinaryOperator::GtEq => ">=",
+            BinaryOperator::LtEq => "<=",
+            BinaryOperator::Spaceship => "<=>",
+            BinaryOperator::Eq => "=",
+            BinaryOperator::NotEq => "<>",
+            BinaryOperator::And => "AND",
+            BinaryOperator::Or => "OR",
+            BinaryOperator::Like => "LIKE",
+            BinaryOperator::NotLike => "NOT LIKE",
+            BinaryOperator::ILike => "ILIKE",
+            BinaryOperator::NotILike => "NOT ILIKE",
+            BinaryOperator::BitwiseOr => "|",
+            BinaryOperator::BitwiseAnd => "&",
+            BinaryOperator::BitwiseXor => "^",
+            BinaryOperator::PGBitwiseXor => "#",
+            BinaryOperator::PGBitwiseShiftLeft => "<<",
+            BinaryOperator::PGBitwiseShiftRight => ">>",
+            BinaryOperator::PGRegexMatch => "~",
+            BinaryOperator::PGRegexIMatch => "~*",
+            BinaryOperator::PGRegexNotMatch => "!~",
+            BinaryOperator::PGRegexNotIMatch => "!~*",
         })
     }
 }

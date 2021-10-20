@@ -1,12 +1,6 @@
 use console::style;
-use promptly::{
-    prompt,
-    ReadlineError,
-};
-use sqlx::{
-    any::Any,
-    migrate::MigrateDatabase,
-};
+use promptly::{prompt, ReadlineError};
+use sqlx::{any::Any, migrate::MigrateDatabase};
 
 use crate::migrate;
 
@@ -45,7 +39,7 @@ fn ask_to_continue(uri: &str) -> bool {
         let r: Result<String, ReadlineError> =
             prompt(format!("Drop database at {}? (y/n)", style(uri).cyan()));
         match r {
-            | Ok(response) => {
+            Ok(response) => {
                 if response == "n" || response == "N" {
                     return false;
                 } else if response == "y" || response == "Y" {
@@ -57,7 +51,7 @@ fn ask_to_continue(uri: &str) -> bool {
                     );
                 }
             }
-            | Err(e) => {
+            Err(e) => {
                 println!("{}", e);
                 return false;
             }

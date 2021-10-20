@@ -22,10 +22,7 @@ mod value;
 #[cfg(not(feature = "std"))]
 use alloc::{
     boxed::Box,
-    string::{
-        String,
-        ToString,
-    },
+    string::{String, ToString},
     vec::Vec,
 };
 use core::fmt;
@@ -33,53 +30,22 @@ use core::fmt;
 pub use ddl::*;
 pub use expression::*;
 #[cfg(feature = "serde")]
-use serde::{
-    Deserialize,
-    Serialize,
-};
+use serde::{Deserialize, Serialize};
 pub use statement::*;
 
 pub use self::{
     data_type::DataType,
     ddl::{
-        AlterTableOperation,
-        ColumnDef,
-        ColumnOption,
-        ColumnOptionDef,
-        ReferentialAction,
+        AlterTableOperation, ColumnDef, ColumnOption, ColumnOptionDef, ReferentialAction,
         TableConstraint,
     },
-    operator::{
-        BinaryOperator,
-        UnaryOperator,
-    },
+    operator::{BinaryOperator, UnaryOperator},
     query::{
-        Cte,
-        Fetch,
-        Join,
-        JoinConstraint,
-        JoinOperator,
-        LateralView,
-        Offset,
-        OffsetRows,
-        OrderByExpr,
-        Query,
-        Select,
-        SelectItem,
-        SetExpr,
-        SetOperator,
-        TableAlias,
-        TableFactor,
-        TableWithJoins,
-        Top,
-        Values,
-        With,
+        Cte, Fetch, Join, JoinConstraint, JoinOperator, LateralView, Offset, OffsetRows,
+        OrderByExpr, Query, Select, SelectItem, SetExpr, SetOperator, TableAlias, TableFactor,
+        TableWithJoins, Top, Values, With,
     },
-    value::{
-        DateTimeField,
-        TrimWhereField,
-        Value,
-    },
+    value::{DateTimeField, TrimWhereField, Value},
 };
 
 struct DisplaySeparated<'a, T>
@@ -169,10 +135,10 @@ impl From<&str> for Ident {
 impl fmt::Display for Ident {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self.quote_style {
-            | Some(q) if q == '"' || q == '\'' || q == '`' => write!(f, "{}{}{}", q, self.value, q),
-            | Some(q) if q == '[' => write!(f, "[{}]", self.value),
-            | None => f.write_str(&self.value),
-            | _ => panic!("unexpected quote style"),
+            Some(q) if q == '"' || q == '\'' || q == '`' => write!(f, "{}{}{}", q, self.value, q),
+            Some(q) if q == '[' => write!(f, "[{}]", self.value),
+            None => f.write_str(&self.value),
+            _ => panic!("unexpected quote style"),
         }
     }
 }
@@ -272,9 +238,9 @@ pub enum WindowFrameUnits {
 impl fmt::Display for WindowFrameUnits {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.write_str(match self {
-            | WindowFrameUnits::Rows => "ROWS",
-            | WindowFrameUnits::Range => "RANGE",
-            | WindowFrameUnits::Groups => "GROUPS",
+            WindowFrameUnits::Rows => "ROWS",
+            WindowFrameUnits::Range => "RANGE",
+            WindowFrameUnits::Groups => "GROUPS",
         })
     }
 }
@@ -294,11 +260,11 @@ pub enum WindowFrameBound {
 impl fmt::Display for WindowFrameBound {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            | WindowFrameBound::CurrentRow => f.write_str("CURRENT ROW"),
-            | WindowFrameBound::Preceding(None) => f.write_str("UNBOUNDED PRECEDING"),
-            | WindowFrameBound::Following(None) => f.write_str("UNBOUNDED FOLLOWING"),
-            | WindowFrameBound::Preceding(Some(n)) => write!(f, "{} PRECEDING", n),
-            | WindowFrameBound::Following(Some(n)) => write!(f, "{} FOLLOWING", n),
+            WindowFrameBound::CurrentRow => f.write_str("CURRENT ROW"),
+            WindowFrameBound::Preceding(None) => f.write_str("UNBOUNDED PRECEDING"),
+            WindowFrameBound::Following(None) => f.write_str("UNBOUNDED FOLLOWING"),
+            WindowFrameBound::Preceding(Some(n)) => write!(f, "{} PRECEDING", n),
+            WindowFrameBound::Following(Some(n)) => write!(f, "{} FOLLOWING", n),
         }
     }
 }
@@ -314,9 +280,9 @@ pub enum AddDropSync {
 impl fmt::Display for AddDropSync {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            | AddDropSync::SYNC => f.write_str("SYNC PARTITIONS"),
-            | AddDropSync::DROP => f.write_str("DROP PARTITIONS"),
-            | AddDropSync::ADD => f.write_str("ADD PARTITIONS"),
+            AddDropSync::SYNC => f.write_str("SYNC PARTITIONS"),
+            AddDropSync::DROP => f.write_str("DROP PARTITIONS"),
+            AddDropSync::ADD => f.write_str("ADD PARTITIONS"),
         }
     }
 }
@@ -334,11 +300,11 @@ pub enum ShowCreateObject {
 impl fmt::Display for ShowCreateObject {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            | ShowCreateObject::Event => f.write_str("EVENT"),
-            | ShowCreateObject::Function => f.write_str("FUNCTION"),
-            | ShowCreateObject::Procedure => f.write_str("PROCEDURE"),
-            | ShowCreateObject::Table => f.write_str("TABLE"),
-            | ShowCreateObject::Trigger => f.write_str("TRIGGER"),
+            ShowCreateObject::Event => f.write_str("EVENT"),
+            ShowCreateObject::Function => f.write_str("FUNCTION"),
+            ShowCreateObject::Procedure => f.write_str("PROCEDURE"),
+            ShowCreateObject::Table => f.write_str("TABLE"),
+            ShowCreateObject::Trigger => f.write_str("TRIGGER"),
         }
     }
 }
@@ -367,8 +333,8 @@ pub enum FunctionArg {
 impl fmt::Display for FunctionArg {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            | FunctionArg::Named { name, arg } => write!(f, "{} => {}", name, arg),
-            | FunctionArg::Unnamed(unnamed_arg) => write!(f, "{}", unnamed_arg),
+            FunctionArg::Named { name, arg } => write!(f, "{} => {}", name, arg),
+            FunctionArg::Unnamed(unnamed_arg) => write!(f, "{}", unnamed_arg),
         }
     }
 }
@@ -417,13 +383,13 @@ impl fmt::Display for FileFormat {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         use self::FileFormat::*;
         f.write_str(match self {
-            | TEXTFILE => "TEXTFILE",
-            | SEQUENCEFILE => "SEQUENCEFILE",
-            | ORC => "ORC",
-            | PARQUET => "PARQUET",
-            | AVRO => "AVRO",
-            | RCFILE => "RCFILE",
-            | JSONFILE => "JSONFILE",
+            TEXTFILE => "TEXTFILE",
+            SEQUENCEFILE => "SEQUENCEFILE",
+            ORC => "ORC",
+            PARQUET => "PARQUET",
+            AVRO => "AVRO",
+            RCFILE => "RCFILE",
+            JSONFILE => "JSONFILE",
         })
     }
 }
@@ -485,8 +451,8 @@ impl fmt::Display for ListAggOnOverflow {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, " ON OVERFLOW")?;
         match self {
-            | ListAggOnOverflow::Error => write!(f, " ERROR"),
-            | ListAggOnOverflow::Truncate { filler, with_count } => {
+            ListAggOnOverflow::Error => write!(f, " ERROR"),
+            ListAggOnOverflow::Truncate { filler, with_count } => {
                 write!(f, " TRUNCATE")?;
                 if let Some(filler) = filler {
                     write!(f, " {}", filler)?;
@@ -514,10 +480,10 @@ pub enum ObjectType {
 impl fmt::Display for ObjectType {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.write_str(match self {
-            | ObjectType::Table => "TABLE",
-            | ObjectType::View => "VIEW",
-            | ObjectType::Index => "INDEX",
-            | ObjectType::Schema => "SCHEMA",
+            ObjectType::Table => "TABLE",
+            ObjectType::View => "VIEW",
+            ObjectType::Index => "INDEX",
+            ObjectType::Schema => "SCHEMA",
         })
     }
 }
@@ -602,8 +568,8 @@ impl fmt::Display for TransactionMode {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         use TransactionMode::*;
         match self {
-            | AccessMode(access_mode) => write!(f, "{}", access_mode),
-            | IsolationLevel(iso_level) => write!(f, "ISOLATION LEVEL {}", iso_level),
+            AccessMode(access_mode) => write!(f, "{}", access_mode),
+            IsolationLevel(iso_level) => write!(f, "ISOLATION LEVEL {}", iso_level),
         }
     }
 }
@@ -619,8 +585,8 @@ impl fmt::Display for TransactionAccessMode {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         use TransactionAccessMode::*;
         f.write_str(match self {
-            | ReadOnly => "READ ONLY",
-            | ReadWrite => "READ WRITE",
+            ReadOnly => "READ ONLY",
+            ReadWrite => "READ WRITE",
         })
     }
 }
@@ -638,10 +604,10 @@ impl fmt::Display for TransactionIsolationLevel {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         use TransactionIsolationLevel::*;
         f.write_str(match self {
-            | ReadUncommitted => "READ UNCOMMITTED",
-            | ReadCommitted => "READ COMMITTED",
-            | RepeatableRead => "REPEATABLE READ",
-            | Serializable => "SERIALIZABLE",
+            ReadUncommitted => "READ UNCOMMITTED",
+            ReadCommitted => "READ COMMITTED",
+            RepeatableRead => "REPEATABLE READ",
+            Serializable => "SERIALIZABLE",
         })
     }
 }
@@ -658,9 +624,9 @@ impl fmt::Display for ShowStatementFilter {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         use ShowStatementFilter::*;
         match self {
-            | Like(pattern) => write!(f, "LIKE '{}'", value::escape_single_quote_string(pattern)),
-            | ILike(pattern) => write!(f, "ILIKE {}", value::escape_single_quote_string(pattern)),
-            | Where(expr) => write!(f, "WHERE {}", expr),
+            Like(pattern) => write!(f, "LIKE '{}'", value::escape_single_quote_string(pattern)),
+            ILike(pattern) => write!(f, "ILIKE {}", value::escape_single_quote_string(pattern)),
+            Where(expr) => write!(f, "WHERE {}", expr),
         }
     }
 }
@@ -676,8 +642,8 @@ impl fmt::Display for SetVariableValue {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         use SetVariableValue::*;
         match self {
-            | Ident(ident) => write!(f, "{}", ident),
-            | Literal(literal) => write!(f, "{}", literal),
+            Ident(ident) => write!(f, "{}", ident),
+            Literal(literal) => write!(f, "{}", literal),
         }
     }
 }
@@ -699,11 +665,11 @@ impl fmt::Display for SqliteOnConflict {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         use SqliteOnConflict::*;
         match self {
-            | Rollback => write!(f, "ROLLBACK"),
-            | Abort => write!(f, "ABORT"),
-            | Fail => write!(f, "FAIL"),
-            | Ignore => write!(f, "IGNORE"),
-            | Replace => write!(f, "REPLACE"),
+            Rollback => write!(f, "ROLLBACK"),
+            Abort => write!(f, "ABORT"),
+            Fail => write!(f, "FAIL"),
+            Ignore => write!(f, "IGNORE"),
+            Replace => write!(f, "REPLACE"),
         }
     }
 }

@@ -19,10 +19,7 @@ mod test_utils;
 
 use models_parser::{
     ast::*,
-    dialect::{
-        GenericDialect,
-        MySqlDialect,
-    },
+    dialect::{GenericDialect, MySqlDialect},
     tokenizer::Token,
 };
 use test_utils::*;
@@ -100,8 +97,8 @@ fn parse_show_columns() {
 
     // unhandled things are truly unhandled
     match mysql_and_generic().parse_sql_statements("SHOW COLUMNS FROM mytable FROM mydb") {
-        | Err(_) => {}
-        | Ok(val) => panic!("unexpected successful parse: {:?}", val),
+        Err(_) => {}
+        Ok(val) => panic!("unexpected successful parse: {:?}", val),
     }
 }
 
@@ -130,7 +127,7 @@ fn parse_show_create() {
 fn parse_create_table_auto_increment() {
     let sql = "CREATE TABLE foo (bar INTEGER PRIMARY KEY AUTO_INCREMENT)";
     match mysql().verified_stmt(sql) {
-        | Statement::CreateTable(table) => {
+        Statement::CreateTable(table) => {
             let name = table.name;
             let columns = table.columns;
             assert_eq!(name.to_string(), "foo");
@@ -155,7 +152,7 @@ fn parse_create_table_auto_increment() {
                 columns
             );
         }
-        | _ => unreachable!(),
+        _ => unreachable!(),
     }
 }
 
@@ -163,7 +160,7 @@ fn parse_create_table_auto_increment() {
 fn parse_quote_identifiers() {
     let sql = "CREATE TABLE `PRIMARY` (`BEGIN` INTEGER PRIMARY KEY)";
     match mysql().verified_stmt(sql) {
-        | Statement::CreateTable(table) => {
+        Statement::CreateTable(table) => {
             let name = table.name;
             let columns = table.columns;
             assert_eq!(name.to_string(), "`PRIMARY`");
@@ -180,7 +177,7 @@ fn parse_quote_identifiers() {
                 columns
             );
         }
-        | _ => unreachable!(),
+        _ => unreachable!(),
     }
 }
 
@@ -188,7 +185,7 @@ fn parse_quote_identifiers() {
 fn parse_create_table_with_minimum_display_width() {
     let sql = "CREATE TABLE foo (bar_tinyint TINYINT(3), bar_smallint SMALLINT(5), bar_int INT(11), bar_bigint BIGINT(20))";
     match mysql().verified_stmt(sql) {
-        | Statement::CreateTable(table) => {
+        Statement::CreateTable(table) => {
             let name = table.name;
             let columns = table.columns;
             assert_eq!(name.to_string(), "foo");
@@ -222,7 +219,7 @@ fn parse_create_table_with_minimum_display_width() {
                 columns
             );
         }
-        | _ => unreachable!(),
+        _ => unreachable!(),
     }
 }
 

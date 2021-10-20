@@ -1,7 +1,4 @@
-use std::ops::{
-    Deref,
-    DerefMut,
-};
+use std::ops::{Deref, DerefMut};
 
 #[cfg(feature = "serde")]
 use serde::*;

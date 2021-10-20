@@ -1,5 +1,1 @@
-use crate::private::{
-    driver::schema::Schema,
-    scheduler,
-    *,
-};
+use crate::private::{driver::schema::Schema, scheduler, *};

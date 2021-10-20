@@ -80,7 +80,7 @@
 //! }
 //! fn main() {}
 //! ```
-//! 
+//!
 //! If you now run the following command, your migrations should be
 //! automatically created. ```ignore
 //! $ models generate
@@ -188,13 +188,19 @@ pub use models_proc_macro::Model;
 #[macro_use]
 pub mod error;
 mod dialect;
-#[cfg(feature = "orm")]
-pub mod orm;
+
 mod prelude;
-pub mod private;
+
 
 #[cfg(tests)]
 mod tests;
 pub mod types;
 
 pub use types::*;
+
+
+#[doc(hidden)]
+pub mod private;
+
+#[cfg(feature = "orm")]
+pub use private::orm::ORMError; 

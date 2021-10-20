@@ -3,10 +3,7 @@ use std::io::Write;
 use fs::File;
 
 use super::{
-    actions::{
-        action::Action,
-        Actions,
-    },
+    actions::{action::Action, Actions},
     schema::Schema,
     Report,
 };

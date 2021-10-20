@@ -17,10 +17,7 @@ use core::fmt;
 #[cfg(feature = "bigdecimal")]
 use bigdecimal::BigDecimal;
 #[cfg(feature = "serde")]
-use serde::{
-    Deserialize,
-    Serialize,
-};
+use serde::{Deserialize, Serialize};
 
 /// Primitive SQL values such as number and string
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -67,13 +64,13 @@ pub enum Value {
 impl fmt::Display for Value {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            | Value::Number(v, l) => write!(f, "{}{long}", v, long = if *l { "L" } else { "" }),
-            | Value::DoubleQuotedString(v) => write!(f, "\"{}\"", v),
-            | Value::SingleQuotedString(v) => write!(f, "'{}'", escape_single_quote_string(v)),
-            | Value::NationalStringLiteral(v) => write!(f, "N'{}'", v),
-            | Value::HexStringLiteral(v) => write!(f, "X'{}'", v),
-            | Value::Boolean(v) => write!(f, "{}", v),
-            | Value::Interval {
+            Value::Number(v, l) => write!(f, "{}{long}", v, long = if *l { "L" } else { "" }),
+            Value::DoubleQuotedString(v) => write!(f, "\"{}\"", v),
+            Value::SingleQuotedString(v) => write!(f, "'{}'", escape_single_quote_string(v)),
+            Value::NationalStringLiteral(v) => write!(f, "N'{}'", v),
+            Value::HexStringLiteral(v) => write!(f, "X'{}'", v),
+            Value::Boolean(v) => write!(f, "{}", v),
+            Value::Interval {
                 value,
                 leading_field: Some(DateTimeField::Second),
                 leading_precision: Some(leading_precision),
@@ -91,7 +88,7 @@ impl fmt::Display for Value {
                     fractional_seconds_precision
                 )
             }
-            | Value::Interval {
+            Value::Interval {
                 value,
                 leading_field,
                 leading_precision,
@@ -113,7 +110,7 @@ impl fmt::Display for Value {
                 }
                 Ok(())
             }
-            | Value::Null => write!(f, "NULL"),
+            Value::Null => write!(f, "NULL"),
         }
     }
 }
@@ -132,12 +129,12 @@ pub enum DateTimeField {
 impl fmt::Display for DateTimeField {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.write_str(match self {
-            | DateTimeField::Year => "YEAR",
-            | DateTimeField::Month => "MONTH",
-            | DateTimeField::Day => "DAY",
-            | DateTimeField::Hour => "HOUR",
-            | DateTimeField::Minute => "MINUTE",
-            | DateTimeField::Second => "SECOND",
+            DateTimeField::Year => "YEAR",
+            DateTimeField::Month => "MONTH",
+            DateTimeField::Day => "DAY",
+            DateTimeField::Hour => "HOUR",
+            DateTimeField::Minute => "MINUTE",
+            DateTimeField::Second => "SECOND",
         })
     }
 }
@@ -173,9 +170,9 @@ impl fmt::Display for TrimWhereField {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         use TrimWhereField::*;
         f.write_str(match self {
-            | Both => "BOTH",
-            | Leading => "LEADING",
-            | Trailing => "TRAILING",
+            Both => "BOTH",
+            Leading => "LEADING",
+            Trailing => "TRAILING",
         })
     }
 }

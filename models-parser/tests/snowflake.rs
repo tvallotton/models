@@ -18,10 +18,7 @@
 mod test_utils;
 use models_parser::{
     ast::*,
-    dialect::{
-        GenericDialect,
-        SnowflakeDialect,
-    },
+    dialect::{GenericDialect, SnowflakeDialect},
     parser::ParserError,
     tokenizer::*,
 };
@@ -31,10 +28,10 @@ use test_utils::*;
 fn test_snowflake_create_table() {
     let sql = "CREATE TABLE _my_$table (am00unt number)";
     match snowflake_and_generic().verified_stmt(sql) {
-        | Statement::CreateTable(table) => {
+        Statement::CreateTable(table) => {
             assert_eq!("_my_$table", table.name.to_string());
         }
-        | _ => unreachable!(),
+        _ => unreachable!(),
     }
 }
 

@@ -18,10 +18,7 @@
 mod test_utils;
 use models_parser::{
     ast::*,
-    dialect::{
-        GenericDialect,
-        SQLiteDialect,
-    },
+    dialect::{GenericDialect, SQLiteDialect},
     tokenizer::Token,
 };
 use test_utils::*;
@@ -30,11 +27,11 @@ use test_utils::*;
 fn parse_create_table_without_rowid() {
     let sql = "CREATE TABLE t (a INTEGER) WITHOUT ROWID";
     match sqlite_and_generic().verified_stmt(sql) {
-        | Statement::CreateTable(table) => {
+        Statement::CreateTable(table) => {
             assert!(table.without_rowid);
             assert_eq!("t", table.name.to_string());
         }
-        | _ => unreachable!(),
+        _ => unreachable!(),
     }
 }
 
@@ -42,7 +39,7 @@ fn parse_create_table_without_rowid() {
 fn parse_create_virtual_table() {
     let sql = "CREATE VIRTUAL TABLE IF NOT EXISTS t USING module_name (arg1, arg2)";
     match sqlite_and_generic().verified_stmt(sql) {
-        | Statement::CreateVirtualTable(CreateVirtualTable {
+        Statement::CreateVirtualTable(CreateVirtualTable {
             name,
             if_not_exists: true,
             module_name,
@@ -53,7 +50,7 @@ fn parse_create_virtual_table() {
             assert_eq!("module_name", module_name.to_string());
             assert_eq!(args, module_args);
         }
-        | _ => unreachable!(),
+        _ => unreachable!(),
     }
 
     let sql = "CREATE VIRTUAL TABLE t USING module_name";
@@ -64,7 +61,7 @@ fn parse_create_virtual_table() {
 fn parse_create_table_auto_increment() {
     let sql = "CREATE TABLE foo (bar INTEGER PRIMARY KEY AUTOINCREMENT)";
     match sqlite_and_generic().verified_stmt(sql) {
-        | Statement::CreateTable(table) => {
+        Statement::CreateTable(table) => {
             let name = table.name;
             let columns = table.columns;
             assert_eq!(name.to_string(), "foo");
@@ -89,7 +86,7 @@ fn parse_create_table_auto_increment() {
                 columns
             );
         }
-        | _ => unreachable!(),
+        _ => unreachable!(),
     }
 }
 
@@ -97,7 +94,7 @@ fn parse_create_table_auto_increment() {
 fn parse_create_sqlite_quote() {
     let sql = "CREATE TABLE `PRIMARY` (\"KEY\" INTEGER, [INDEX] INTEGER)";
     match sqlite().verified_stmt(sql) {
-        | Statement::CreateTable(table) => {
+        Statement::CreateTable(table) => {
             let columns = table.columns;
             let name = table.name;
             assert_eq!(name.to_string(), "`PRIMARY`");
@@ -119,7 +116,7 @@ fn parse_create_sqlite_quote() {
                 columns
             );
         }
-        | _ => unreachable!(),
+        _ => unreachable!(),
     }
 }
 

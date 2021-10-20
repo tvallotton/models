@@ -67,18 +67,18 @@ impl IntoSQL for i32 {
 impl IntoSQL for i16 {
     fn into_sql() -> DataType {
         match *DIALECT {
-            | SQLite => DataType::Int(None),
-            | PostgreSQL => DataType::SmallInt(None),
-            | _ => DataType::SmallInt(None),
+            SQLite => DataType::Int(None),
+            PostgreSQL => DataType::SmallInt(None),
+            _ => DataType::SmallInt(None),
         }
     }
 }
 impl IntoSQL for i8 {
     fn into_sql() -> DataType {
         match *DIALECT {
-            | SQLite => DataType::Int(None),
-            | PostgreSQL => DataType::SmallInt(None),
-            | _ => DataType::TinyInt(None),
+            SQLite => DataType::Int(None),
+            PostgreSQL => DataType::SmallInt(None),
+            _ => DataType::TinyInt(None),
         }
     }
 }
@@ -86,9 +86,9 @@ impl IntoSQL for i8 {
 impl IntoSQL for u32 {
     fn into_sql() -> DataType {
         match *DIALECT {
-            | MySQL => DataType::BigInt(None),
-            | PostgreSQL => DataType::BigInt(None),
-            | _ => DataType::Int(None),
+            MySQL => DataType::BigInt(None),
+            PostgreSQL => DataType::BigInt(None),
+            _ => DataType::Int(None),
         }
     }
 }
@@ -118,24 +118,24 @@ impl IntoSQL for u32 {
 impl IntoSQL for i64 {
     fn into_sql() -> DataType {
         match *DIALECT {
-            | SQLite => DataType::Int(None),
-            | _ => DataType::BigInt(None),
+            SQLite => DataType::Int(None),
+            _ => DataType::BigInt(None),
         }
     }
 }
 impl IntoSQL for f64 {
     fn into_sql() -> DataType {
         match *DIALECT {
-            | PostgreSQL => DataType::Double,
-            | _ => DataType::Real,
+            PostgreSQL => DataType::Double,
+            _ => DataType::Real,
         }
     }
 }
 impl IntoSQL for f32 {
     fn into_sql() -> DataType {
         match *DIALECT {
-            | MySQL => DataType::Real,
-            | _ => DataType::Real,
+            MySQL => DataType::Real,
+            _ => DataType::Real,
         }
     }
 }
@@ -148,17 +148,17 @@ impl IntoSQL for String {
 impl<const N: usize> IntoSQL for [u8; N] {
     fn into_sql() -> DataType {
         match *DIALECT {
-            | PostgreSQL => DataType::Bytea,
-            | SQLite => DataType::Blob(None),
-            | _ => DataType::Blob(Some(N as u64)),
+            PostgreSQL => DataType::Bytea,
+            SQLite => DataType::Blob(None),
+            _ => DataType::Blob(Some(N as u64)),
         }
     }
 }
 impl IntoSQL for Vec<u8> {
     fn into_sql() -> DataType {
         match *DIALECT {
-            | PostgreSQL => DataType::Bytea,
-            | _ => DataType::Blob(None),
+            PostgreSQL => DataType::Bytea,
+            _ => DataType::Blob(None),
         }
     }
 }

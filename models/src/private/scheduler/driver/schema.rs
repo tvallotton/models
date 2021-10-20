@@ -48,8 +48,8 @@ impl Schema {
             }
             let sql = read_to_string(&path)?;
             let stmts = match parse_sql(&sql) {
-                | Ok(stmts) => stmts,
-                | Err(err) => return Err(Error::SyntaxAtFile(err, path)),
+                Ok(stmts) => stmts,
+                Err(err) => return Err(Error::SyntaxAtFile(err, path)),
             };
             out.extend(stmts);
         }
@@ -69,14 +69,14 @@ impl Schema {
     pub fn update(&mut self, stmt: &Statement) -> Result {
         use Statement::*;
         match stmt {
-            | CreateTable(_) => self.create_table(stmt.clone().try_into().unwrap()),
-            | AlterTable(ast::AlterTable {
+            CreateTable(_) => self.create_table(stmt.clone().try_into().unwrap()),
+            AlterTable(ast::AlterTable {
                 name,
                 operation: AlterTableOperation::RenameTable { table_name },
             }) => self.rename_table(name, table_name),
-            | AlterTable(alter) => self.alter_table(&alter.name, &alter.operation),
-            | Drop(drop) => self.drop_tables(drop),
-            | _ => Ok(()),
+            AlterTable(alter) => self.alter_table(&alter.name, &alter.operation),
+            Drop(drop) => self.drop_tables(drop),
+            _ => Ok(()),
         }
     }
 
@@ -104,10 +104,8 @@ impl Schema {
                     .constraints
                     .drain(..)
                     .filter(|constr| match constr {
-                        | ForeignKey(ast::ForeignKey { foreign_table, .. }) => {
-                            foreign_table == name
-                        }
-                        | _ => true,
+                        ForeignKey(ast::ForeignKey { foreign_table, .. }) => foreign_table == name,
+                        _ => true,
                     })
                     .collect()
             });

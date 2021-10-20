@@ -1,33 +1,17 @@
 use std::{
-    collections::{
-        HashMap,
-        HashSet,
-    },
-    fs::{
-        self,
-        File,
-    },
+    collections::{HashMap, HashSet},
+    fs::{self, File},
     io::Write,
     path::Path,
     time::Duration,
 };
 
-use anyhow::{
-    bail,
-    Context,
-};
+use anyhow::{bail, Context};
 use chrono::Utc;
 use console::style;
 use sqlx::{
-    migrate::{
-        AppliedMigration,
-        Migrate,
-        MigrateError,
-        MigrationType,
-        Migrator,
-    },
-    AnyConnection,
-    Connection,
+    migrate::{AppliedMigration, Migrate, MigrateError, MigrationType, Migrator},
+    AnyConnection, Connection,
 };
 
 fn create_file(
@@ -213,12 +197,12 @@ pub async fn run(
         }
 
         match applied_migrations.get(&migration.version) {
-            | Some(applied_migration) => {
+            Some(applied_migration) => {
                 if migration.checksum != applied_migration.checksum {
                     bail!(MigrateError::VersionMismatch(migration.version));
                 }
             }
-            | None => {
+            None => {
                 let elapsed = if dry_run {
                     Duration::new(0, 0)
                 } else {
