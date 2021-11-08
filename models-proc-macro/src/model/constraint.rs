@@ -17,7 +17,7 @@ use crate::prelude::*;
 
 #[derive(Default, Debug)]
 pub struct Unique {
-    columns: Vec<Ident>,
+   pub columns: Vec<Ident>,
 }
 impl ForeignKey {
     fn into_tokens(&self, constr_name: &str, local_col: &Ident) -> TokenStream2 {
@@ -132,8 +132,8 @@ impl Parse for Unique {
 }
 
 pub struct ForeignKey {
-    foreign_table: Path,
-    column: Ident,
+    pub foreign_table: Path,
+    pub column: Ident,
     on_delete: Option<LitStr>,
     on_update: Option<LitStr>,
 }

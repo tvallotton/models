@@ -1,5 +1,5 @@
+use crate::model::constraint;
 use crate::prelude::*;
-
 pub enum Getter {
     ForeignKey(ForeignKey),
     Unique(Unique),
@@ -8,12 +8,12 @@ pub enum Getter {
 
 pub struct ForeignKey {
     foreign_key: Ident,
-    foreign_table: Ident,
+    foreign_table: Path,
     table_name: Ident,
     key_name: Ident,
 }
 pub struct Unique {
-    ty: Type,
+    ty: Path,
     table_name: Ident,
     key_name: Ident,
 }
@@ -26,9 +26,24 @@ impl Getter {
             Primary(k) => &k.key_name,
         }
     }
+
+    pub fn foreign_key(table: &Ident, key: &Ident, fk: &constraint::ForeignKey) -> Self {
+        Self::ForeignKey(ForeignKey {
+            foreign_key: fk.column,
+            foreign_table: fk.foreign_table,
+            table_name: table.clone(),
+            key_name: key.clone(),
+        })
+    }
+
+    pub fn primary_key(table: &Ident, ty: Path, pk: &constraint::Unique) -> Self {
+        Self::Primary(Unique {
+            table_name: table.clone(),
+            ty,
+            key_name: pk.columns[0].clone(),
+        })
+    }
 }
-
-
 
 impl Getter {
     fn getter_name(&self) -> Ident {
@@ -55,9 +70,19 @@ impl ToTokens for Getter {
     fn to_tokens(&self, tokens: &mut TokenStream2) {
         let getter_name = self.getter_name();
         match self {
-             Self::Unique (Unique { table_name, key_name, ty,..})
-              |  Self::Primary ( Unique{table_name, key_name, ty, ..}) => {
-                    tokens.extend(quote! {
+            Self::Unique(Unique {
+                table_name,
+                key_name,
+                ty,
+                ..
+            })
+            | Self::Primary(Unique {
+                table_name,
+                key_name,
+                ty,
+                ..
+            }) => {
+                tokens.extend(quote! {
                     impl #table_name {
                         pub async fn #getter_name(#key_name: #ty) -> std::result::Result<Self, ::models::sqlx::Error> {
                             ::models::private::DATABASE_CONNECTION.query_key(
@@ -69,11 +94,14 @@ impl ToTokens for Getter {
                     }
                 });
             }
-           |  Self::ForeignKey (ForeignKey {
+            Self::ForeignKey(ForeignKey {
                 table_name,
                 key_name,
-                foreign_key,foreign_table
+                foreign_key,
+                foreign_table,
             }) => {
+                // TODO: try to remove this unwrap if possible.
+                let foreign_table = foreign_table.get_ident().unwrap();
                 tokens.extend(quote! {
                     pub async fn #getter_name(&self) -> std::result::Result<Self, ::models::sqlx::Error> {
                         ::models::private::DATABASE_CONNECTION.query_foreign_key(

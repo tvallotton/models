@@ -191,16 +191,14 @@ mod dialect;
 
 mod prelude;
 
-
 #[cfg(tests)]
 mod tests;
 pub mod types;
 
 pub use types::*;
 
-
 #[doc(hidden)]
 pub mod private;
 
 #[cfg(feature = "orm")]
-pub use private::orm::ORMError; 
+pub use private::orm::ORMError;

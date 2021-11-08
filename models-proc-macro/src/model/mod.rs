@@ -1,5 +1,5 @@
 mod column;
-mod constraint;
+pub mod constraint;
 use constraint::*;
 use Data::*;
 
@@ -7,7 +7,7 @@ use self::column::Column;
 use crate::prelude::*;
 pub struct Model {
     pub name: Ident,
-    name_lowercase: Ident,
+    pub name_lowercase: Ident,
     data: DataStruct,
     pub columns: Vec<Column>,
     pub constraints: Vec<NamedConstraint>,
