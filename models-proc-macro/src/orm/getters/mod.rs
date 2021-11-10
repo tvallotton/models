@@ -1,8 +1,7 @@
-use std::slice::Concat;
-use std::sync::
 use getter::Getter;
 
-use crate::model::constraint::{Constraint, ForeignKey, Unique};
+
+use crate::model::constraint::{Constraint};
 use crate::prelude::*;
 mod getter;
 
@@ -14,16 +13,37 @@ impl Getters {
         for cons in &model.constraints {
             match &cons.constr {
                 Constraint::ForeignKey(fk) => {
-                    let getter = Getter::foreign_key(&model.name_lowercase, &cons.field_name, fk);
+                    let getter = Getter::foreign_key(&model.name, &cons.field_name, fk);
                     getters.push(getter);
                 }
-                Constraint::Primary(pk) => Getter::primary_key(table, ty, pk),
+                Constraint::Primary(pk) => {
+                    for field in pk.columns.iter() {
+                        let getter = Getter::primary_key(
+                            &model.name,
+                            model.field_type(field).unwrap().clone(),
+                            pk,
+                        );
+                        getters.push(getter);
+                    }
+                }
 
-                Constraint::Unique(u) => {}
+                Constraint::Unique(u) => {
+                    for field in u.columns.iter() {
+                        let getter = Getter::primary_key(
+                            &model.name,
+                            model.field_type(field).unwrap().clone(),
+                            u,
+                        );
+                        getters.push(getter);
+                    }
+                }
             }
         }
         Self(getters)
     }
+
+
+
 }
 
 impl ToTokens for Getters {

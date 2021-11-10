@@ -9,21 +9,22 @@ pub enum Constraint {
 pub struct NamedConstraint {
     pub name: String,
     pub field_name: Ident,
-
+    
     pub constr: Constraint,
 }
+
 use std::fmt::Debug;
 
 use crate::prelude::*;
 
 #[derive(Default, Debug)]
 pub struct Unique {
-    pub columns: Vec<Ident>,
+   pub columns: Vec<Ident>,
 }
 impl ForeignKey {
     fn into_tokens(&self, constr_name: &str, local_col: &Ident) -> TokenStream2 {
         let foreign_col = &self.column;
-        let foreign_table = &self.foreign_table; 
+        let foreign_table = &self.foreign_table.get_ident();
 
         let on_update = self
             .on_update
@@ -133,7 +134,7 @@ impl Parse for Unique {
 }
 
 pub struct ForeignKey {
-    pub foreign_table: Type,
+    pub foreign_table: Path,
     pub column: Ident,
     on_delete: Option<LitStr>,
     on_update: Option<LitStr>,
@@ -150,7 +151,7 @@ impl Parse for ForeignKey {
         let content;
         let _paren = parenthesized!(content in input);
 
-        let foreign_table = content.parse::<Type>()?;
+        let foreign_table = content.parse::<Path>()?;
         content.parse::<Token![.]>()?;
         let mut on_delete = None;
         let mut on_update = None;
@@ -188,20 +189,16 @@ impl Parse for ForeignKey {
 }
 
 impl Constraints {
-    pub fn from_attrs(attrs: &[Attribute], field: &Field) -> Result<Self> {
+    pub fn from_attrs(attrs: &[Attribute]) -> Result<Self> {
         let mut out = vec![];
         for attr in attrs {
             let tokens = attr.tokens.clone().into();
             if attr.path.is_ident("foreign_key") {
                 out.push(Constraint::ForeignKey(parse(tokens)?));
             } else if attr.path.is_ident("unique") {
-                let mut constr: Unique = parse(tokens)?;
-                constr.columns.push(field.ident.clone().unwrap());
-                out.push(Constraint::Unique(constr));
+                out.push(Constraint::Unique(parse(tokens)?));
             } else if attr.path.is_ident("primary_key") {
-                let mut constr: Unique = parse(tokens)?;
-                constr.columns.push(field.ident.clone().unwrap());
-                out.push(Constraint::Primary(constr));
+                out.push(Constraint::Primary(parse(tokens)?));
             }
         }
         Ok(Constraints(out))

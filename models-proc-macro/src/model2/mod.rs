@@ -13,27 +13,6 @@ pub struct Model {
     pub constraints: Vec<NamedConstraint>,
 }
 
-// struct ForeignKey {
-//     tables: Vec<Path>,
-//     columns: Vec<Ident>,
-// }
-// impl Parse for ForeignKey {
-//     fn parse(input: parse::ParseStream) -> Result<Self> {
-//         let mut out = ForeignKey {
-//             tables: vec![],
-//             columns: vec![],
-//         };
-//         let content;
-//         let _paren = parenthesized!(content in input);
-//         while !content.is_empty() {
-//             out.tables.push(content.parse::<Path>()?);
-//             content.parse::<Token![.]>()?;
-//             out.columns.push(content.parse::<Ident>()?);
-//         }
-//         Ok(out)
-//     }
-// }
-
 impl Parse for Model {
     fn parse(input: parse::ParseStream) -> Result<Self> {
         let input: DeriveInput = input.parse()?;
@@ -51,7 +30,7 @@ impl Parse for Model {
                 model.init()?;
                 Ok(model)
             }
-            _ => panic!("Sql models have to be structs, enums and unions are not supported."),
+            _ => panic!("SQL models have to be structs, enums and unions are not supported."),
         }
     }
 }
@@ -81,7 +60,7 @@ impl Model {
     fn init(&mut self) -> Result<()> {
         for field in &self.data.fields {
             let col_name = field.ident.clone().unwrap();
-            let constrs: Vec<_> = Constraints::from_attrs(&field.attrs, &field)?
+            let constrs: Vec<_> = Constraints::from_attrs(&field.attrs)?
                 .0
                 .into_iter()
                 .map(|constr| NamedConstraint {
@@ -96,13 +75,6 @@ impl Model {
             self.columns.push(column);
         }
         Ok(())
-    }
-   pub fn field_type(&self, field: &Ident) -> Option<&Type> {
-        self.columns
-            .iter()
-            .filter(|col| &col.name == field)
-            .map(|col| &col.ty)
-            .next()
     }
 
     fn get_columns(&self) -> TokenStream2 {

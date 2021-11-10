@@ -16,7 +16,7 @@ mod error;
 mod queries;
 
 static DATABASE_URL: Lazy<Result<Url, ORMError>> = Lazy::new(|| {
-    dotenv().ok();
+    dotenv::dotenv().ok();
     env::var("DATABASE_URL")
         .or_else(|_| var("DATABASE_URL"))
         .map_err(|_| ORMError::NoDatabaseUrl)

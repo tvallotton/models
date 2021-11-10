@@ -32,7 +32,7 @@ impl Connection {
         table: &'static str,
         key_name: &'static str,
         key_val: T,
-    ) -> Result<O>
+    ) -> Result<O, ORMError>
     where
         T: 'q + Send + Encode<'q, Any> + Type<Any>,
         O: for<'r> FromRow<'r, AnyRow> + Send + Unpin,
@@ -51,7 +51,7 @@ impl Connection {
         foreign_table: &'static str,
         foreign_key: &'static str,
         key_val: T,
-    ) -> Result<O>
+    ) -> Result<O, ORMError>
     where
         T: 'q + Send + Encode<'q, Any> + Type<Any>,
         O: for<'r> FromRow<'r, AnyRow> + Send + Unpin,

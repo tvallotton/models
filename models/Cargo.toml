@@ -14,7 +14,7 @@ json = ["serde", "serde_json"]
 sqlx-postgres = ["sqlx", "sqlx/postgres"]
 sqlx-mysql = ["sqlx", "sqlx/mysql"]
 sqlx-sqlite = ["sqlx", "sqlx/sqlite"]
-orm = ["sqlx/any", "dotenv", "futures"]
+orm = ["sqlx/any", "dotenv", "futures", "models-proc-macro/orm"]
 
 
 

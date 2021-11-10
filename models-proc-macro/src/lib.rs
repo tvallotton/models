@@ -1,7 +1,8 @@
 mod migration_generation;
 // mod getters;
 mod model;
-// #[cfg(feature = "orm")]
+mod model2; 
+#[cfg(feature = "orm")]
 mod orm;
 mod prelude;
 use migration_generation::*;
@@ -15,11 +16,18 @@ use prelude::*;
 )]
 pub fn model(input: TokenStream) -> TokenStream {
     let derive = parse_macro_input!(input as Model);
-
     let migrations = generate_migration(&derive.name);
-    let template = quote! {
+    let mut template = quote! {
         #derive
         #migrations
     };
+    template.extend(quote!()); 
+    #[cfg(feature = "orm")]
+    {
+        let orm = orm::ORM::new(&derive);
+        template.extend(quote! {
+            #orm
+        });
+    }
     template.into()
 }

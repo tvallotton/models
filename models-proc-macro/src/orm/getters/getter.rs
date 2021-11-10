@@ -6,14 +6,16 @@ pub enum Getter {
     Primary(Unique),
 }
 
+
+
 pub struct ForeignKey {
     foreign_key: Ident,
-    foreign_table: Path,
+    foreign_table: Type,
     table_name: Ident,
     key_name: Ident,
 }
 pub struct Unique {
-    ty: Path,
+    ty: Type,
     table_name: Ident,
     key_name: Ident,
 }
@@ -29,14 +31,14 @@ impl Getter {
 
     pub fn foreign_key(table: &Ident, key: &Ident, fk: &constraint::ForeignKey) -> Self {
         Self::ForeignKey(ForeignKey {
-            foreign_key: fk.column,
-            foreign_table: fk.foreign_table,
+            foreign_key: fk.column.clone(),
+            foreign_table: fk.foreign_table.clone(),
             table_name: table.clone(),
             key_name: key.clone(),
         })
     }
 
-    pub fn primary_key(table: &Ident, ty: Path, pk: &constraint::Unique) -> Self {
+    pub fn primary_key(table: &Ident, ty: Type, pk: &constraint::Unique) -> Self {
         Self::Primary(Unique {
             table_name: table.clone(),
             ty,
@@ -84,12 +86,12 @@ impl ToTokens for Getter {
             }) => {
                 tokens.extend(quote! {
                     impl #table_name {
-                        pub async fn #getter_name(#key_name: #ty) -> std::result::Result<Self, ::models::sqlx::Error> {
-                            ::models::private::DATABASE_CONNECTION.query_key(
+                        pub async fn #getter_name(#key_name: #ty) -> std::result::Result<Self, ::models::ORMError> {
+                            ::models::private::DATABASE_CONNECTION.as_ref().map_err(Clone::clone)?.query_key::<#ty, Self>(
                                 stringify!(#table_name),
                                 stringify!(#key_name),
                                 #key_name
-                            )
+                            ).await
                         }
                     }
                 });
@@ -101,16 +103,18 @@ impl ToTokens for Getter {
                 foreign_table,
             }) => {
                 // TODO: try to remove this unwrap if possible.
-                let foreign_table = foreign_table.get_ident().unwrap();
+                let foreign_table = foreign_table; 
                 tokens.extend(quote! {
-                    pub async fn #getter_name(&self) -> std::result::Result<Self, ::models::sqlx::Error> {
-                        ::models::private::DATABASE_CONNECTION.query_foreign_key(
-                            stringify!(#table_name),
-                            stringify(#key_name),
-                            stringify(#foreign_table)
-                            stringify(#foreign_key)
-                            &self.#key_name
-                        )
+                    impl #table_name {
+                        pub async fn #getter_name(&self) -> std::result::Result<#foreign_table, ::models::ORMError> {
+                            ::models::private::DATABASE_CONNECTION.as_ref().map_err(Clone::clone)?.query_foreign_key(
+                                stringify!(#table_name),
+                                stringify!(#key_name),
+                                stringify!(#foreign_table), 
+                                stringify!(#foreign_key),
+                                &self.#key_name
+                            ).await
+                        }
                     }
                 })
             }

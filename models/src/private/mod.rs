@@ -2,6 +2,7 @@
 //! changes. This module is intended for macros only.
 //! Changes to elements in this module are not considered a breaking change. Do
 //! not depend directly on this module.
+#[cfg(feature="orm")]
 pub mod orm;
 mod scheduler;
 use once_cell::sync::Lazy;

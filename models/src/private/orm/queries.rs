@@ -40,7 +40,7 @@ impl Queries {
         }
     }
 
-    pub fn query_key(&self, table: &'static str, key_name: &'static str) -> &'static str {
+    pub fn query_key(&self, table: &'static str, key_name: &'static str) -> &str {
         // let read = self.key_getters.read()?;
         let mut query: Option<&'static str> = {
             let read = self.key_getters.read();
@@ -80,8 +80,8 @@ impl Queries {
         if query.is_none() {
             let sql = format!(
                 "
-                select {table}.* from {table} 
-                inner join {foreign_table} 
+                select {foreign_table}.* from {foreign_table} 
+                inner join {table} 
                 on {table}.{key} = {foreign_table}.{foreign_key} 
                 LIMIT 1;",
                 table = table,

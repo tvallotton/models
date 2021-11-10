@@ -11,8 +11,8 @@ pub struct ORM {
 }
 
 impl ORM {
-    fn new(model: Model) -> Self {
-        let getters = Getters::new(&model);
+    pub fn new(model: &Model) -> Self {
+        let getters = Getters::new(model);
 
         ORM { getters }
     }
@@ -21,9 +21,9 @@ impl ORM {
 impl ToTokens for ORM {
     fn to_tokens(&self, tokens: &mut TokenStream2) {
         let getters = &self.getters;
-        tokens.extend(quote! {
-            #getters
 
+        tokens.extend(quote! {
+                #getters
         })
     }
 }
