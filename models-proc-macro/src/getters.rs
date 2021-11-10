@@ -43,7 +43,7 @@ impl<'a> ToTokens for Getter {
                 
                 let query = format!("select * from {} where co;", table_name, column_name);
                 tokens.extend(quote! {
-                    fn #name(&self, val: #dtype) -> ::std::result::Result<Vec<_>, ::sqlx::Error>{
+                    fn #name(&self, val: #dtype) -> ::std::result::Result<Vec<_>, ::models::sqlx::Error>{
                         ::sqlx::query(#query).
                         .fetch_all(&conn)
                         .await

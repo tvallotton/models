@@ -45,6 +45,13 @@ impl Getter {
             key_name: pk.columns[0].clone(),
         })
     }
+    pub fn unique_key(table: &Ident, ty: Type, pk: &constraint::Unique) -> Self {
+        Self::Unique(Unique {
+            table_name: table.clone(),
+            ty,
+            key_name: pk.columns[0].clone(),
+        })
+    }
 }
 
 impl Getter {

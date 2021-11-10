@@ -4,7 +4,7 @@ use thiserror::Error;
 pub enum ORMError {
     #[error("SQLxError: {0}")]
     SQLx(Arc<sqlx::Error>),
-    #[error("NoDatabaseUrl: clould not read or DATABASE_URL.")]
+    #[error("NoDatabaseUrl: clould not read DATABASE_URL.")]
     NoDatabaseUrl,
     #[error("InvalidDatabaseUrl: clould not parse DATABASE_URL.")]
     InvalidDatabaseUrl,

@@ -59,7 +59,7 @@ impl Unique {
         &self,
         constr_name: &str,
         ty: &Ident,
-        field_name: &Ident,
+
         method: TokenStream2,
     ) -> TokenStream2 {
         let columns = self.columns.iter();
@@ -69,7 +69,7 @@ impl Unique {
             __models_table.constraints.push(
                 ::models::private::constraint::#method(
                     #constr_name,
-                    &[stringify!(#field_name), #(stringify!(#columns)),*]
+                    &[#(stringify!(#columns)),*]
                 )
             );
             let _ = |__models_validation: #ty| {
@@ -88,11 +88,11 @@ impl NamedConstraint {
             }
             Constraint::Primary(pk) => {
                 let constr_name = self.constr_name(ty, &pk.columns, "primary");
-                pk.into_tokens(&constr_name, ty, &self.field_name, quote!(primary))
+                pk.into_tokens(&constr_name, ty, quote!(primary))
             }
             Constraint::Unique(u) => {
                 let constr_name = self.constr_name(ty, &u.columns, "unique");
-                u.into_tokens(&constr_name, ty, &self.field_name, quote!(unique))
+                u.into_tokens(&constr_name, ty, quote!(unique))
             }
         }
     }

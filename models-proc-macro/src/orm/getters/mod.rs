@@ -29,7 +29,7 @@ impl Getters {
 
                 Constraint::Unique(u) => {
                     for field in u.columns.iter() {
-                        let getter = Getter::primary_key(
+                        let getter = Getter::unique_key(
                             &model.name,
                             model.field_type(field).unwrap().clone(),
                             u,
