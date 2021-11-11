@@ -16,6 +16,7 @@ proc-macro2 = "1.0.28"
 quote = "1.0.9"
 models-parser ={version = "0.2.0", path = "../models-parser"}
 syn = "1.0.74"
+Inflector = "0.11.4"
 
 
 [dev-dependencies]

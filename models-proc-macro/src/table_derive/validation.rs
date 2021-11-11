@@ -1,6 +1,5 @@
-use crate::model2;
 use crate::prelude::*;
-use model2::Constraint::*;
+use Constraint::*;
 
 use quote::ToTokens;
 
@@ -10,7 +9,7 @@ pub struct Validation {
 }
 
 impl Validation {
-    pub fn new(model: &model2::Model) -> Vec<Self> {
+    pub fn new(model: &Model) -> Vec<Self> {
         let mut out = vec![];
         for cons in &model.constraints {
             match cons {

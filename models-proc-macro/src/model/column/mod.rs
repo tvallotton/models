@@ -3,39 +3,11 @@ mod default;
 
 use default::*;
 
+#[derive(Clone)]
 pub struct Column {
     pub name: Ident,
     pub ty: Type,
-    default: Option<DefaultExpr>,
-}
-
-impl ToTokens for Column {
-    fn to_tokens(&self, tokens: &mut TokenStream2) {
-        let col_name = &self.name;
-        let ty = &self.ty;
-        let default = &self.default;
-        let temp = if let Some(default) = default {
-            quote! {
-                __models_table.columns.push(
-                    ::models::private::Column::new_with_default(
-                        stringify!(#col_name),
-                        <#ty as ::models::types::IntoSQL>::into_sql(),
-                        <#ty as ::models::types::IntoSQL>::IS_NULLABLE,
-                        #default
-                ));
-            }
-        } else {
-            quote! {
-                __models_table.columns.push(
-                    ::models::private::Column::new(
-                        stringify!(#col_name),
-                        <#ty as ::models::types::IntoSQL>::into_sql(),
-                        <#ty as ::models::types::IntoSQL>::IS_NULLABLE,
-                ));
-            }
-        };
-        tokens.extend(temp);
-    }
+    pub default: Option<DefaultExpr>,
 }
 
 impl Column {

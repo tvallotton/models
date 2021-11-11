@@ -1,7 +1,7 @@
 use proc_macro2::Span;
 
 use crate::prelude::*;
-
+#[derive(Clone)]
 pub struct DefaultExpr {
     is_string: bool,
     expr: String,
@@ -27,8 +27,6 @@ impl ToTokens for DefaultExpr {
 
 impl Parse for DefaultExpr {
     fn parse(input: parse::ParseStream) -> Result<Self> {
-        use models_parser::{dialect::*, parser::Parser, tokenizer::*};
-
         let content;
         let _paren = parenthesized!(content in input);
         let span = Span::call_site();
@@ -51,20 +49,6 @@ impl Parse for DefaultExpr {
             ))?,
         };
 
-        let mut lexer = Tokenizer::new(&GenericDialect {}, &expr);
-
-        let tokens = lexer.tokenize().map_err(|err| {
-            syn::Error::new(
-                span,
-                format!("Failed to tokenize default expression: {:?}", err.message),
-            )
-        })?;
-
-        let _ = Parser::new(tokens, &GenericDialect {})
-            .parse_expr()
-            .map_err(|err| {
-                syn::Error::new(span, format!("Failed to parse default expression: {}", err))
-            });
         Ok(DefaultExpr { is_string, expr })
     }
 }

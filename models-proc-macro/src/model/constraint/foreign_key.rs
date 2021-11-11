@@ -1,11 +1,11 @@
 use crate::prelude::*;
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct ForeignKey {
     pub foreign_table: Path,
     pub foreign_column: Ident,
     pub local_column: Ident,
-    pub getter: Option<LitStr>,
+    getter: Option<Ident>,
     pub on_delete: Option<LitStr>,
     pub on_update: Option<LitStr>,
 }
@@ -37,13 +37,27 @@ impl ForeignKey {
             .next()
             .unwrap_or_default()
     }
+
+    pub fn getter(&self) -> Ident {
+        if let Some(getter) = self.getter {
+            getter
+        } else {
+            let name = self.local_column.to_string();
+            if name.ends_with("_id") {
+                let len = name.chars().count();
+                let name: String = name.chars().take(len - 3).collect();
+                Ident::new(&name, self.local_column.span())
+            } else {
+                self.local_column.clone()
+            }
+        }
+    }
 }
 
-#[derive(Debug)]
 pub(super) struct ParseForeignKey {
     pub foreign_table: Path,
     pub foreign_column: Ident,
-    pub getter: Option<LitStr>,
+    pub getter: Option<Ident>,
     pub on_delete: Option<LitStr>,
     pub on_update: Option<LitStr>,
 }
@@ -87,7 +101,10 @@ impl Parse for ParseForeignKey {
                         "Expected a single value for `getter`.",
                     ));
                 }
-                getter = Some(content.parse()?);
+                let getter_lit: LitStr = content.parse()?;
+                let span = getter_lit.span();
+                let ident = getter_lit.value();
+                getter = Some(Ident::new(&ident, span));
             } else {
                 return Err(Error::new(
                     ident.span(),
@@ -101,8 +118,8 @@ impl Parse for ParseForeignKey {
             foreign_table,
             foreign_column,
             on_delete,
-            getter,
             on_update,
+            getter,
         })
     }
 }

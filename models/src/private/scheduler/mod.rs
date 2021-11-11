@@ -1,7 +1,7 @@
 use crate::prelude::*;
 pub mod driver;
 pub mod table;
- 
+
 use driver::*;
 use table::*;
 pub struct Scheduler(Mutex<Driver>);

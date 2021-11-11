@@ -6,11 +6,11 @@ use getters::Getters;
 
 use crate::model::Model;
 
-pub struct ORM {
-    getters: Getters,
+pub struct ORM<'a> {
+    getters: Getters<'a>,
 }
 
-impl ORM {
+impl<'a> ORM<'a> {
     pub fn new(model: &Model) -> Self {
         let getters = Getters::new(model);
 
@@ -18,7 +18,7 @@ impl ORM {
     }
 }
 
-impl ToTokens for ORM {
+impl<'a> ToTokens for ORM<'a> {
     fn to_tokens(&self, tokens: &mut TokenStream2) {
         let getters = &self.getters;
 

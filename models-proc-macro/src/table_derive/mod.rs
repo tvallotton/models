@@ -7,7 +7,7 @@ mod column;
 mod constraint;
 mod validation;
 
-struct TableDerive {
+pub struct TableDerive {
     name_lowercase: String,
     table_name: Ident,
     columns: Vec<TableColumn>,
@@ -16,7 +16,7 @@ struct TableDerive {
 }
 
 impl TableDerive {
-    fn new(model: &crate::model2::Model) -> Self {
+    pub fn new(model: &Model) -> Self {
         let name_lowercase = model.name.to_string().to_lowercase();
         let columns = TableColumn::new(model);
         let constraints = NamedConstraint::new(model);

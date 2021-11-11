@@ -1,13 +1,14 @@
 mod migration_generation;
 // mod getters;
-mod model;
-mod table_derive;
-pub(crate) mod model2; 
+
+pub(crate) mod model;
 #[cfg(feature = "orm")]
 mod orm;
 mod prelude;
+mod table_derive;
 use migration_generation::*;
-use model::*;
+
+use table_derive::*;
 // use orm::*;
 use prelude::*;
 
@@ -16,16 +17,17 @@ use prelude::*;
     attributes(primary_key, foreign_key, unique, default, auto_increment)
 )]
 pub fn model(input: TokenStream) -> TokenStream {
-    let derive = parse_macro_input!(input as Model);
-    let migrations = generate_migration(&derive.name);
+    let model = parse_macro_input!(input as Model);
+    let derive = TableDerive::new(&model);
+    let migrations = generate_migration(&model.name);
     let mut template = quote! {
         #derive
         #migrations
     };
-    template.extend(quote!()); 
+    template.extend(quote!());
     #[cfg(feature = "orm")]
     {
-        let orm = orm::ORM::new(&derive);
+        let orm = orm::ORM::new(&model);
         template.extend(quote! {
             #orm
         });

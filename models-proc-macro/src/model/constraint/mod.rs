@@ -4,7 +4,7 @@ use crate::prelude::*;
 pub use foreign_key::*;
 pub use unique::*;
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub enum Constraint {
     ForeignKey(ForeignKey),
     Unique(Unique),
@@ -22,11 +22,11 @@ impl Constraint {
                 out.push(Constraint::ForeignKey(fk));
             } else if attr.path.is_ident("unique") {
                 let mut constr: Unique = parse(tokens)?;
-                constr.columns.push(field_name);
+                constr.columns.push_front(field_name);
                 out.push(Constraint::Unique(constr));
             } else if attr.path.is_ident("primary_key") {
                 let mut constr: Unique = parse(tokens)?;
-                constr.columns.push(field_name);
+                constr.columns.push_front(field_name);
                 out.push(Constraint::Primary(constr));
             }
         }

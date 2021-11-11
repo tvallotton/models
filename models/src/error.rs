@@ -30,7 +30,6 @@ pub enum Error {
     Dotenv(Arc<dotenv::Error>),
     #[error("SQLxError: {0}")]
     SQLx(Arc<sqlx::Error>),
-
 }
 
 impl Error {

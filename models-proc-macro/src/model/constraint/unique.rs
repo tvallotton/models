@@ -1,23 +1,22 @@
 use crate::prelude::*;
+use std::collections::VecDeque;
 
-#[derive(Debug, Default, Clone)]
+#[derive(Default, Clone)]
 pub struct Unique {
-    pub(super) columns: Vec<Ident>,
+    pub(super) columns: VecDeque<Ident>,
     pub(super) getter: Option<LitStr>,
 }
 
 impl Unique {
-
-    
     pub fn columns(&self) -> impl Iterator<Item = &Ident> {
         self.columns.iter()
     }
 
     pub fn getter(&self) -> Option<Ident> {
-        self.getter
+        let getter = self.getter
             .as_ref()
             .map(|lit_str| Ident::new(&lit_str.value(), lit_str.span()))
-    }
+
 }
 
 impl Parse for Unique {
@@ -28,7 +27,7 @@ impl Parse for Unique {
         } else {
             let _paren = parenthesized!(content in input);
             while !content.is_empty() {
-                out.columns.push(content.parse()?);
+                out.columns.push_back(content.parse()?);
                 if !content.is_empty() {
                     content.parse::<Token![,]>()?;
                 }

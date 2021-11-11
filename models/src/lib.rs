@@ -189,7 +189,6 @@ pub use models_proc_macro::Model;
 pub mod error;
 mod dialect;
 
-
 mod prelude;
 
 #[cfg(tests)]
@@ -205,4 +204,4 @@ pub mod private;
 pub use private::orm::ORMError;
 
 #[cfg(feature = "orm")]
-pub use sqlx; 
+pub use sqlx;

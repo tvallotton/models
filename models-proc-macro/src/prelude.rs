@@ -6,4 +6,7 @@ pub use proc_macro2::TokenStream as TokenStream2;
 pub use quote::{quote, *};
 pub use syn::{parse::Parse, Ident, *};
 
-pub use crate::model::Model;
+pub use crate::{
+    model,
+    model::{Constraint, Model},
+};

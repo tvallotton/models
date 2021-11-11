@@ -1,7 +1,6 @@
-use crate::model2;
 use crate::prelude::*;
-use model2::ForeignKey;
-pub use model2::{Constraint, Unique};
+use model::ForeignKey;
+pub use model::{Constraint, Unique};
 pub use proc_macro2::Span;
 
 pub struct NamedConstraint {
@@ -11,7 +10,7 @@ pub struct NamedConstraint {
 }
 
 impl NamedConstraint {
-    pub fn new(model: &crate::model2::Model) -> Vec<Self> {
+    pub fn new(model: &Model) -> Vec<Self> {
         model
             .constraints
             .iter()

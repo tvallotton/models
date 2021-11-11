@@ -1,5 +1,5 @@
-use crate::model2::{Column, Model};
 use crate::prelude::*;
+use model::Column;
 
 pub struct TableColumn(Column);
 
