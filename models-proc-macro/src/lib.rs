@@ -1,7 +1,8 @@
 mod migration_generation;
 // mod getters;
 mod model;
-mod model2; 
+mod table_derive;
+pub(crate) mod model2; 
 #[cfg(feature = "orm")]
 mod orm;
 mod prelude;

@@ -1,7 +1,7 @@
 [package]
 name = "models"
 version = "0.1.3"
-edition = "2018"
+edition = "2021"
 license = "Apache-2.0"
 description = "A migration management library for applications using PostgresSQL, MySQL or SQLite."
 keywords = ["database", "postgres", "sqlite", "sql", "migration"]

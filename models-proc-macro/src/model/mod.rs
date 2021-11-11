@@ -13,27 +13,6 @@ pub struct Model {
     pub constraints: Vec<NamedConstraint>,
 }
 
-// struct ForeignKey {
-//     tables: Vec<Path>,
-//     columns: Vec<Ident>,
-// }
-// impl Parse for ForeignKey {
-//     fn parse(input: parse::ParseStream) -> Result<Self> {
-//         let mut out = ForeignKey {
-//             tables: vec![],
-//             columns: vec![],
-//         };
-//         let content;
-//         let _paren = parenthesized!(content in input);
-//         while !content.is_empty() {
-//             out.tables.push(content.parse::<Path>()?);
-//             content.parse::<Token![.]>()?;
-//             out.columns.push(content.parse::<Ident>()?);
-//         }
-//         Ok(out)
-//     }
-// }
-
 impl Parse for Model {
     fn parse(input: parse::ParseStream) -> Result<Self> {
         let input: DeriveInput = input.parse()?;
