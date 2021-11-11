@@ -24,10 +24,18 @@ impl ForeignKey {
     }
 
     pub fn on_delete(&self) -> String {
-        self.on_delete.map(|x| x.value()).unwrap_or_default()
+        self.on_delete
+            .iter()
+            .map(|x| x.value())
+            .next()
+            .unwrap_or_default()
     }
     pub fn on_update(&self) -> String {
-        self.on_update.map(|x| x.value()).unwrap_or_default()
+        self.on_update
+            .iter()
+            .map(|x| x.value())
+            .next()
+            .unwrap_or_default()
     }
 }
 

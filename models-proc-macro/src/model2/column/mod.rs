@@ -3,6 +3,8 @@ mod default;
 
 use default::*;
 
+
+#[derive(Clone)]
 pub struct Column {
     pub name: Ident,
     pub ty: Type,

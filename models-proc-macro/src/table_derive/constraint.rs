@@ -28,7 +28,7 @@ impl NamedConstraint {
             .collect()
     }
 
-    fn foreign_to_tokens(&self, foreign: ForeignKey) -> TokenStream2 {
+    fn foreign_to_tokens(&self, foreign: &ForeignKey) -> TokenStream2 {
         let constr_name = &self.constr_name;
         let foreign_column = &foreign.foreign_column;
         let foreign_table = &foreign.foreign_table;
@@ -49,15 +49,15 @@ impl NamedConstraint {
         }
     }
 
-    fn unique_to_tokens(&self, unique: Unique) -> TokenStream2 {
+    fn unique_to_tokens(&self, unique: &Unique) -> TokenStream2 {
         self.key_to_tokens(unique, "unique")
     }
 
-    fn primary_to_tokens(&self, unique: Unique) -> TokenStream2 {
+    fn primary_to_tokens(&self, unique: &Unique) -> TokenStream2 {
         self.key_to_tokens(unique, "primary")
     }
 
-    fn key_to_tokens(&self, unique: Unique, method: &str) -> TokenStream2 {
+    fn key_to_tokens(&self, unique: &Unique, method: &str) -> TokenStream2 {
         let constr_name = &self.constr_name;
         let columns = unique.columns();
         let method = Ident::new(method, Span::call_site());
@@ -75,7 +75,7 @@ impl NamedConstraint {
 impl ToTokens for NamedConstraint {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         use Constraint::*;
-        tokens.extend(match self.constr {
+        tokens.extend(match &self.constr {
             ForeignKey(foreign) => self.foreign_to_tokens(foreign),
             Unique(unique) => self.unique_to_tokens(unique),
             Primary(unique) => self.primary_to_tokens(unique),

@@ -1,7 +1,7 @@
 use proc_macro2::Span;
 
 use crate::prelude::*;
-
+#[derive(Clone)]
 pub struct DefaultExpr {
     is_string: bool,
     expr: String,

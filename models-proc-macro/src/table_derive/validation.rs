@@ -4,20 +4,19 @@ use model2::Constraint::*;
 
 use quote::ToTokens;
 
- pub struct Validation {
+pub struct Validation {
     field: Ident,
     table_name: Path,
 }
 
 impl Validation {
     pub fn new(model: &model2::Model) -> Vec<Self> {
-        
         let mut out = vec![];
         for cons in &model.constraints {
             match cons {
                 ForeignKey(fk) => out.push(Self {
-                    field: fk.foreign_column,
-                    table_name: fk.foreign_table,
+                    field: fk.foreign_column.clone(),
+                    table_name: fk.foreign_table.clone(),
                 }),
                 Primary(unique) | Unique(unique) => {
                     for field in unique.columns() {

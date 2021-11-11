@@ -38,7 +38,7 @@ impl Constraint {
         match self {
             Self::ForeignKey(fk) => {
                 key = "fkey";
-                let cols = vec![&fk.local_column, &fk.foreign_column];
+                cols = vec![&fk.local_column, &fk.foreign_column];
             }
             Self::Primary(unique) => {
                 key = "pkey";

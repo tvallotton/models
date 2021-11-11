@@ -1,5 +1,5 @@
 pub(crate) use crate::prelude::*;
-use column::Column;
+pub use column::Column;
 pub use constraint::{*, Constraint};
 use Data::*;
 
