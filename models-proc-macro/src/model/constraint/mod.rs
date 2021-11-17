@@ -8,26 +8,27 @@ pub use unique::*;
 pub enum Constraint {
     ForeignKey(ForeignKey),
     Unique(Unique),
-    Primary(Unique),
 }
 
 impl Constraint {
-    pub fn from_attrs(attrs: &[Attribute], field: &Field) -> Result<Vec<Self>> {
+    /// Constructs a list of constraints from
+    /// a field and it's associated attributes.
+
+    pub fn from_field(field: &Field, attrs: &[Attribute]) -> Result<Vec<Self>> {
         let mut out = vec![];
+
         for attr in attrs {
+            let path = &attr.path;
             let field_name = field.ident.clone().unwrap();
             let tokens = attr.tokens.clone().into();
             if attr.path.is_ident("foreign_key") {
                 let fk = ForeignKey::new(tokens, field_name)?;
                 out.push(Constraint::ForeignKey(fk));
-            } else if attr.path.is_ident("unique") {
+            } else if path.is_ident("unique") || path.is_ident("primary_key") {
                 let mut constr: Unique = parse(tokens)?;
                 constr.columns.push_front(field_name);
+                constr.is_primary = path.is_ident("primary_key");
                 out.push(Constraint::Unique(constr));
-            } else if attr.path.is_ident("primary_key") {
-                let mut constr: Unique = parse(tokens)?;
-                constr.columns.push_front(field_name);
-                out.push(Constraint::Primary(constr));
             }
         }
         Ok(out)
@@ -40,12 +41,9 @@ impl Constraint {
                 key = "fkey";
                 cols = vec![&fk.local_column, &fk.foreign_column];
             }
-            Self::Primary(unique) => {
-                key = "pkey";
-                cols = unique.columns().collect();
-            }
+
             Self::Unique(unique) => {
-                key = "pkey";
+                key = if unique.is_primary { "pkey" } else { "key" };
                 cols = unique.columns().collect();
             }
         };

@@ -7,7 +7,7 @@ mod getter;
 pub struct Getters<'a>(Vec<Getter<'a>>);
 
 impl<'a> Getters<'a> {
-    pub fn new(model: &Model) -> Self {
+    pub fn new(model: &'a Model) -> Self {
         let mut getters = vec![];
         for cons in &model.constraints {
             match &cons {
@@ -15,24 +15,10 @@ impl<'a> Getters<'a> {
                     let getter = Getter::foreign_key(&model.name, fk);
                     getters.push(getter);
                 }
-                Constraint::Primary(pk) => {
-                    for field in pk.columns() {
-                        let getter = Getter::primary_key(
-                            &model.name,
-                            model.field_type(field).unwrap().clone(),
-                            pk,
-                        );
-                        getters.push(getter);
-                    }
-                }
 
                 Constraint::Unique(u) => {
                     for field in u.columns() {
-                        let getter = Getter::unique_key(
-                            &model.name,
-                            model.field_type(field).unwrap().clone(),
-                            u,
-                        );
+                        let getter = Getter::unique_key(model, u);
                         getters.push(getter);
                     }
                 }

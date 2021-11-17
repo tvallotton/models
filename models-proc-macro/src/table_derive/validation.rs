@@ -17,7 +17,7 @@ impl Validation {
                     field: fk.foreign_column.clone(),
                     table_name: fk.foreign_table.clone(),
                 }),
-                Primary(unique) | Unique(unique) => {
+                Unique(unique) | Unique(unique) => {
                     for field in unique.columns() {
                         out.push(Self {
                             field: field.clone(),
@@ -38,7 +38,7 @@ impl ToTokens for Validation {
         tokens.extend(quote! {
             let _ = |__models_validation: #table_name| {
                 __models_validation.#field;
-            }
+            };
         });
     }
 }

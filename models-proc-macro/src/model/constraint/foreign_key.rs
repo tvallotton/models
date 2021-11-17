@@ -5,7 +5,7 @@ pub struct ForeignKey {
     pub foreign_table: Path,
     pub foreign_column: Ident,
     pub local_column: Ident,
-    getter: Option<Ident>,
+    pub getter: Option<Ident>,
     pub on_delete: Option<LitStr>,
     pub on_update: Option<LitStr>,
 }
@@ -39,7 +39,7 @@ impl ForeignKey {
     }
 
     pub fn getter(&self) -> Ident {
-        if let Some(getter) = self.getter {
+        if let Some(getter) = self.getter.clone() {
             getter
         } else {
             let name = self.local_column.to_string();

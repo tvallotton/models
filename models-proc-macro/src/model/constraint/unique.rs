@@ -3,6 +3,7 @@ use std::collections::VecDeque;
 
 #[derive(Default, Clone)]
 pub struct Unique {
+    pub is_primary: bool,
     pub(super) columns: VecDeque<Ident>,
     pub(super) getter: Option<LitStr>,
 }
@@ -13,10 +14,10 @@ impl Unique {
     }
 
     pub fn getter(&self) -> Option<Ident> {
-        let getter = self.getter
+        self.getter
             .as_ref()
             .map(|lit_str| Ident::new(&lit_str.value(), lit_str.span()))
-
+    }
 }
 
 impl Parse for Unique {

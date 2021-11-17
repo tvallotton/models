@@ -49,11 +49,11 @@ impl NamedConstraint {
     }
 
     fn unique_to_tokens(&self, unique: &Unique) -> TokenStream2 {
-        self.key_to_tokens(unique, "unique")
-    }
-
-    fn primary_to_tokens(&self, unique: &Unique) -> TokenStream2 {
-        self.key_to_tokens(unique, "primary")
+        if unique.is_primary {
+            self.key_to_tokens(unique, "primary")
+        } else {
+            self.key_to_tokens(unique, "unique")
+        }
     }
 
     fn key_to_tokens(&self, unique: &Unique, method: &str) -> TokenStream2 {
@@ -77,7 +77,6 @@ impl ToTokens for NamedConstraint {
         tokens.extend(match &self.constr {
             ForeignKey(foreign) => self.foreign_to_tokens(foreign),
             Unique(unique) => self.unique_to_tokens(unique),
-            Primary(unique) => self.primary_to_tokens(unique),
         });
     }
 }

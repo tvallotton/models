@@ -1,5 +1,5 @@
 mod migration_generation;
-// mod getters;
+
 
 pub(crate) mod model;
 #[cfg(feature = "orm")]

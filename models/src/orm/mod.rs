@@ -1,9 +1,9 @@
 //! All private ORM related functionality
 
-use crate::prelude::{Error, Result, *};
+use crate::prelude::{Result, *};
 use connection::Connection;
 use dotenv::*;
-pub use error::ORMError;
+pub use error::Error;
 use futures::{executor::block_on, TryFutureExt};
 use models_parser::dialect::keywords::{DATABASE, SQL};
 use queries::Queries;
@@ -17,14 +17,14 @@ mod connection;
 mod error;
 mod queries;
 
-static DATABASE_URL: Lazy<Result<Url, ORMError>> = Lazy::new(|| {
+pub static DATABASE_URL: Lazy<Result<Url, Error>> = Lazy::new(|| {
     dotenv::dotenv().ok();
     env::var("DATABASE_URL")
         .or_else(|_| var("DATABASE_URL"))
-        .map_err(|_| ORMError::NoDatabaseUrl)
+        .map_err(|_| Error::NoDatabaseUrl)
         .map(|url| Url::parse(&url))
-        .and_then(|result| result.map_err(|_| ORMError::InvalidDatabaseUrl))
+        .and_then(|result| result.map_err(|_| Error::InvalidDatabaseUrl))
 });
 
-pub static DATABASE_CONNECTION: Lazy<Result<Connection, ORMError>> =
+pub static DATABASE_CONNECTION: Lazy<Result<Connection, Error>> =
     Lazy::new(|| futures::executor::block_on(Connection::new()));

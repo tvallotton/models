@@ -6,7 +6,7 @@ use crate::{
     dialect::{self, Dialect},
     prelude::*,
 };
-type TableKeyPair = (StaticStr, StaticStr);
+type TableKeyPair = (StaticPtr<str>, StaticPtr<[&'static str]>);
 pub struct Queries {
     dialect: Dialect,
     /// Unique and primary keys
@@ -17,15 +17,16 @@ pub struct Queries {
      * insert: RwLock<HashMap<StaticStr, &'static str>>, */
 }
 use std::hash::{Hash, Hasher};
-#[derive(Eq)]
-struct StaticStr(&'static str);
+struct StaticPtr<T: 'static + ?Sized>(&'static T);
 
-impl Hash for StaticStr {
+impl<T> std::cmp::Eq for StaticPtr<T> {}
+
+impl<T> Hash for StaticPtr<T> {
     fn hash<H: Hasher>(&self, state: &mut H) {
         std::ptr::hash(self, state);
     }
 }
-impl PartialEq for StaticStr {
+impl<T> std::cmp::PartialEq for StaticPtr<T> {
     fn eq(&self, other: &Self) -> bool {
         std::ptr::eq(self, other)
     }
@@ -39,26 +40,38 @@ impl Queries {
             foreign_getters: Default::default(),
         }
     }
+    pub fn sql(&self, table: &str, columns: &[&str]) -> &'static str {
+        let mut output = format!("select * from {} where", table);
+        let len = columns.len();
+        for (i, &col) in columns.iter().enumerate() {
+            match self.dialect {
+                PostgreSQL => {
+                    output += &format!("{} = ${}", col, i);
+                }
+                _ => output += &format!("{} = ?", col),
+            }
+            if len == i - 1 {
+                output.push(',');
+            }
+        }
+        Box::leak(output.into_boxed_str())
+    }
 
-    pub fn query_key(&self, table: &'static str, key_name: &'static str) -> &str {
+    pub fn query_key(&self, table: &'static str, columns: &'static [&'static str]) -> &str {
         // let read = self.key_getters.read()?;
         let mut query: Option<&'static str> = {
             let read = self.key_getters.read();
             read.unwrap()
-                .get(&(StaticStr(table), StaticStr(key_name)))
+                .get(&(StaticPtr(table), StaticPtr(columns)))
                 .map(|x| *x)
         };
         if query.is_none() {
-            let sql = match self.dialect {
-                PostgreSQL => format!("select * from {} where {} = $1;", table, key_name),
-                _ => format!("select * from {} where {} = ?;", table, key_name),
-            };
-            let sql = Box::leak(sql.into_boxed_str());
+            let sql = self.sql(table, columns); 
             query = Some(sql);
             self.key_getters
                 .write()
                 .unwrap()
-                .insert((StaticStr(table), StaticStr(key_name)), sql);
+                .insert((StaticPtr(table), StaticPtr(columns)), sql);
         }
         query.unwrap()
     }
@@ -74,7 +87,7 @@ impl Queries {
             self.foreign_getters
                 .read()
                 .unwrap()
-                .get(&(StaticStr(table), StaticStr(key)))
+                .get(&(StaticPtr(table), StaticPtr(key)))
                 .map(|x| *x)
         };
         if query.is_none() {
@@ -94,7 +107,7 @@ impl Queries {
             self.foreign_getters
                 .write()
                 .unwrap()
-                .insert((StaticStr(table), StaticStr(key)), sql);
+                .insert((StaticPtr(table), StaticPtr(key)), sql);
         }
         query.unwrap()
     }

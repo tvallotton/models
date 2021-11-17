@@ -1,4 +1,4 @@
-use super::{error::ORMError, queries::Queries, DATABASE_CONNECTION, DATABASE_URL};
+use super::{error::Error as ORMError, queries::Queries, DATABASE_CONNECTION, DATABASE_URL};
 use crate::prelude::*;
 use sqlx::{
     any::{Any, AnyPool, AnyRow},
@@ -26,8 +26,8 @@ impl Connection {
             pool,
         })
     }
-
-    pub async fn query_key<'q, T, O, const N: usize>(
+    #[doc(hidden)]
+    pub async fn _query_key<'q, T, O, const N: usize>(
         &'q self,
         table: &'static str,
         columns: &'static [&'static str],
@@ -44,8 +44,8 @@ impl Connection {
         }
         Ok(query.fetch_one(&self.pool).await?)
     }
-
-    pub async fn query_foreign_key<'q, T, O>(
+    #[doc(hidden)]
+    pub async fn _query_foreign_key<'q, T, O>(
         &'q self,
         table: &'static str,
         key: &'static str,

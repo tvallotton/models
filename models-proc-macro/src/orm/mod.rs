@@ -11,7 +11,7 @@ pub struct ORM<'a> {
 }
 
 impl<'a> ORM<'a> {
-    pub fn new(model: &Model) -> Self {
+    pub fn new(model: &'a Model) -> Self {
         let getters = Getters::new(model);
 
         ORM { getters }
