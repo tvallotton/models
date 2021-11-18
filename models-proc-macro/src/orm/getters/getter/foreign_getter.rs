@@ -1,17 +1,15 @@
+use super::GetterVariant;
 use crate::prelude::*;
 use model::ForeignKey;
 
-pub struct ForeignGetter<'a> {
-    pub(super) table_name: &'a Ident,
-    pub(super) foreign_key: &'a ForeignKey,
-}
+pub type ForeignGetter<'a> = GetterVariant<'a, ForeignKey>;
 
 impl<'a> ForeignGetter<'a> {
     pub fn name(&self) -> Ident {
-        if let Some(getter) = self.foreign_key.getter.clone() {
+        if let Some(getter) = self.variant.getter.clone() {
             getter
         } else {
-            let column = &self.foreign_key.local_column;
+            let column = &self.variant.local_column;
             let name = column.to_string();
             if name.ends_with("_id") {
                 let len = name.chars().count();
@@ -27,7 +25,7 @@ impl<'a> ForeignGetter<'a> {
 impl<'a> ToTokens for ForeignGetter<'a> {
     fn to_tokens(&self, tokens: &mut TokenStream2) {
         let getter_name = self.name();
-        let table_name = self.table_name;
+        let table_name = self.model_name;
         let ForeignKey {
             foreign_table,
             foreign_column,
@@ -35,7 +33,7 @@ impl<'a> ToTokens for ForeignGetter<'a> {
             getter,
             on_delete,
             on_update,
-        } = self.foreign_key;
+        } = self.variant;
         tokens.extend(quote! {
             impl #table_name {
                 pub async fn #getter_name(&self) -> std::result::Result<#foreign_table, ::models::ORMError> {

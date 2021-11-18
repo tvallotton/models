@@ -15,9 +15,9 @@ impl NamedConstraint {
             .constraints
             .iter()
             .map(|cons| {
-                let constr_name = cons.name(&model.name);
+                let constr_name = cons.name(&model.model_name);
                 let constr = cons.clone();
-                let table_name = model.name.clone();
+                let table_name = model.model_name.clone();
                 Self {
                     constr_name,
                     table_name,

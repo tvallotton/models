@@ -201,10 +201,4 @@ pub use types::*;
 pub mod private;
 
 #[cfg(feature = "orm")]
-mod orm; 
-
-#[cfg(feature = "orm")]
-pub use private::orm::ORMError;
-
-#[cfg(feature = "orm")]
-pub use sqlx;
+pub mod orm; 

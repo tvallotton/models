@@ -8,5 +8,5 @@ pub use syn::{parse::Parse, Ident, *};
 
 pub use crate::{
     model,
-    model::{Constraint, Model},
+    model::{Constraint, Model, HasMany, HasOne},
 };

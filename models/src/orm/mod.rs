@@ -1,21 +1,23 @@
 //! All private ORM related functionality
 
 use crate::prelude::{Result, *};
-use connection::Connection;
+
 use dotenv::*;
 pub use error::Error;
 use futures::{executor::block_on, TryFutureExt};
-use models_parser::dialect::keywords::{DATABASE, SQL};
-use queries::Queries;
+
 use sqlx::{
     any::{Any, AnyPool, AnyRow},
     Database, Encode, Executor, FromRow, Type,
 };
 use std::{env, sync::RwLock};
 use url::Url;
-mod connection;
 mod error;
-mod queries;
+
+pub struct Connection {
+    pub dialect: Dialect,
+    pub pool: AnyPool,
+}
 
 pub static DATABASE_URL: Lazy<Result<Url, Error>> = Lazy::new(|| {
     dotenv::dotenv().ok();
@@ -26,5 +28,18 @@ pub static DATABASE_URL: Lazy<Result<Url, Error>> = Lazy::new(|| {
         .and_then(|result| result.map_err(|_| Error::InvalidDatabaseUrl))
 });
 
-pub static DATABASE_CONNECTION: Lazy<Result<Connection, Error>> =
-    Lazy::new(|| futures::executor::block_on(Connection::new()));
+pub static DATABASE_CONNECTION: Lazy<Result<Connection, Error>> = Lazy::new(|| {
+    futures::executor::block_on(async {
+        let url = DATABASE_URL.as_ref().map_err(Clone::clone)?;
+        let dialect = match url.scheme() {
+            "sqlite" => Ok(SQLite),
+            "postgres" => Ok(PostgreSQL),
+            "mysql" => Ok(MySQL),
+            scheme => Err(Error::UnsupportedScheme(scheme.into())),
+        }?;
+
+        let pool = AnyPool::connect(&url.to_string()).await?;
+     
+        Ok(Connection { dialect, pool })
+    })
+});

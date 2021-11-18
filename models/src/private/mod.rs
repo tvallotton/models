@@ -4,6 +4,10 @@
 //! not depend directly on this module.
 #[cfg(feature = "orm")]
 pub mod orm;
+#[cfg(feature = "orm")]
+pub use sqlx; 
+
+pub use super::dialect::Dialect; 
 mod scheduler;
 use once_cell::sync::Lazy;
 pub(crate) use scheduler::driver::migration::Migration;

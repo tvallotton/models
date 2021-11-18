@@ -7,7 +7,7 @@ use sqlx::{
 
 pub struct Connection {
     queries: Queries,
-    pool: AnyPool,
+   pub pool: AnyPool,
 }
 
 impl Connection {
@@ -25,6 +25,17 @@ impl Connection {
             queries: Queries::new(dialect),
             pool,
         })
+    }
+
+    pub async fn query<'q, T, O, const N: usize>(
+        &'q self,
+        query: &'static str,
+       
+        values: [T; N],
+    ) -> Result<O, ORMError>
+
+    {
+        todo!()
     }
     #[doc(hidden)]
     pub async fn _query_key<'q, T, O, const N: usize>(

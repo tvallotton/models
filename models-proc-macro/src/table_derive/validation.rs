@@ -21,7 +21,7 @@ impl Validation {
                     for field in unique.columns() {
                         out.push(Self {
                             field: field.clone(),
-                            table_name: model.name.clone().into(),
+                            table_name: model.model_name.clone().into(),
                         });
                     }
                 }

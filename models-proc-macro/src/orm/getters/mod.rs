@@ -8,23 +8,35 @@ pub struct Getters<'a>(Vec<Getter<'a>>);
 
 impl<'a> Getters<'a> {
     pub fn new(model: &'a Model) -> Self {
-        let mut getters = vec![];
+        let mut getters = Getters(vec![]);
+        getters.init_columns_and_constraints(model);
+        getters.init_top_level_attrs(model);
+        getters
+    }
+
+    fn init_columns_and_constraints(&mut self, model: &'a Model) {
         for cons in &model.constraints {
             match &cons {
                 Constraint::ForeignKey(fk) => {
-                    let getter = Getter::foreign_key(&model.name, fk);
-                    getters.push(getter);
+                    let getter = Getter::foreign_key(&model.model_name, fk);
+                    self.0.push(getter);
                 }
 
                 Constraint::Unique(u) => {
-                    for field in u.columns() {
-                        let getter = Getter::unique_key(model, u);
-                        getters.push(getter);
-                    }
+                    let getter = Getter::unique_key(model, u);
+                    self.0.push(getter);
                 }
             }
         }
-        Self(getters)
+    }
+    
+    fn init_top_level_attrs(&mut self, model: &'a Model) {
+        for has_many in &model.has_many {
+            self.0.push(Getter::from_has_many(has_many))
+        }
+        for has_one in &model.has_one {
+            self.0.push(Getter::from_has_one(has_one))
+        }
     }
 }
 

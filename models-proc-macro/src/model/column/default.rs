@@ -6,7 +6,7 @@ pub struct DefaultExpr {
     is_string: bool,
     expr: String,
 }
-
+// TODO: move this implementation to a type at crate::table_derive.
 impl ToTokens for DefaultExpr {
     fn to_tokens(&self, tokens: &mut TokenStream2) {
         let expr = &self.expr;

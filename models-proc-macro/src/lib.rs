@@ -19,7 +19,7 @@ use prelude::*;
 pub fn model(input: TokenStream) -> TokenStream {
     let model = parse_macro_input!(input as Model);
     let derive = TableDerive::new(&model);
-    let migrations = generate_migration(&model.name);
+    let migrations = generate_migration(&model.model_name);
     let mut template = quote! {
         #derive
         #migrations

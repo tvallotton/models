@@ -17,13 +17,13 @@ pub struct TableDerive {
 
 impl TableDerive {
     pub fn new(model: &Model) -> Self {
-        let name_lowercase = model.name.to_string().to_lowercase();
+        let name_lowercase = model.model_name.to_string().to_lowercase();
         let columns = TableColumn::new(model);
         let constraints = NamedConstraint::new(model);
         let validation = Validation::new(model);
         Self {
             name_lowercase,
-            table_name: model.name.clone(),
+            table_name: model.model_name.clone(),
             columns,
             constraints,
             validation,
