@@ -1,3 +1,5 @@
+use std::collections::VecDeque;
+
 use crate::model::constraint::{ForeignKey, Unique};
 use crate::prelude::*;
 use foreign_getter::ForeignGetter;
@@ -37,10 +39,10 @@ impl<'a> Getter<'a> {
     }
 
     pub fn unique_key(model: &'a Model, unique: &'a Unique) -> Self {
-        let mut columns = HashMap::default();
+        let mut columns = VecDeque::default();
         for col in unique.columns() {
             let ty = model.field_type(col).unwrap();
-            columns.insert(col, ty);
+            columns.push_back((col, ty));
         }
         Self::Unique(UniqueGetter {
             table_name: &model.table_name,
