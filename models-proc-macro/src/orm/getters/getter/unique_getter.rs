@@ -59,28 +59,19 @@ impl<'a> ToTokens for UniqueGetter<'a> {
         let postgres_query = self.query_postgres();
         tokens.extend(quote! {
         const _: () = {
-            mod __ {
-                use ::std::ops::Deref;
-                use ::models::{
-                    private,
-                    private::sqlx,
-                    orm,
-                };
-                impl super::#model_name {
-                    pub async fn #getter_name(#(#fields1: #types),*) -> Result<Self, orm::Error>
-                        {
-                        let conn = orm::DATABASE_CONNECTION.as_ref().map_err(Clone::clone)?;
-                        let query = if let private::Dialect::PostgreSQL = conn.dialect {
-                            sqlx::query_as(#postgres_query)
-                        } else {
-                            sqlx::query_as(#any_query)
-                        };
-                        Ok(query
-                            #(.bind(#fields2))*
-                            .fetch_one(&conn.pool)
-                            .await?)
-
-                        }
+            impl #model_name {
+                pub async fn #getter_name(#(#fields1: #types),*) -> ::std::result::Result<Self, ::models::orm::Error>
+                    {
+                    let __models_conn = ::models::orm::DATABASE_CONNECTION.as_ref().map_err(Clone::clone)?;
+                    let query = if let ::models::private::Dialect::PostgreSQL = __models_conn.dialect {
+                        ::models::private::sqlx::query_as(#postgres_query)
+                    } else {
+                        ::models::private::sqlx::query_as(#any_query)
+                    };
+                    Ok(query
+                        #(.bind(#fields2))*
+                        .fetch_one(&__models_conn.pool)
+                        .await?)
                     }
                 }
             };

@@ -100,14 +100,14 @@ impl Schema {
         self.tables //
             .values_mut()
             .for_each(|table| {
-                table.constraints = table
-                    .constraints
-                    .drain(..)
-                    .filter(|constr| match constr {
-                        ForeignKey(ast::ForeignKey { foreign_table, .. }) => foreign_table == name,
-                        _ => true,
-                    })
-                    .collect()
+                dbg!(&table.constraints); 
+                table.constraints.retain(|constr| match constr {
+                    ForeignKey(ast::ForeignKey { foreign_table, .. }) => {
+                        foreign_table != name
+                    }
+                    _ => true,
+                }); 
+                dbg!(&table.constraints); 
             });
     }
 

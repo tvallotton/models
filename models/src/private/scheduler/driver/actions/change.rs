@@ -1,17 +1,17 @@
 use super::Compare;
 use crate::prelude::*;
 #[derive(Debug)]
-pub(crate) struct CRUD<'table, T> {
+pub(crate) struct Change<'table, T> {
     pub create: Vec<&'table T>,
     pub delete: Vec<&'table T>,
     pub update: Vec<&'table T>,
     // pub keep: Vec<&'table T>,
 }
 
-pub(crate) type ColCRUD<'table> = CRUD<'table, Column>;
-pub(crate) type ConsCRUD<'table> = CRUD<'table, TableConstraint>;
+pub(crate) type ColChange<'table> = Change<'table, Column>;
+pub(crate) type ConsChange<'table> = Change<'table, TableConstraint>;
 
-impl<'table, T: Compare> CRUD<'table, T> {
+impl<'table, T: Compare> Change<'table, T> {
     pub fn to_delete(&self, obj: &T) -> bool {
         self.delete.iter().any(|&del| del.names_are_equal(&obj))
     }
@@ -25,7 +25,7 @@ impl<'table, T: Compare> CRUD<'table, T> {
     }
 }
 
-impl<'table, T: Compare + PartialEq> CRUD<'table, T> {
+impl<'table, T: Compare + PartialEq> Change<'table, T> {
     pub fn new(current: &'table [T], target: &'table [T]) -> Self {
         let mut update = vec![];
         let mut delete = vec![];
@@ -55,7 +55,7 @@ impl<'table, T: Compare + PartialEq> CRUD<'table, T> {
             }
         }
 
-        CRUD {
+        Change {
             create,
             update,
             delete,

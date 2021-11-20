@@ -4,15 +4,19 @@ use generate::generate;
 use crate::opt::{Command, DatabaseCommand, MigrateCommand};
 
 mod database;
-
 mod generate;
 mod migrate;
 mod opt;
+mod shell;
 
 pub use crate::opt::Opt;
 
 pub async fn run(opt: Opt) -> Result<()> {
     match opt.command {
+        Command::Shell(opt) => {
+            shell::open_shell(opt).await?; 
+        }
+
         Command::Migrate(migrate) => match migrate.command {
             MigrateCommand::Add {
                 description,

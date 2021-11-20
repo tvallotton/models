@@ -18,8 +18,6 @@ impl Parse for TableName {
     fn parse(input: parse::ParseStream) -> Result<Self> {
         let content;
         let _paren = parenthesized!(content in input);
-
-        content.parse::<Token![=]>()?;
         let name = content.parse::<LitStr>()?.value();
         Ok(Self { name })
     }

@@ -68,7 +68,7 @@ impl<'table> Action<'table> {
         }
     }
 
-    pub fn move_to(old: &'table Table, cols: &ColCRUD<'table>, cons: &ConsCRUD<'table>) -> Self {
+    pub fn move_to(old: &'table Table, cols: &ColChange<'table>, cons: &ConsChange<'table>) -> Self {
         let move_ = Move::new(old, cons, cols);
         Self {
             table_name: &old.name,

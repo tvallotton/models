@@ -12,7 +12,7 @@ pub enum Dialect {
 
 impl Dialect {
     pub(crate) fn requires_move(&self) -> bool {
-        matches!(self, Dialect::SQLite | Dialect::Any)
+        matches!(self, Dialect::SQLite)
     }
 
     pub(crate) fn _has_default_constr_name(&self) -> bool {
@@ -20,7 +20,7 @@ impl Dialect {
     }
 
     pub(crate) fn supports_cascade(&self) -> bool {
-        !matches!(self, SQLite)
+        !matches!(self, SQLite | Any)
     }
 }
 

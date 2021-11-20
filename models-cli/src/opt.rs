@@ -19,6 +19,9 @@ pub enum Command {
 
     #[structopt(alias = "gen")]
     Generate(GenerateOpt),
+
+    #[structopt()]
+    Shell(ShellOpt),
 }
 
 /// Group of commands for creating and dropping your database.
@@ -93,6 +96,12 @@ pub struct MigrateOpt {
     #[structopt(subcommand)]
     pub command: MigrateCommand,
 }
+#[derive(StructOpt, Debug)]
+pub struct ShellOpt {
+    #[structopt(long, short = "D", env)]
+    pub database_url: String,
+}
+
 /// Commands related to automatic migration generation.
 #[derive(StructOpt, Debug)]
 pub struct GenerateOpt {

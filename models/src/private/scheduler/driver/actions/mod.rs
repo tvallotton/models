@@ -73,8 +73,8 @@ impl<'table> Actions<'table> {
     fn perform_move(
         &mut self,
         inner: &Inner<'table>,
-        cols: ColCRUD<'table>,
-        cons: ConsCRUD<'table>,
+        cols: ColChange<'table>,
+        cons: ConsChange<'table>,
     ) -> Result<()> {
         // constraints are dropped so they do not conflict
         if matches!(*DIALECT, PostgreSQL | MySQL) {
@@ -121,7 +121,7 @@ impl<'table> Actions<'table> {
         Ok(migrations)
     }
 }
-pub(crate) fn move_required<'table>(cols: &ColCRUD<'table>, cons: &ConsCRUD<'table>) -> bool {
+pub(crate) fn move_required<'table>(cols: &ColChange<'table>, cons: &ConsChange<'table>) -> bool {
     let sqlite_conditions = DIALECT.requires_move()
         && !(cols.update.is_empty()
             && cols.delete.is_empty()

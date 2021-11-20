@@ -8,7 +8,7 @@ pub(crate) struct Move<'table> {
 }
 
 impl<'table> Move<'table> {
-    pub fn new(old: &'table Table, cons: &ConsCRUD<'table>, cols: &ColCRUD<'table>) -> Self {
+    pub fn new(old: &'table Table, cons: &ConsChange<'table>, cols: &ColChange<'table>) -> Self {
         let mut new_cols = vec![];
         let mut old_cols = vec![];
         let mut constraints = vec![];
@@ -101,7 +101,7 @@ impl<'table> Move<'table> {
             object_type: ObjectType::Table,
             if_exists: false,
             names: vec![table_name],
-            cascade: !DIALECT.requires_move(),
+            cascade: DIALECT.supports_cascade(),
             purge: false,
         })
     }

@@ -31,9 +31,10 @@ impl<'a> Getter<'a> {
         }
     }
 
-    pub fn foreign_key(model_name: &'a Ident, variant: &'a ForeignKey) -> Self {
+    pub fn foreign_key(model: &'a Model, variant: &'a ForeignKey) -> Self {
         Self::Foreign(ForeignGetter {
-            model_name,
+            model_name: &model.model_name,
+            table_name: &model.table_name, 
             variant,
         })
     }

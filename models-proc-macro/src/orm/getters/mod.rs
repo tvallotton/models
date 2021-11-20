@@ -18,7 +18,7 @@ impl<'a> Getters<'a> {
         for cons in &model.constraints {
             match &cons {
                 Constraint::ForeignKey(fk) => {
-                    let getter = Getter::foreign_key(&model.model_name, fk);
+                    let getter = Getter::foreign_key(model, fk);
                     self.0.push(getter);
                 }
 

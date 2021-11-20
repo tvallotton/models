@@ -14,7 +14,7 @@ use prelude::*;
 
 #[proc_macro_derive(
     Model,
-    attributes(primary_key, foreign_key, unique, default, auto_increment)
+    attributes(primary_key, foreign_key, unique, default, auto_increment, table_name)
 )]
 pub fn model(input: TokenStream) -> TokenStream {
     let model = parse_macro_input!(input as Model);

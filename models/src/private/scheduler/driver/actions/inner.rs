@@ -5,16 +5,16 @@ pub(super) struct Inner<'table> {
 }
 
 impl<'table> Inner<'table> {
-    pub fn columns(&self) -> ColCRUD<'table> {
+    pub fn columns(&self) -> ColChange<'table> {
         let current = &self.table.unwrap().columns;
         let target = &self.target.columns;
 
-        CRUD::new(current, target)
+        Change::new(current, target)
     }
 
-    pub fn constraints(&self) -> ConsCRUD<'table> {
+    pub fn constraints(&self) -> ConsChange<'table> {
         let current = &self.table.unwrap().constraints;
         let target = &self.target.constraints;
-        CRUD::new(current, target)
+        Change::new(current, target)
     }
 }

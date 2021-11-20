@@ -4,18 +4,22 @@
 //! not depend directly on this module.
 #[cfg(feature = "orm")]
 pub mod orm;
+
 #[cfg(feature = "orm")]
 pub use sqlx; 
+pub use once_cell::sync::Lazy; 
 
 pub use super::dialect::Dialect; 
 mod scheduler;
-use once_cell::sync::Lazy;
+
 pub(crate) use scheduler::driver::migration::Migration;
 pub use scheduler::{
     table::{constraint, Column, Table},
     Scheduler,
 };
 pub trait Model {
+    const TABLE_NAME: &'static str; 
+
     fn target() -> Table;
 }
 

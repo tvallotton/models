@@ -39,7 +39,7 @@ impl NamedConstraint {
                 ::models::private::constraint::foreign_key(
                     #constr_name,
                     stringify!(#local_column),
-                    stringify!(#foreign_table),
+                    <#foreign_table as models::private::Model>::TABLE_NAME,
                     stringify!(#foreign_column),
                     #on_delete,
                     #on_update,
