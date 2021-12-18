@@ -1,4 +1,7 @@
-use super::{Compare, *};
+use super::{
+    Compare,
+    *,
+};
 use crate::prelude::*;
 #[derive(Debug)]
 pub(crate) struct Move<'table> {
@@ -127,9 +130,9 @@ fn to_string<T: ToString>(collection: Vec<T>) -> String {
 
 pub fn depends(cons: &TableConstraint, tables: &[&Column]) -> bool {
     let names = match cons {
-        TableConstraint::ForeignKey(fk) => &fk.columns,
-        TableConstraint::Unique(unique) => &unique.columns,
-        _ => return false,
+        | TableConstraint::ForeignKey(fk) => &fk.columns,
+        | TableConstraint::Unique(unique) => &unique.columns,
+        | _ => return false,
     };
     let names = names.iter().map(ToString::to_string);
 

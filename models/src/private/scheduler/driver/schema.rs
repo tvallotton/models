@@ -2,7 +2,7 @@ use fs::*;
 use path::PathBuf;
 
 use crate::prelude::*;
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Schema {
     tables: HashMap<ObjectName, Table>,
 }
@@ -48,8 +48,8 @@ impl Schema {
             }
             let sql = read_to_string(&path)?;
             let stmts = match parse_sql(&sql) {
-                Ok(stmts) => stmts,
-                Err(err) => return Err(Error::SyntaxAtFile(err, path)),
+                | Ok(stmts) => stmts,
+                | Err(err) => return Err(Error::SyntaxAtFile(err, path)),
             };
             out.extend(stmts);
         }
@@ -68,16 +68,19 @@ impl Schema {
 
     pub fn update(&mut self, stmt: &Statement) -> Result {
         use Statement::*;
+        debug!("update: {}", stmt);
         match stmt {
-            CreateTable(_) => self.create_table(stmt.clone().try_into().unwrap()),
-            AlterTable(ast::AlterTable {
+            | CreateTable(_) => self.create_table(stmt.clone().try_into().unwrap()),
+            | AlterTable(ast::AlterTable {
                 name,
                 operation: AlterTableOperation::RenameTable { table_name },
             }) => self.rename_table(name, table_name),
-            AlterTable(alter) => self.alter_table(&alter.name, &alter.operation),
-            Drop(drop) => self.drop_tables(drop),
-            _ => Ok(()),
-        }
+            | AlterTable(alter) => self.alter_table(&alter.name, &alter.operation),
+            | Drop(drop) => self.drop_tables(drop),
+            | _ => Ok(()),
+        }?;
+        debug!("state: {:#?}", self);
+        Ok(())
     }
 
     fn rename_table(&mut self, old_name: &ObjectName, new_name: &ObjectName) -> Result {
@@ -100,14 +103,10 @@ impl Schema {
         self.tables //
             .values_mut()
             .for_each(|table| {
-                dbg!(&table.constraints); 
                 table.constraints.retain(|constr| match constr {
-                    ForeignKey(ast::ForeignKey { foreign_table, .. }) => {
-                        foreign_table != name
-                    }
-                    _ => true,
-                }); 
-                dbg!(&table.constraints); 
+                    | ForeignKey(ast::ForeignKey { foreign_table, .. }) => foreign_table != name,
+                    | _ => true,
+                });
             });
     }
 

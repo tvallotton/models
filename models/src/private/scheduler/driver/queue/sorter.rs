@@ -1,4 +1,7 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::{
+    HashMap,
+    HashSet,
+};
 
 pub struct Sorter {
     dependencies: HashMap<String, HashSet<String>>,

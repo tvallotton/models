@@ -1,31 +1,26 @@
 //!
 //! # Types
 //!
-//! | Rust             | PostgreSQL    | MySQL                    | SQLite
-//! | |------------
-//! |---------------|--------------------------|---------------------| | `bool`
-//! | BOOLEAN       | BOOLEAN                  | BOOLEAN             | | `i8`
-//! | SMALLINT      | TINYINT                  | INTEGER             | | `i16`
-//! | SMALLINT      | SMALLINT                 | INTEGER             | | `i32`
-//! | INT           | INT                      | INTEGER             | | `i64`
-//! | BIGINT        | BIGINT                   | INTEGER             | | `f32`
-//! | REAL          | FLOAT                    | REAL                | | `f64`
-//! | REAL          | REAL                     | REAL                |
-//! | `String`         | TEXT          | TEXT                     | TEXT
-//! | | `VarChar<SIZE>`  | VARCHAR(SIZE) | VARCHAR(SIZE)            | TEXT
-//! | | `VarBinary<SIZE>`| BYTEA         | VARBINARY(SIZE)          | BLOB
-//! | | `Vec<u8>`        | BYTEA         | BLOB                     | BLOB
-//! | | `[u8; SIZE]`     | BYTEA         | BLOB(SIZE)               | BLOB
-//! | |
-//!
+//! | Rust          | PostgreSQL               | MySQL               | SQLite
+//! |---------------|--------------------------|---------------------| 
+//! | `bool`        |  BOOLEAN                 | BOOLEAN             | BOOLEAN            
+//! | `i8`          | CHAR                     | TINYINT             | INTEGER
+//! | `u8`          | -                        | TINYINT UNSIGNED    | INTEGER 
+//! | `i16`         | SMALLINT                 | SMALLINT            | INTEGER
+//! | `u16`         | -                        | SMALLINT UNSIGNED   | INTEGER
+//! | `i32`         | INTEGER, SERIAL, INT4    | INTEGER             | INTEGER
+//! | `u32`         | -                        | INTEGER UNSIGNED    | INTEGER
+//! | `i64`         | BIGINT, BIGSERIAL, INT8  | INtEger             | REAL
+//! | `f64`         | DOUBLE PRECISION, FLOAT8 |                     | REAL
+//! | `String`      | TEXT                     | TEXT                | TEXT
+//! | `Vec<u8>`     | BYTEA                    | 
 //! ### [`chrono`](https://crates.io/crates/chrono)
 //!
 //! Requires the `chrono` Cargo feature flag.
 //!
-//! | Rust type                    | Postgres         | MySQL            |
-//! SQLite             |
+//! | Rust type                    | Postgres         | MySQL            | SQLite             |
 //! |------------------------------|------------------|------------------|--------------------|
-//! | `chrono::DateTime<Utc>`      | TIMESTAMPTZ      | TIMESTAMP        |
+//! | `chrono::DateTime<Utc>`      | TIMESTAMPTZ      | TIMESTAMP        | DATE
 //! DATETIME           | | `chrono::DateTime<Local>`    | TIMESTAMPTZ      |
 //! TIMESTAMP        | DATETIME           | | `chrono::NaiveDateTime`      |
 //! TIMESTAMP        | DATETIME         | DATETIME           | | `chrono::
@@ -67,18 +62,18 @@ impl IntoSQL for i32 {
 impl IntoSQL for i16 {
     fn into_sql() -> DataType {
         match *DIALECT {
-            SQLite => DataType::Int(None),
-            PostgreSQL => DataType::SmallInt(None),
-            _ => DataType::SmallInt(None),
+            | SQLite => DataType::Int(None),
+            | PostgreSQL => DataType::SmallInt(None),
+            | _ => DataType::SmallInt(None),
         }
     }
 }
 impl IntoSQL for i8 {
     fn into_sql() -> DataType {
         match *DIALECT {
-            SQLite => DataType::Int(None),
-            PostgreSQL => DataType::SmallInt(None),
-            _ => DataType::TinyInt(None),
+            | SQLite => DataType::Int(None),
+            | PostgreSQL => DataType::SmallInt(None),
+            | _ => DataType::TinyInt(None),
         }
     }
 }
@@ -86,9 +81,9 @@ impl IntoSQL for i8 {
 impl IntoSQL for u32 {
     fn into_sql() -> DataType {
         match *DIALECT {
-            MySQL => DataType::BigInt(None),
-            PostgreSQL => DataType::BigInt(None),
-            _ => DataType::Int(None),
+            | MySQL => DataType::BigInt(None),
+            | PostgreSQL => DataType::BigInt(None),
+            | _ => DataType::Int(None),
         }
     }
 }
@@ -118,24 +113,24 @@ impl IntoSQL for u32 {
 impl IntoSQL for i64 {
     fn into_sql() -> DataType {
         match *DIALECT {
-            SQLite => DataType::Int(None),
-            _ => DataType::BigInt(None),
+            | SQLite => DataType::Int(None),
+            | _ => DataType::BigInt(None),
         }
     }
 }
 impl IntoSQL for f64 {
     fn into_sql() -> DataType {
         match *DIALECT {
-            PostgreSQL => DataType::Double,
-            _ => DataType::Real,
+            | PostgreSQL => DataType::Double,
+            | _ => DataType::Real,
         }
     }
 }
 impl IntoSQL for f32 {
     fn into_sql() -> DataType {
         match *DIALECT {
-            MySQL => DataType::Real,
-            _ => DataType::Real,
+            | MySQL => DataType::Real,
+            | _ => DataType::Real,
         }
     }
 }
@@ -148,17 +143,17 @@ impl IntoSQL for String {
 impl<const N: usize> IntoSQL for [u8; N] {
     fn into_sql() -> DataType {
         match *DIALECT {
-            PostgreSQL => DataType::Bytea,
-            SQLite => DataType::Blob(None),
-            _ => DataType::Blob(Some(N as u64)),
+            | PostgreSQL => DataType::Bytea,
+            | SQLite => DataType::Blob(None),
+            | _ => DataType::Blob(Some(N as u64)),
         }
     }
 }
 impl IntoSQL for Vec<u8> {
     fn into_sql() -> DataType {
         match *DIALECT {
-            PostgreSQL => DataType::Bytea,
-            _ => DataType::Blob(None),
+            | PostgreSQL => DataType::Bytea,
+            | _ => DataType::Blob(None),
         }
     }
 }

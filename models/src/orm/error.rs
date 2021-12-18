@@ -3,7 +3,7 @@ use thiserror::Error;
 #[derive(Error, Debug, Clone)]
 pub enum Error {
     #[error("SQLxError: {0}")]
-    SQLx(Arc<sqlx::Error>), 
+    SQLx(Arc<sqlx::Error>),
     #[error("NoDatabaseUrl: clould not read DATABASE_URL.")]
     NoDatabaseUrl,
     #[error("InvalidDatabaseUrl: clould not parse DATABASE_URL.")]

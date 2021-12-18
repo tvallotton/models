@@ -1,11 +1,27 @@
-use std::ops::{Deref, DerefMut};
+use std::ops::{
+    Deref,
+    DerefMut,
+};
 
 #[cfg(feature = "serde")]
 use serde::*;
 
 use super::*;
 
-/// Wrapper type that defaults to `DATE`.
+/// Wrapper for date related types.
+/// The generated SQL for `Date<T>` will always be `DATE`.
+/// For example:
+/// ```
+/// struct Person {
+///     birthday: Date<String>
+/// }
+/// ```
+/// The generated SQL for the previous struct would be:
+/// ```sql
+/// CREATE TABLE person (
+///     DATE birthday NOT NULL,
+/// );
+/// ```
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 #[cfg_attr(feature = "sqlx", sqlx(transparent))]
@@ -40,7 +56,21 @@ impl<T> IntoSQL for Date<T> {
         DataType::Date
     }
 }
-/// Wrapper type that defaults to `DATETIME`.
+
+/// Wrapper for datetime related types.
+/// The generated SQL for `DateTime<T>` will always be `DATETIME`.
+/// For example:
+/// ```
+/// struct Post {
+///     creation_date: DateTime<u8>
+/// }
+/// ```
+/// The generated SQL for the previous struct would be:
+/// ```sql
+/// CREATE TABLE post (
+///     DATETIME creation_date NOT NULL,
+/// );
+/// ```
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 #[cfg_attr(feature = "sqlx", sqlx(transparent))]
@@ -75,7 +105,20 @@ impl<T> IntoSQL for DateTime<T> {
         DataType::custom("DATETIME")
     }
 }
-/// Wrapper type that defaults to `TIMESTAMP`.
+/// Wrapper for datetime related types.
+/// The generated SQL for `Timestamp<T>` will always be `TIMESTAMP`.
+/// For example:
+/// ```
+/// struct Post {
+///     creation_date: Timestamp<u8>
+/// }
+/// ```
+/// The generated SQL for the previous struct would be:
+/// ```sql
+/// CREATE TABLE post (
+///     TIMESTAMP creation_date NOT NULL,
+/// );
+/// ```
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 #[cfg_attr(feature = "sqlx", sqlx(transparent))]

@@ -1,0 +1,291 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in library 'models'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=models"
+                ],
+                "filter": {
+                    "name": "models",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in library 'models-parser'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=models-parser"
+                ],
+                "filter": {
+                    "name": "models-parser",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug integration test 'sqlite'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--test=sqlite",
+                    "--package=models-parser"
+                ],
+                "filter": {
+                    "name": "sqlite",
+                    "kind": "test"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug integration test 'mssql'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--test=mssql",
+                    "--package=models-parser"
+                ],
+                "filter": {
+                    "name": "mssql",
+                    "kind": "test"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug integration test 'regression'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--test=regression",
+                    "--package=models-parser"
+                ],
+                "filter": {
+                    "name": "regression",
+                    "kind": "test"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug integration test 'mysql'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--test=mysql",
+                    "--package=models-parser"
+                ],
+                "filter": {
+                    "name": "mysql",
+                    "kind": "test"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug integration test 'snowflake'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--test=snowflake",
+                    "--package=models-parser"
+                ],
+                "filter": {
+                    "name": "snowflake",
+                    "kind": "test"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug integration test 'postgres'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--test=postgres",
+                    "--package=models-parser"
+                ],
+                "filter": {
+                    "name": "postgres",
+                    "kind": "test"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug integration test 'hive'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--test=hive",
+                    "--package=models-parser"
+                ],
+                "filter": {
+                    "name": "hive",
+                    "kind": "test"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug integration test 'common'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--test=common",
+                    "--package=models-parser"
+                ],
+                "filter": {
+                    "name": "common",
+                    "kind": "test"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in library 'models-cli'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=models-cli"
+                ],
+                "filter": {
+                    "name": "models-cli",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'models'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=models",
+                    "--package=models-cli"
+                ],
+                "filter": {
+                    "name": "models",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'models'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=models",
+                    "--package=models-cli"
+                ],
+                "filter": {
+                    "name": "models",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'models-tests'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=models-tests",
+                    "--package=models-tests"
+                ],
+                "filter": {
+                    "name": "models-tests",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'models-tests'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=models-tests",
+                    "--package=models-tests"
+                ],
+                "filter": {
+                    "name": "models-tests",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        }
+    ]
+}

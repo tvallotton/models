@@ -32,9 +32,11 @@ chrono = {version = "0.4.19", optional = true}
 dotenv = {version = "0.15.0", optional = true}
 futures = { version = "0.3.17", optional = true}
 log = "0.4.14"
+pretty_env_logger = "0.4.0"
 
 
 [dev-dependencies]
 
 sqlx = {version = "0.5.9", features = ["runtime-async-std-native-tls", "postgres"] }
 models = {path = "../models", features = ["sqlformat", "json", "sqlx", "chrono", "orm"]}
+log = "0.4.14"

@@ -1,9 +1,9 @@
-# imports_indent = "Block"
-# imports_layout = "Vertical"
-# reorder_impl_items = true
-# match_arm_leading_pipes = "Always"
-# imports_granularity = "Crate"
-# # group_imports = "StdExternalCrate"
-# merge_derives = true
-# use_field_init_shorthand = true
-# wrap_comments = true
+imports_indent = "Block"
+imports_layout = "Vertical"
+reorder_impl_items = true
+match_arm_leading_pipes = "Always"
+imports_granularity = "Crate"
+# group_imports = "StdExternalCrate"
+merge_derives = true
+use_field_init_shorthand = true
+

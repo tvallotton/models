@@ -35,12 +35,12 @@ pub enum Error {
 impl Error {
     pub(crate) fn kind(&self) -> &'static str {
         match self {
-            Self::Cycle(_) => "CycleError",
-            Self::IO(_) => "IOError",
-            Self::Syntax(_) => "SyntaxError",
-            Self::SyntaxAtFile(_, _) => "SyntaxAtFile",
-            Self::UnsupportedScheme(_) => "UnsupportedSchemeError",
-            _ => "error",
+            | Self::Cycle(_) => "CycleError",
+            | Self::IO(_) => "IOError",
+            | Self::Syntax(_) => "SyntaxError",
+            | Self::SyntaxAtFile(_, _) => "SyntaxAtFile",
+            | Self::UnsupportedScheme(_) => "UnsupportedSchemeError",
+            | _ => "error",
         }
     }
 

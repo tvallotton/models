@@ -34,10 +34,10 @@ impl Table {
         self.constraints
             .iter()
             .filter_map(|constr| match constr {
-                TableConstraint::ForeignKey(ForeignKey { foreign_table, .. }) => {
+                | TableConstraint::ForeignKey(ForeignKey { foreign_table, .. }) => {
                     Some(foreign_table.to_string().to_lowercase())
                 }
-                _ => None,
+                | _ => None,
             })
             .collect()
     }
@@ -45,20 +45,20 @@ impl Table {
     pub(super) fn alter_table(&mut self, op: &AlterTableOperation) -> Result {
         use AlterTableOperation::*;
         match op {
-            AddColumn { column_def } => self.columns.push(column_def.clone().into()),
-            AddConstraint(constr) => self.constraints.push(constr.clone()),
-            DropConstraint { name, .. } => self.drop_constraint(name.to_string()),
+            | AddColumn { column_def } => self.columns.push(column_def.clone().into()),
+            | AddConstraint(constr) => self.constraints.push(constr.clone()),
+            | DropConstraint { name, .. } => self.drop_constraint(name.to_string()),
 
-            DropColumn {
+            | DropColumn {
                 column_name,
                 if_exists,
                 ..
             } => self.drop_col(column_name, *if_exists),
-            RenameColumn {
+            | RenameColumn {
                 old_column_name,
                 new_column_name,
             } => self.rename_col(old_column_name, new_column_name),
-            op => return Err(error!("unsupported operation: \"{}\"", op)),
+            | op => return Err(error!("unsupported operation: \"{}\"", op)),
         }
         Ok(())
     }

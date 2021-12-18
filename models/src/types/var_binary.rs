@@ -1,6 +1,9 @@
 use std::{
     convert::AsMut,
-    ops::{Deref, DerefMut},
+    ops::{
+        Deref,
+        DerefMut,
+    },
 };
 
 use models_parser::ast::DataType;

@@ -201,4 +201,4 @@ pub use types::*;
 pub mod private;
 
 #[cfg(feature = "orm")]
-pub mod orm; 
+pub mod orm;

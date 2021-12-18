@@ -1,4 +1,7 @@
-use std::ops::{Deref, DerefMut};
+use std::ops::{
+    Deref,
+    DerefMut,
+};
 
 use models_parser::ast::DataType;
 use serde::*;
@@ -59,18 +62,37 @@ impl<T> IntoSQL for Json<T> {
 mod sqlx_impl {
     use std::io::Write;
 
-    use serde::{Deserialize, Serialize};
+    use serde::{
+        Deserialize,
+        Serialize,
+    };
     #[cfg(feature = "sqlx-mysql")]
-    use sqlx::mysql::{MySql, MySqlTypeInfo};
+    use sqlx::mysql::{
+        MySql,
+        MySqlTypeInfo,
+    };
     #[cfg(feature = "sqlx-postgres")]
-    use sqlx::postgres::{PgTypeInfo, Postgres};
+    use sqlx::postgres::{
+        PgTypeInfo,
+        Postgres,
+    };
     #[cfg(feature = "sqlx-mysql")]
-    use sqlx::sqlite::{Sqlite, SqliteTypeInfo};
+    use sqlx::sqlite::{
+        Sqlite,
+        SqliteTypeInfo,
+    };
     use sqlx::{
-        database::{HasArguments, HasValueRef},
+        database::{
+            HasArguments,
+            HasValueRef,
+        },
         decode::Decode,
-        encode::{Encode, IsNull},
-        Database, Type,
+        encode::{
+            Encode,
+            IsNull,
+        },
+        Database,
+        Type,
     };
 
     use super::*;

@@ -1,4 +1,7 @@
-use std::ops::{Deref, DerefMut};
+use std::ops::{
+    Deref,
+    DerefMut,
+};
 
 use models_parser::ast::DataType;
 #[cfg(feature = "serde")]

@@ -12,6 +12,7 @@ impl Scheduler {
     }
 
     pub fn register(&self, table: Table) {
+        pretty_env_logger::try_init().ok();
         let is_first;
         {
             let mut driver = self.0.lock().unwrap();

@@ -12,9 +12,9 @@ impl Parse for HasMany {
         let _paren = parenthesized!(content in input);
 
         let foreign_table = content.parse()?;
+        content.parse::<Token![.]>()?;
         let foreign_column = content.parse()?;
         let mut getter = None;
-        content.parse::<Token![.]>()?;
 
         if content.parse::<Token![,]>().is_ok() {
             let getter_str = content.parse::<LitStr>()?;

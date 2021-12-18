@@ -1,12 +1,28 @@
-pub(crate) use std::{collections::HashMap, sync::Mutex, *};
-
-pub(crate) use convert::{TryFrom, TryInto};
-pub(crate) use models_parser::{ast::*, *};
+pub(crate) use convert::{
+    TryFrom,
+    TryInto,
+};
+pub(crate) use log::{
+    debug,
+    info,
+};
+pub(crate) use models_parser::{
+    ast::*,
+    *,
+};
 pub(crate) use once_cell::sync::Lazy;
+pub(crate) use std::{
+    collections::HashMap,
+    sync::Mutex,
+    *,
+};
 pub(crate) use Dialect::*;
 
-pub(crate) use crate::error::Error;
-pub(crate) use crate::{dialect::Dialect, private::*};
+pub(crate) use crate::{
+    dialect::Dialect,
+    error::Error,
+    private::*,
+};
 pub(crate) type Result<T = (), E = Error> = std::result::Result<T, E>;
 use url::Url;
 
@@ -21,13 +37,16 @@ pub(crate) static MIGRATIONS_DIR: Lazy<String> = Lazy::new(|| {
     dir.unwrap()
 });
 pub(crate) static DIALECT: Lazy<Dialect> = Lazy::new(|| match DATABASE_URL.scheme() {
-    "sqlite" => SQLite,
-    "postgres" => PostgreSQL,
-    "mysql" => MySQL,
-    _ => panic!("Unsupported dialect."),
+    | "sqlite" => SQLite,
+    | "postgres" => PostgreSQL,
+    | "mysql" => MySQL,
+    | _ => panic!("Unsupported dialect."),
 });
 #[cfg(feature = "sqlformat")]
-use sqlformat::{FormatOptions, Indent};
+use sqlformat::{
+    FormatOptions,
+    Indent,
+};
 #[cfg(feature = "sqlformat")]
 pub static FORMAT_OPTIONS: FormatOptions = FormatOptions {
     indent: Indent::Spaces(4),

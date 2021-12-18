@@ -1,13 +1,19 @@
 use std::{
     convert::AsMut,
-    ops::{Deref, DerefMut},
+    ops::{
+        Deref,
+        DerefMut,
+    },
 };
 
 use models_parser::ast::DataType;
 #[cfg(feature = "serde")]
 use serde::*;
 
-use crate::{prelude::*, types::IntoSQL};
+use crate::{
+    prelude::*,
+    types::IntoSQL,
+};
 
 /// Used for MySQL when to specify that the datatype should be
 /// a `VARCHAR(N)`. The database will make sure the field does not
@@ -78,8 +84,8 @@ impl<const N: u64> IntoSQL for VarChar<N> {
 
     fn into_sql() -> DataType {
         match *DIALECT {
-            SQLite => DataType::Text,
-            _ => DataType::Varchar(Some(N)),
+            | SQLite => DataType::Text,
+            | _ => DataType::Varchar(Some(N)),
         }
     }
 }
