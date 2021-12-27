@@ -25,46 +25,11 @@ use crate::prelude::*;
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 #[cfg_attr(feature = "sqlx", sqlx(transparent))]
-#[derive(Debug, Clone, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(WrapperStruct, Debug, Clone, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct Serial(pub i32);
 
-impl<T> From<T> for Serial
-where
-    T: Into<i32>,
-{
-    fn from(obj: T) -> Self {
-        Self(obj.into())
-    }
-}
-
-impl Deref for Serial {
-    type Target = i32;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl DerefMut for Serial {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
-    }
-}
-
-impl AsMut<i32> for Serial {
-    fn as_mut(&mut self) -> &mut i32 {
-        &mut self.0
-    }
-}
-
-impl AsRef<i32> for Serial {
-    fn as_ref(&self) -> &i32 {
-        &self.0
-    }
-}
-
 impl IntoSQL for Serial {
-    fn into_sql() -> DataType {
-        DataType::Serial
+    fn into_sql() -> Result<DataType> {
+        Ok(DataType::Serial)
     }
 }

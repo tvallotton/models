@@ -183,6 +183,9 @@
 //!     UNIQUE (profile_id, post_id),
 //! ```
 #![allow(unused_imports)]
+#[macro_use]
+extern crate models_proc_macro; 
+
 pub use models_proc_macro::Model;
 
 #[macro_use]

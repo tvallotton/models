@@ -28,62 +28,18 @@ use crate::prelude::*;
 ///     bin_data VarBinary(255) NOT NULL
 /// );
 /// ```
-
 #[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
 #[cfg_attr(feature = "sqlx", sqlx(transparent))]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[derive(Debug, Clone, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(WrapperStruct, Debug, Clone, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct VarBinary<const SIZE: u64>(pub Vec<u8>);
 
-impl<const SIZE: u64> VarBinary<SIZE> {
-    pub fn new() -> Self {
-        Self::default()
-    }
-}
-
-impl<const N: u64> Deref for VarBinary<N> {
-    type Target = Vec<u8>;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl<const N: u64> DerefMut for VarBinary<N> {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
-    }
-}
-
-impl<const N: u64> AsRef<Vec<u8>> for VarBinary<N> {
-    fn as_ref(&self) -> &Vec<u8> {
-        &self.0
-    }
-}
-
-impl<const N: u64> AsMut<Vec<u8>> for VarBinary<N> {
-    fn as_mut(&mut self) -> &mut Vec<u8> {
-        &mut self.0
-    }
-}
-
 impl<const N: u64> IntoSQL for VarBinary<N> {
-    const IS_NULLABLE: bool = false;
-
-    fn into_sql() -> DataType {
-        if !matches!(*DIALECT, SQLite) {
-            DataType::Varbinary(Some(N))
+    fn into_sql() -> Result<DataType> {
+        if let SQLite = *DIALECT {
+            Ok(DataType::Blob(None))
         } else {
-            DataType::Blob(None)
+            Ok(DataType::Varbinary(Some(N)))
         }
-    }
-}
-
-impl<T, const N: u64> From<T> for VarBinary<N>
-where
-    T: Into<Vec<u8>>,
-{
-    fn from(obj: T) -> Self {
-        VarBinary(obj.into())
     }
 }
