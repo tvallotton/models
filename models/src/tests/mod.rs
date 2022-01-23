@@ -39,5 +39,5 @@ fn test() {
        id int primary key
     );",
     );
-    driver.migrate2();
+    // driver.migrate2();
 }
