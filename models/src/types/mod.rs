@@ -6,47 +6,47 @@
 //! the [`sqlx`](https://docs.rs/sqlx/latest/sqlx/types/index.html) crate.
 //!
 //!
-//! | Rust          | PostgreSQL               | MySQL               | SQLiten    |
-//! |---------------|--------------------------|---------------------|------------|
-//! | `bool`        | BOOLEAN                  | BOOLEAN             | BOOLEAN    |          
-//! | `i8`          | -                        | TINYINT             | INTEGER    |
-//! | `u8`          | -                        | TINYINT UNSIGNED    | INTEGER    |
-//! | `i16`         | SMALLINT                 | SMALLINT            | INTEGER    |
-//! | `u16`         | -                        | SMALLINT UNSIGNED   | INTEGER    |
-//! | `i32`         | INTEGER, SERIAL, INT4    | INTEGER             | INTEGER    |
-//! | `u32`         | -                        | INTEGER UNSIGNED    | INTEGER    |
-//! | `i64`         | BIGINT, BIGSERIAL, INT8  | BIGINT              | REAL       |
-//! | `u64`         | -                        | BIGINT UNSIGNED     | REAL       |
-//! | `f32`         | FLOAT                    | FLOAT               | REAL       |
-//! | `f64`         | DOUBLE PRECISION, FLOAT8 | REAL                | REAL       |
-//! | `String`      | TEXT                     | TEXT                | TEXT       |
-//! | `Vec<u8>`     | BYTEA                    | BLOB                | BLOB       |
-
-//! ## Native Wappers
-//! | Rust              | PostgreSQL             | MySQL               | SQLite     |
-//! |-------------------|------------------------|---------------------|----------- |
-//! | `Json<T>`         | JSON                   | JSON                | JSON       |
-//! | `Serial`          | SERIAL                 | -                   | INTEGER    |
-//! | `VarChar<SIZE>`   | VARCHAR(SIZE)          | VARCHAR(SIZE)       | TEXT       |
-//! | `VarBinary<SIZE>` | VARBINARY(SIZE)        | VARBINARY(SIZE)     | BLOB       |
-//! | `Date<T>`         | DATE                   | DATE                | DATE       |
-//! | `DateTime<T>`     | DATETIME               | DATETIME            | DATETIME   |
-//! | `Time<T>`         | TIME                   | TIME                | TIME       |
-//! | `Timestamp`       | TIMESTAMP              | TIMESTAMP           | TIMESTAMP  |
+//! | Rust            | PostgreSQL               | MySQL               | SQLiten    | Features   | ORM API type |
+//! |-----------------|--------------------------|---------------------|------------|------------|--------------|
+//! | `bool`          | BOOLEAN                  | BOOLEAN             | BOOLEAN    | -          | `bool`       |
+//! | `i8`            | -                        | TINYINT             | INTEGER    | -          | `i8`         |
+//! | `u8`            | -                        | TINYINT UNSIGNED    | INTEGER    | -          | `u8`         |
+//! | `i16`           | SMALLINT                 | SMALLINT            | INTEGER    | -          | `i16`        |
+//! | `u16`           | -                        | SMALLINT UNSIGNED   | INTEGER    | -          | `u16`        |
+//! | `i32`           | INTEGER, SERIAL, INT4    | INTEGER             | INTEGER    | -          | `i32`        |
+//! | `u32`           | -                        | INTEGER UNSIGNED    | INTEGER    | -          | `u32`        |
+//! | `i64`           | BIGINT, BIGSERIAL, INT8  | BIGINT              | REAL       | -          | `i64`        |
+//! | `u64`           | -                        | BIGINT UNSIGNED     | REAL       | -          | `u64`        |
+//! | `f32`           | FLOAT                    | FLOAT               | REAL       | -          | `f32`        |
+//! | `f64`           | DOUBLE PRECISION, FLOAT8 | REAL                | REAL       | -          | `f64`        |
+//! | `String`        | TEXT                     | TEXT                | TEXT       | -          | `&str`       |
+//! | `Vec<u8>`       | BYTEA                    | BLOB                | BLOB       | -          | `&[u8]`      |
+//! | `AutoIncrement` | SERIAL                   | AUTO_INCREMENT      | INTEGER    | -          | `i32`        |
 //!
+//! ## Wappers
+//! | Rust              | PostgreSQL             | MySQL               | SQLite     | Features   | ORM API  |
+//! |-------------------|------------------------|---------------------|------------|------------|----------|
+//! | `Json<T>`         | JSON                   | JSON                | JSON       | `json`     | `&T`     |
+//! | `Serial`          | SERIAL                 | -                   | INTEGER    | `sqlx`     | `i32`    |
+//! | `VarChar<SIZE>`   | VARCHAR(SIZE)          | VARCHAR(SIZE)       | TEXT       | -          | `&str`   |
+//! | `VarBinary<SIZE>` | VARBINARY(SIZE)        | VARBINARY(SIZE)     | BLOB       | -          | `&[u8]`  |
+//! | `Date<T>`         | DATE                   | DATE                | DATE       | -          | `&T`     |
+//! | `DateTime<T>`     | DATETIME               | DATETIME            | DATETIME   | -          | `&T`     |
+//! | `Time<T>`         | TIME                   | TIME                | TIME       | -          | `&T`     |
+//! | `Timestamp<T>`    | TIMESTAMP              | TIMESTAMP           | TIMESTAMP  | -          | `&T`     |
+//! | `TiemstampTz<T>`  | TIMESTAMPTZ            | -                   | TIMESTAMP  | -          | `&T`     |
 
-//! ### [`chrono`](https://crates.io/crates/chrono)
-//! The following table shows the type correspondances across all supported databases.
-//! Alternatively, you can use the Wrappers `
-//! | Rust type                  | Postgres          | MySQL               | SQLite                 |
-//! |----------------------------|-------------------|---------------------|------------------------|
-//! | `chrono::DateTime<Utc>`    | TIMESTAMPTZ       | TIMESTAMP           | DATE                   |
-//! | `chrono::DateTime<Local>`  | TIMESTAMPTZ       | TIMESTAMP           | DATE                   |
-//! | `chrono::NaiveDateTime`    | TIMESTAMP         | TIMESTAMP           | DATETIME               |
-//! | `chrono::NaiveDate`        | DATE              | DATE                | DATE                   |
-//! | `chrono::NaiveTime`        | TIME              | TIME                | TIME                   |
-//! | `PgTimeTz`                 | TIMETZ            | -                   | DATETIME               |
-
+//! ## Chrono types
+//! The following table shows the type correspondances for [`chrono`](https://crates.io/crates/chrono) types across all supported databases.
+//! Alternatively, you can use the wrapper types to override the generated type.
+//!
+//! | Rust type                    | Postgres         | MySQL          | SQLite      |
+//! |------------------------------|------------------|----------------|-------------|
+//! | `chrono::DateTime<Utc>`      | TIMESTAMPTZ      | TIMESTAMP      | DATE        |
+//! | `chrono::DateTime<Local>`    | TIMESTAMPTZ      | TIMESTAMP      | DATE        |
+//! | `chrono::NaiveDateTime`      | TIMESTAMP        | TIMESTAMP      | DATETIME    |
+//! | `chrono::NaiveDate`          | DATE             | DATE           | DATE        |
+//! | `chrono::NaiveTime`          | TIME             | TIME           | TIME        |
 
 
 #[cfg(feature = "chrono")]
@@ -77,36 +77,73 @@ pub trait IntoSQL {
     const IS_NULLABLE: bool = false;
 }
 
+trait ORMType<'a> {
+    type API;
+}
+impl<'a, T: std::marker::Copy> ORMType<'a> for T {
+    type API = T;
+}
+
+
+impl IntoSQL for bool {
+    fn into_sql() -> Result<DataType> {
+        Ok(DataType::Boolean)
+    }
+}
+
+impl IntoSQL for i8 {
+    fn into_sql() -> Result<DataType> {
+        Ok(match *DIALECT {
+            | SQLite => DataType::Int(None),
+            | MySQL => DataType::TinyInt(None),
+            | dialect => {
+                return Err(Error::UnsupportedDatatype {
+                    ty: DataType::TinyInt(None),
+                    dialect,
+                })
+            }
+        })
+    }
+}
+impl IntoSQL for u8 {
+    fn into_sql() -> Result<DataType> {
+        Ok(match *DIALECT {
+            | MySQL => DataType::Int(None),
+            | SQLite => DataType::Int(None),
+            | dialect => {
+                return Err(Error::UnsupportedDatatype {
+                    ty: DataType::TinyInt(None),
+                    dialect,
+                })
+            }
+        })
+    }
+}
+
+impl IntoSQL for i16 {
+    fn into_sql() -> Result<DataType> {
+        Ok(match *DIALECT {
+            | SQLite => DataType::Int(None),
+            | _ => DataType::SmallInt(None),
+        })
+    }
+}
 impl IntoSQL for i32 {
     fn into_sql() -> Result<DataType> {
         Ok(DataType::Int(None))
     }
 }
-impl IntoSQL for i16 {
-    fn into_sql() -> Result<DataType> {
-        Ok(match *DIALECT {
-            | SQLite => DataType::Int(None),
-            | PostgreSQL => DataType::SmallInt(None),
-            | _ => DataType::SmallInt(None),
-        })
-    }
-}
-impl IntoSQL for i8 {
-    fn into_sql() -> Result<DataType> {
-        Ok(match *DIALECT {
-            | SQLite => DataType::Int(None),
-            | PostgreSQL => DataType::SmallInt(None),
-            | _ => DataType::TinyInt(None),
-        })
-    }
-}
-
 impl IntoSQL for u32 {
     fn into_sql() -> Result<DataType> {
         Ok(match *DIALECT {
+            | SQLite => DataType::Int(None),
             | MySQL => DataType::BigInt(None),
-            | PostgreSQL => DataType::BigInt(None),
-            | _ => DataType::Int(None),
+            | dialect => {
+                return Err(Error::UnsupportedDatatype {
+                    ty: DataType::TinyInt(None),
+                    dialect,
+                })
+            }
         })
     }
 }
@@ -114,15 +151,6 @@ impl IntoSQL for u32 {
 //     fn into_sql() -> DataType {
 //         match *DIALECT {
 //             MySQL => DataType::Int(None),
-//             _ => DataType::Int(None),
-//         }
-//     }
-// }
-// impl IntoSQL for u8 {
-//     fn into_sql() -> DataType {
-//         match *DIALECT {
-//             MySQL => DataType::Int(None),
-//             PostgreSQL => DataType::custom("SMALLINT"),
 //             _ => DataType::Int(None),
 //         }
 //     }
@@ -186,11 +214,6 @@ impl<T: IntoSQL> IntoSQL for Option<T> {
 
     fn into_sql() -> Result<DataType> {
         T::into_sql()
-    }
-}
-impl IntoSQL for bool {
-    fn into_sql() -> Result<DataType> {
-        Ok(DataType::Boolean)
     }
 }
 

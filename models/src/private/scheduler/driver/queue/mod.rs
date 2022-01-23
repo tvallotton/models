@@ -4,6 +4,13 @@ pub use std::collections::HashSet;
 pub use sorter::Sorter;
 
 use super::*;
+/// this structure is used to remove 
+/// tables from the queue in topological order. 
+/// It basically pops a table if it doesn't have
+/// any dependencies. It then removes this table from 
+/// the dependencies of the remaining tables. This way
+/// if table A depends on table B, table B will aways be
+/// popped before table A.
 pub(crate) struct Queue {
     tables: HashMap<String, Table>,
     sorter: Sorter,

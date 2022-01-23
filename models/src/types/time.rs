@@ -86,7 +86,6 @@ impl<T> IntoSQL for Timestamp<T> {
         Ok(DataType::Timestamp)
     }
 }
-
 /// Wrapper for types related to PostgreSQL's `TIMESTAMPTZ` type.
 /// The generated SQL for `TimestampTz<T>` will always be `TIMESTAMP`,
 /// no matter if the SQL dialect supports such type or not.

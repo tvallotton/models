@@ -28,13 +28,18 @@ use std::{
     env,
     sync::RwLock,
 };
+
+
+
 use url::Url;
 mod error;
-pub mod query;
+mod traits; 
 pub struct Connection {
     pub dialect: Dialect,
     pub pool: AnyPool,
 }
+
+
 
 pub static DATABASE_URL: Lazy<Result<Url, Error>> = Lazy::new(|| {
     dotenv::dotenv().ok();

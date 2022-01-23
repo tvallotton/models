@@ -9,7 +9,7 @@ pub use once_cell::sync::Lazy;
 pub use sqlx;
 
 pub use super::dialect::Dialect;
-mod scheduler;
+pub(crate) mod scheduler;
 
 pub(crate) use scheduler::driver::migration::Migration;
 pub use scheduler::{

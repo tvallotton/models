@@ -13,46 +13,48 @@ macro_rules! error {
 #[non_exhaustive]
 #[derive(Error, Debug, Clone)]
 pub enum Error {
-    #[error("syntax error: {0}")]
+    #[error("{0}")]
     Syntax(#[from] ParserError),
-    #[error("syntax error: {0}.\n       found at file \"{1}\".")]
+    #[error("{0}.\n       found at file \"{1}\".")]
     SyntaxAtFile(ParserError, path::PathBuf),
     #[error("{0}")]
     Message(String),
     #[error("could not read or create migration file. {0}")]
     IO(#[from] Arc<io::Error>),
-    #[error("dependency cycle detected invlonving the tables: {0:?}. help: consider removing redundant foreign key constraints. ")]
+    #[error("dependency cycle detected invlonving the tables: {0:?}. help: consider removing redundant foreign key constraints.")]
     Cycle(Vec<String>),
-    #[error("database url error: the database scheme {0:?} is not supported")]
+    #[error("the database scheme {0:?} is not supported")]
     UnsupportedScheme(String),
     #[cfg(feature = "dotenv")]
-    #[error("DontenvError: {0}")]
+    #[error("{0}")]
     Dotenv(Arc<dotenv::Error>),
-    #[error("SQLxError: {0}")]
+    #[error("{0}")]
     SQLx(Arc<sqlx::Error>),
+    #[error("the datatype {ty} is not supported by {dialect:?}.")]
+    UnsupportedDatatype { ty: DataType, dialect: Dialect },
 }
 
 impl Error {
     pub(crate) fn kind(&self) -> &'static str {
         match self {
-            | Self::Cycle(_) => "CycleError",
-            | Self::IO(_) => "IOError",
-            | Self::Syntax(_) => "SyntaxError",
-            | Self::SyntaxAtFile(_, _) => "SyntaxAtFile",
-            | Self::UnsupportedScheme(_) => "UnsupportedSchemeError",
+            | Self::Syntax(_) => "syntax",
+            | Self::SyntaxAtFile(_, _) => "syntax",
+            | Self::Cycle(_) => "cycle",
+            | Self::IO(_) => "io",
+            | Self::UnsupportedScheme(_) => "database url",
+            | Self::Dotenv(_) => "doetenv",
+            | Self::SQLx(_) => "sqlx",
+            | Self::UnsupportedDatatype { .. } => "datatype",
             | _ => "error",
         }
     }
 
-    pub(crate) fn as_json(&self) -> String {
-        let err_msg = format!("{}", self);
-        let kind = self.kind();
-
-        format!(
-            r#"{{"kind":{kind:?},"message":{message:?}}}"#,
-            kind = kind,
-            message = err_msg
-        )
+    pub(crate) fn log(&self) {
+        print!(
+            r#"<SQLX-MODELS-OUTPUT>{{"kind":{kind:?},"message":{message:?}}}</SQLX-MODELS-OUTPUT>"#,
+            kind = self.kind(),
+            message = self
+        );
     }
 }
 

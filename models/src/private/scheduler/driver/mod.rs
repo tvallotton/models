@@ -10,19 +10,19 @@ pub(crate) use report::*;
 use schema::*;
 
 pub(crate) struct Driver {
-    result: Result<Schema>,
-    queue: Queue,
-    success: Vec<Report>,
+   pub(crate) schema: Schema,
+   pub(crate) queue: Queue,
+   pub(crate) success: Vec<Report>,
 }
 
 impl Driver {
-    pub fn new() -> Self {
-        let result = Schema::new();
-        Self {
-            result,
+    pub fn new() -> Result<Self> {
+        let schema = Schema::new()?;
+        Ok(Self {
+            schema,
             queue: Queue::new(),
             success: vec![],
-        }
+        })
     }
 
     pub fn is_first(&self) -> bool {
@@ -33,42 +33,29 @@ impl Driver {
         self.queue.insert(table)
     }
 
-    pub fn as_json(&self) -> String {
-        let error = if let Err(err) = &self.result {
-            err.as_json()
-        } else {
-            "null".into()
-        };
-        format!(
-            r#"{{"success": {success:?},"error": {error}}}"#,
-            success = &self.success,
-            error = error
-        )
-    }
-
-    pub fn migrate(&mut self) {
+    /// This function will remove one table from the
+    /// queue and will attempt to generate the
+    /// appropriate migrations for it until there
+    /// are no tables left to remove.
+    pub fn migrate(&mut self) -> Result<Vec<Report>> {
+        // It first removes dependencies to tables which where not registered
+        // so foreign keys can be used on structs not defined by the user.
         self.queue.remove_unregistered();
         loop {
             match self.queue.pop() {
-                | Some(target) => self.migrate_table(target),
-
+                | Some(target) => self.migrate_table(target)?,
                 | None => {
-                    if self.queue.len() != 0 && self.result.is_ok() {
-                        self.result = Err(Error::Cycle(self.queue.remaining_tables()));
+                    if self.queue.len() != 0 {
+                        break Err(Error::Cycle(self.queue.remaining_tables()));
+                    } else {
+                        break Ok(std::mem::take(&mut self.success));
                     }
-                    break;
                 }
             }
         }
     }
 
-    pub fn migrate_table(&mut self, target: Table) {
-        if let Err(error) = self.try_migration(target) {
-            self.result = Err(error);
-        }
-    }
-
-    fn try_migration(&mut self, target: Table) -> Result {
+    fn migrate_table(&mut self, target: Table) -> Result {
         let migrations = self.get_migrations(target)?;
         for mig in migrations {
             if let Some(report) = mig.commit()? {
@@ -79,8 +66,8 @@ impl Driver {
     }
 
     fn get_migrations(&mut self, target: Table) -> Result<Vec<Migration>, Error> {
-        let schema = self.result.as_mut().map_err(|x| x.clone())?;
-        let actions = Actions::new(&schema, &target)?;
+        let schema = &mut self.schema;
+        let actions = Actions::new(schema, &target)?;
         let mut migrations = actions.as_migrations()?;
 
         for migr in &mut migrations {

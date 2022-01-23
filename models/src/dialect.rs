@@ -7,7 +7,7 @@ pub enum Dialect {
     SQLite,
     PostgreSQL,
     MySQL,
-    Any,
+    // Any,
 }
 
 impl Dialect {
@@ -20,7 +20,7 @@ impl Dialect {
     }
 
     pub(crate) fn supports_cascade(&self) -> bool {
-        !matches!(self, SQLite | Any)
+        !matches!(self, SQLite)
     }
 }
 
@@ -30,7 +30,7 @@ impl dialect::Dialect for Dialect {
             | SQLite => SQLiteDialect {}.is_delimited_identifier_start(ch),
             | PostgreSQL => PostgreSqlDialect {}.is_delimited_identifier_start(ch),
             | MySQL => MySqlDialect {}.is_delimited_identifier_start(ch),
-            | Any => GenericDialect {}.is_delimited_identifier_start(ch),
+            // | Any => GenericDialect {}.is_delimited_identifier_start(ch),
         }
     }
 
@@ -39,7 +39,7 @@ impl dialect::Dialect for Dialect {
             | SQLite => SQLiteDialect {}.is_identifier_start(ch),
             | PostgreSQL => PostgreSqlDialect {}.is_identifier_start(ch),
             | MySQL => MySqlDialect {}.is_identifier_start(ch),
-            | Any => GenericDialect {}.is_identifier_start(ch),
+            // | Any => GenericDialect {}.is_identifier_start(ch),
         }
     }
 
@@ -48,7 +48,7 @@ impl dialect::Dialect for Dialect {
             | SQLite => SQLiteDialect {}.is_identifier_part(ch),
             | PostgreSQL => PostgreSqlDialect {}.is_identifier_part(ch),
             | MySQL => MySqlDialect {}.is_identifier_part(ch),
-            | Any => GenericDialect {}.is_identifier_part(ch),
+            // | Any => GenericDialect {}.is_identifier_part(ch),
         }
     }
 }
