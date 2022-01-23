@@ -9,20 +9,57 @@ use queue::*;
 pub(crate) use report::*;
 use schema::*;
 
+pub struct SQLFile {
+    description: String,
+    content: String,
+}
+
+impl SQLFile {
+    fn commit(self) -> Result<()> {
+        todo!()
+    }
+}
+
+#[derive(Default)]
+pub struct SQLFiles(pub Vec<SQLFile>);
+
+impl SQLFiles {
+    fn commit(self) -> Result<()> {
+        for file in self.0 {
+            file.commit()?;
+        }
+        Ok(())
+    }
+}
+
 pub(crate) struct Driver {
-   pub(crate) schema: Schema,
-   pub(crate) queue: Queue,
-   pub(crate) success: Vec<Report>,
+    pub(crate) schema: Schema,
+    pub(crate) queue: Queue,
+    pub(crate) success: Vec<Report>,
 }
 
 impl Driver {
     pub fn new() -> Result<Self> {
         let schema = Schema::new()?;
-        Ok(Self {
+        Ok(Self::from_schema(schema))
+    }
+
+    #[cfg(test)]
+    pub fn _from_sql(sql: &str) -> Self {
+        let schema = Schema::_from_sql(sql).unwrap();
+        Self::from_schema(schema)
+    }
+
+    pub fn migrate2(&mut self) -> Result<Vec<SQLFile>> {
+        todo!()
+    }
+
+    pub fn from_schema(schema: Schema) -> Self {
+        Self {
             schema,
             queue: Queue::new(),
             success: vec![],
-        })
+        }
     }
 
     pub fn is_first(&self) -> bool {

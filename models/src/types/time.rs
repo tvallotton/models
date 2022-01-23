@@ -112,18 +112,3 @@ impl<T> IntoSQL for TimestampTz<T> {
         Ok(DataType::custom("TIMESTAMPTZ"))
     }
 }
-/// Wrapper for types related to PostgreSQL's `TIMETZ` type.
-/// The generated SQL for `TimeTz<T>` will always be `TIMETZ`,
-/// no matter if the SQL dialect supports such type or not.
-/// ```
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(feature = "sqlx", derive(sqlx::Type))]
-#[cfg_attr(feature = "sqlx", sqlx(transparent))]
-#[derive(WrapperStruct, Debug, Clone, Default, PartialEq, Eq, Hash, PartialOrd, Ord)]
-pub struct TimeTz<T>(pub T);
-
-impl<T> IntoSQL for TimeTz<T> {
-    fn into_sql() -> Result<DataType> {
-        Ok(DataType::custom("TIMETZ"))
-    }
-}

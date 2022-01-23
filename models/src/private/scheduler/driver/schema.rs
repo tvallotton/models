@@ -17,7 +17,7 @@ impl Schema {
     }
 
     #[cfg(test)]
-    fn _from_sql(sql: &str) -> Result<Self> {
+    pub fn _from_sql(sql: &str) -> Result<Self> {
         let stmts = parse_sql(sql)?;
         let mut out = Self {
             tables: HashMap::new(),

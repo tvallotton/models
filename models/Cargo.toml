@@ -14,7 +14,7 @@ json = ["serde", "serde_json"]
 sqlx-postgres = ["sqlx", "sqlx/postgres"]
 sqlx-mysql = ["sqlx", "sqlx/mysql"]
 sqlx-sqlite = ["sqlx", "sqlx/sqlite"]
-orm = ["sqlx/any", "dotenv", "futures", "models-proc-macro/orm"]
+orm = ["sqlx/any", "dotenv", "models-proc-macro/orm", "tokio"]
 
 
 
@@ -33,6 +33,8 @@ dotenv = {version = "0.15.0", optional = true}
 futures = { version = "0.3.17", optional = true}
 log = "0.4.14"
 pretty_env_logger = "0.4.0"
+fehler = "1.0.0"
+tokio = { version = "1.15.0", features = ["sync", "parking_lot"], optional = true}
 
 
 [dev-dependencies]
@@ -40,3 +42,4 @@ pretty_env_logger = "0.4.0"
 sqlx = {version = "0.5.9", features = ["runtime-async-std-native-tls", "postgres"] }
 models = {path = "../models", features = ["sqlformat", "json", "sqlx", "chrono", "orm"]}
 log = "0.4.14"
+rand = "0.8.4"

@@ -268,10 +268,14 @@
 //!
 //!
 //!
-#![allow(unused_imports)]
+// #![allow(unused_imports)]
 #[macro_use]
 extern crate models_proc_macro;
 
+#[macro_use]
+extern crate fehler; 
+
+use models_parser;
 pub use models_proc_macro::Model;
 
 #[macro_use]
@@ -294,22 +298,3 @@ pub mod private;
 #[cfg(feature = "orm")]
 pub mod orm;
 
-#[test]
-fn test() {
-    let x = prelude::parse_sql(
-        "
-CREATE TABLE foo (
-   bar INTEGER,
-   baz TEXT
-); 
-INSERT INTO foo (baz) values ('baz'); 
-
- ",
-    ).unwrap();
-
-    for stmt in x {
-        println!("{}", stmt); 
-    }
-
-
-}

@@ -30,12 +30,12 @@ use crate::prelude::*;
 /// CREATE TABLE profile (
 ///     id SERIAL NOT NULL
 /// );
-/// 
-/// -- SQLite 
+///
+/// -- SQLite
 /// CREATE TABLE profile (
-///     id INTEGER NOT NULL, 
-/// ); 
-/// 
+///     id INTEGER NOT NULL,
+/// );
+///
 ///
 /// While using SQLite, `Serial` is translated to `INTEGER`. W
 /// ```
@@ -64,6 +64,12 @@ impl Display for Serial {
 impl From<i32> for Serial {
     fn from(number: i32) -> Self {
         Self::Number(number)
+    }
+}
+
+impl Default for Serial {
+    fn default() -> Self {
+        Serial::AutoIncrement
     }
 }
 

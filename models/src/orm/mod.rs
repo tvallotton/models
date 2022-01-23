@@ -4,20 +4,13 @@ use crate::prelude::{
     Result,
     *,
 };
-
 use dotenv::*;
 pub use error::Error;
-use futures::{
-    executor::block_on,
-    TryFutureExt,
-};
+use tokio::sync::OnceCell;
 
 use sqlx::{
-    any::{
-        Any,
-        AnyPool,
-        AnyRow,
-    },
+    any::AnyPool,
+    ConnectOptions,
     Database,
     Encode,
     Executor,
@@ -29,39 +22,46 @@ use std::{
     sync::RwLock,
 };
 
-
-
 use url::Url;
 mod error;
-mod traits; 
+mod traits;
 pub struct Connection {
     pub dialect: Dialect,
     pub pool: AnyPool,
 }
 
-
-
-pub static DATABASE_URL: Lazy<Result<Url, Error>> = Lazy::new(|| {
+#[throws(Error)]
+pub fn get_database_url() -> Url {
     dotenv::dotenv().ok();
     env::var("DATABASE_URL")
         .or_else(|_| var("DATABASE_URL"))
         .map_err(|_| Error::NoDatabaseUrl)
-        .map(|url| Url::parse(&url))
-        .and_then(|result| result.map_err(|_| Error::InvalidDatabaseUrl))
-});
+        .map(|url| Url::parse(&url))?
+        .map_err(|_| Error::InvalidDatabaseUrl)?
+}
 
-pub static DATABASE_CONNECTION: Lazy<Result<Connection, Error>> = Lazy::new(|| {
-    futures::executor::block_on(async {
-        let url = DATABASE_URL.as_ref().map_err(Clone::clone)?;
-        let dialect = match url.scheme() {
-            | "sqlite" => Ok(SQLite),
-            | "postgres" => Ok(PostgreSQL),
-            | "mysql" => Ok(MySQL),
-            | scheme => Err(Error::UnsupportedScheme(scheme.into())),
-        }?;
+#[throws(Error)]
+pub async fn connect() -> Connection {
+    let url = get_database_url()?;
+    let dialect = get_dialect(&url)?;
+    let conn = Connection {
+        dialect,
+        pool: AnyPool::connect(&url.to_string()).await?,
+    };
+    conn
+}
+#[throws(Error)]
+fn get_dialect(url: &Url) -> crate::dialect::Dialect {
+    match url.scheme() {
+        | "sqlite" => SQLite,
+        | "postgres" => PostgreSQL,
+        | "mysql" => MySQL,
+        | scheme => throw!(Error::UnsupportedScheme(scheme.into())),
+    }
+}
+static DATABASE_CONNECTION: OnceCell<Connection> = tokio::sync::OnceCell::const_new();
 
-        let pool = AnyPool::connect(&url.to_string()).await?;
-
-        Ok(Connection { dialect, pool })
-    })
-});
+#[throws(Error)]
+pub async fn get_connection() -> &'static Connection {
+    DATABASE_CONNECTION.get_or_try_init(connect).await?
+}
