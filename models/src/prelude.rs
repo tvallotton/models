@@ -16,10 +16,12 @@ pub(crate) use std::{
     sync::Mutex,
     *,
 };
-pub(crate) use Dialect::*;
 
 pub(crate) use crate::{
-    dialect::Dialect,
+    dialect::{
+        Dialect,
+        Dialect::*,
+    },
     error::Error,
     private::*,
 };

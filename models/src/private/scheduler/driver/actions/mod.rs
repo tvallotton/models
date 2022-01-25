@@ -12,7 +12,7 @@ pub use compare::*;
 use inner::*;
 
 use super::schema::Schema;
-use crate::prelude::*;
+
 #[derive(Debug)]
 pub(crate) struct Actions<'table> {
     name: &'table ObjectName,

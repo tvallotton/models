@@ -5,15 +5,14 @@
 //! ## Features
 //! ### Enabled by default:
 //! * [`sqlformat`]: enables formatting for the generated SQL.
-//! *
 //!
 //! ### Optional:
-//! * `orm`: enables orm like functionality.
+//! * `orm`: enables ORM functionality.
 //! * [`sqlx`]: implements SQLx traits over models' types.
 //! * [`serde`]: implements Serialize and Deserialize over models' types.
-//! * [`json`]: enables the `Json<T>` datatype.
+//! * `json`: enables the `Json<T>` datatype.
+//! 
 //! # Quick Start
-//!
 //! install the CLI by running the following command:
 //! ```ignore
 //! $ cargo install models-cli
@@ -45,51 +44,23 @@
 //! #[table_name("users")]
 //! struct User {
 //!     #[primary_key]
-//!     id: AutoIncrement,
+//!     id: Serial,
 //!     #[unique]
 //!     email: String,
 //!     password: String,
+//!     #[default(false)]
 //!     is_admin: bool,
 //! }
 //!
 //! #[derive(Model)]
 //! struct Post {
 //!     #[primary_key]
-//!     id: AutoIncrement,
+//!     id: Serial,
 //!     #[foreign_key(User.id)]
 //!     author_id: i32,
 //!     #[default("<Untitled Post>")]
 //!     title: String,
 //!     content: String,
-//! }
-//!
-//! #[derive(Model)]
-//! struct PostLike {
-//!     #[foreign_key(User.id, on_delete="cascade")]
-//!     #[primary_key(post_id)]
-//!     profile_id: i32,
-//!     #[foreign_key(Post.id, on_delete="cascade")]
-//!     post_id: i32,
-//! }
-//!
-//! #[derive(Model)]
-//! struct CommentLike {
-//!     #[foreign_key(User.id)]
-//!     #[primary_key(comment_id)]
-//!     profile_id: i32,
-//!     #[foreign_key(Comment.id)]
-//!     comment_id: i32,
-//!     is_dislike: bool,
-//! }
-//!
-//! #[derive(Model)]
-//! struct Comment {
-//!     #[primary_key]
-//!     id: i32,
-//!     #[foreign_key(User.id)]
-//!     author: i32,
-//!     #[foreign_key(Post.id)]
-//!     post: i32,
 //! }
 //! fn main() {}
 //! ```
@@ -101,11 +72,8 @@
 //! ```
 //! The output should look like this:
 //! ```ignore
-//! Generated: migrations/1632280793452 profile
+//! Generated: migrations/1632280793452 users
 //! Generated: migrations/1632280793459 post
-//! Generated: migrations/1632280793465 postlike
-//! Generated: migrations/1632280793471 comment
-//! Generated: migrations/1632280793476 commentlike
 //! ```
 //! You can check out the generated migrations at the `migrations/` folder.
 //! To execute these migrations you can execute the following command:
@@ -114,11 +82,8 @@
 //! ```
 //! The output should look like this:
 //! ``` ignore
-//! Applied 1631716729974/migrate profile (342.208µs)
+//! Applied 1631716729974/migrate users (342.208µs)
 //! Applied 1631716729980/migrate post (255.958µs)
-//! Applied 1631716729986/migrate comment (287.792µs)
-//! Applied 1631716729993/migrate postlike (349.834µs)
-//! Applied 1631716729998/migrate commentlike (374.625µs)
 //! ```
 //! If we later modify those structures in our application, we can generate new
 //! migrations to update the tables.
@@ -129,6 +94,7 @@
 //! ```ignore
 //! $ models generate -r
 //! ```
+//! Before deleting an applied migration it must be reverted. 
 //! In order to revert the last migration executed you can run:
 //! ```ignore
 //! $ models migrate revert
@@ -138,14 +104,14 @@
 //! ```ignore
 //! $ models migrate info
 //! ```
-//! ## Avaibale Attributes
+//! ## Avaibale macro attributes
 //! ### primary_key
 //! It's used to mark the primary key fo the table.
 //! ```ignore
 //!     #[primary_key]
 //!     id: i32,
 //! ```
-//! for tables with multicolumn primary keys, the following syntax is used:
+//! For tables with multicolumn primary keys, the following syntax is used:
 //! ```ignore
 //!     #[primary_key(second_id)]
 //!     first_id: i32,
@@ -174,14 +140,13 @@
 //! ### default
 //! It can be used to set a default value for a column.
 //! ```ignore
-//!     #[default(false)] // when using SQLite use 0 or 1
+//!     #[default(false)] 
 //!     is_admin: bool,
 //!     #[default("")]
 //!     text: String,
 //!     #[default(0)]
 //!     number: i32,
 //! ```
-//!
 //! ### unique
 //! It is used to mark a unique constraint.
 //! ```ignore
@@ -200,10 +165,11 @@
 //! ```
 //!
 //! # ORM
-//! The `orm` feature enables the following methods on structs:
+//! ## struct derived methods
+//! The `orm` feature enables the following methods and associated functions on structs:
 //! ### insert
 //! The `insert` method can be used to insert a new row into a table.
-//! it will
+//! 
 //! ```rust
 //! let user =  User {
 //!     email: "example@gmail.com",
@@ -225,24 +191,18 @@
 //! user.delete().await?;
 //! ```
 //! ### find
-//! the `find` method can be used to get a row from a table.
+//! the `find` method can be used to get a row from a table from the primary key.
+//! If the table has multiple primary keys, then the argument should be a tuple. 
 //! ```rust
 //! let user: Option<User> = User::find(1).await?;
 //! ```
 //!
-//! ### get_all
-//! The `get_all` method can be used to get all rows from a table.
+//! ### all
+//! The `all` method can be used to get all rows from a table.
 //! ```rust
-//! let users: Vec<User> = User::get_all().await?;
+//! let users: Vec<User> = User::all().await?;
 //! ```
 //!
-//! ### find_by
-//! The `find_by` function can be used to get a row from a table from a specific column.
-//! If the column is unique, then the output will be an option, otherwise it will be a vector.  
-//! ```rust
-//! let user: Option<User> = models::find_by(User::email, "example@gmail.com").await?;
-//! let admins: Vec<User> = models::find_by(User::is_admin, true).await?;
-//! ```
 //! ### foreign keys
 //! Foreign keys automatically define getters for both structs involved in the relation:
 //! ```rust
@@ -255,7 +215,7 @@
 //! this is pluralized for the foreign struct getter, as in `Post => posts()`.
 //! The default names of the getters can be overriden with the following syntax:
 //! ```rust
-//! #[foreign_key(User.id, self.getter = "name1", foreign.getter = "name2")]
+//! #[foreign_key(User.id, self.getter = "user", foreign.getter = "publications")]
 //! author_id: i32,
 //! ```
 //! To opt out of getters you can use the following syntax:
@@ -263,12 +223,118 @@
 //! #[foreign_key(User.id, self.getter = None, foreign.getter = None)]
 //! author_id: i32,
 //! ```
-//!
-//!
-//!
-//!
+//! ## complex queries
+//! ### query composition
+//! Queries are executed when they are awaited. If they are not awaited, 
+//! they can be composed to create more complex queries.
+//! ```
+//! // UPDATE user SET is_admin = false WHERE user.email LIKE "%@gmail%"; 
+//! let authors = select(Post::author_id);
+//! 
+//!  let emails: Vec<String> = User::all()
+//!     .filter(User::id.is_in, authors)
+//!     .order_by(User::id.desc)
+//!     .limit(10)
+//!     .await?; 
+//! ```
+//! 
+//! ### select
+//! You may select all elements in a table with the select function. 
+//! You can also select a single column by using the path operator (`Table::column`). It may also be used as a postfix method from an existing query.
+//! Multiple columns can be selected with a tuple:  
+//! ```
+//! // SELECT * FROM user; 
+//! let users: Vec<User> = select(User).await?; 
+//! // SELECT user.email FROM user; 
+//! let emails: Vec<User> = select(User::email).await?; 
+//! // used as a method: 
+//! let emails: Vec<User> = query.select(User::email).await?; 
+//! ```
+//! 
+//! ### filter
+//! the filter method can be used to introduce a where clause in the SQL query: 
+//! ```
+//! let admins: Vec<User> =  User::all()
+//!     .filter(User::is_admin, true)
+//!     .await?; 
+//! ```
+//! ### join
+//! ```
+//! 
+//! join_on()
+//! 
+//! 
+//! // select post.*, user.* from post inner join on
+//! 
+//! let author: Vec<User> = join(Post::author_id, User::id)
+//!     .limit(1)
+//!     .await?; 
+//! ```
+//! 
+//! ### fields and operators
+//! A field of a table can be referenced with the path operator (`Table::column`). 
+//! Operators over fields can be expressed with the dot notation. 
+//! When performing a field comparison, equality is the default operation,
+//! but another operation can be used using the following syntax: 
+//! ```rust
+//! let _ = filter(User::email, "example@gmail.com").await?; // equality
+//! let _ = filter(User::email.like, "%@gmail%").await; // LIKE operator
+//! let _ = filter(User::id.lt, 100).await?;  // less than (<)
+//! let _ = filter(User::id.gt, 100).await?;  // greater than (>)
+//! ```
+//! 
+//! ### find_by
+//! The `find_by` function can be used to get a row from a table from a specific column.
+//! If the column is unique, then the output will be an option, otherwise it will be a vector. 
+//! ```rust
+//! use models::find_by; 
+//! let user: Option<User> = find_by(User::email, "example@gmail.com").await?;
+//! let admins: Vec<User> = find_by(User::is_admin, true).await?;
+//! let user: Option<User> = find_by(Post::id.lt, )
+//! ```
+//! 
+//! 
+//! ### update
+//! You may update the field of an entire column
+//! using the update function
+//! ```
+//! models::update(User::is_admin, false); 
+//! update().set(User::is_admin, false).
+//! models::update(User::is_admin, false).filter(User::)
+//! ```
+//! 
+//! 
+//! ### query composition
+//! Queries are executed when they are awaited. If they are not awaited, 
+//! they can be composed to create more complex queries.
+//! ```
+//! // UPDATE user SET is_admin = false WHERE user.email LIKE "%@gmail%"; 
+//! models::update(User::is_admin, false)
+//!     .filter(User::email.like, "%@gmail%")
+//!     .await?; 
+//! 
+//! // SELECT user.email FROM User where user.is_admin = true ORDER BY user.id ASC; 
+//! let admins: Vec<String> = models::select(User::email)
+//!     .filter(User::is_admin, true)
+//!     .order_by(User::id.asc)
+//!     .await?; 
+//! 
+//! 
+//! ```
+//! ### select
+//! to select a column you can use 
+//! the `select` function. There is also a select method used to select a column from a query. 
+//! ```
+//! let emails: Vec<String> = select(User::email).await?; 
+//! let password: Option<String> = User::find(10).select(User::password).await?; 
+//! ```
+//! 
 //!
 // #![allow(unused_imports)]
+
+
+
+
 #[macro_use]
 extern crate models_proc_macro;
 

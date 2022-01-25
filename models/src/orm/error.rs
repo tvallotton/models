@@ -4,7 +4,7 @@ use thiserror::Error;
 pub enum Error {
     #[error("SQLxError: {0}")]
     SQLx(#[from] sqlx::Error),
-    #[error("NoDatabaseUrl: clould not read DATABASE_URL.")]
+    #[error("NoDatabaseUrl: clould not read DATABASE_URL. You may set it as an environment variable, or place it in a .env file.")]
     NoDatabaseUrl,
     #[error("InvalidDatabaseUrl: clould not parse DATABASE_URL.")]
     InvalidDatabaseUrl,
